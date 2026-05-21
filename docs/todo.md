@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 146 unit tests pass. WPT failure rejection: 269/275 (97.8%).
+All 190 unit tests pass. WPT failure rejection: 269/275 (97.8%).
 
 ---
 
@@ -18,40 +18,41 @@ All 146 unit tests pass. WPT failure rejection: 269/275 (97.8%).
 
 ---
 
-## Phase 2 — URLSearchParams (in progress)
+## Phase 2 — URLSearchParams (completed)
 
-WHATWG `URLSearchParams` interface. WPT coverage: 11 test files
-(`urlsearchparams-*.any.js` and `urlencoded-parser.any.js`).
+WHATWG `URLSearchParams` interface. Implemented in `src/search_params.mbt`;
+tested in `src/url_search_params_test.mbt`.
 
 ### Type and constructor
 
-- [ ] `pub struct UrlSearchParams` with mutable `list : Array[(String, String)]`
-- [ ] `UrlSearchParams::new() -> UrlSearchParams`
-- [ ] `UrlSearchParams::from_string(s: String) -> UrlSearchParams`
-  - Strip leading `?`
-  - Split on `&`, split each pair on first `=`
-  - Replace `+` with space, then percent-decode (application/x-www-form-urlencoded)
+- [x] `pub struct UrlSearchParams` with mutable `list : Array[(String, String)]`
+- [x] `UrlSearchParams::new() -> UrlSearchParams`
+- [x] `UrlSearchParams::from_string(s: String) -> UrlSearchParams`
+  - Strips leading `?`
+  - Splits on `&`, splits each pair on first `=`
+  - Replaces `+` with space, then percent-decodes (application/x-www-form-urlencoded)
 
 ### Operations
 
-- [ ] `append(name, value)` — add pair at end
-- [ ] `delete(name)` — remove all pairs with name
-- [ ] `delete_entry(name, value)` — remove all pairs with exact (name, value)
-- [ ] `get(name) -> String?` — first value for name
-- [ ] `get_all(name) -> Array[String]` — all values for name
-- [ ] `has(name) -> Bool` — any pair with name
-- [ ] `has_entry(name, value) -> Bool` — any pair with exact (name, value)
-- [ ] `set(name, value)` — replace all; if none, append
-- [ ] `sort()` — stable sort by name using UTF-16 code unit order
-- [ ] `size() -> Int` — number of pairs
-- [ ] `to_string() -> String` — application/x-www-form-urlencoded serialization
-- [ ] `iter() -> Iter[(String, String)]`
-- [ ] `for_each((String, String) -> Unit)`
+- [x] `append(name, value)` — add pair at end
+- [x] `delete(name)` — remove all pairs with name
+- [x] `delete_entry(name, value)` — remove all pairs with exact (name, value)
+- [x] `get(name) -> String?` — first value for name
+- [x] `get_all(name) -> Array[String]` — all values for name
+- [x] `has(name) -> Bool` — any pair with name
+- [x] `has_entry(name, value) -> Bool` — any pair with exact (name, value)
+- [x] `set(name, value)` — replace all; if none, append
+- [x] `sort()` — stable sort by name using UTF-16 code unit order
+- [x] `size() -> Int` — number of pairs
+- [x] `to_string() -> String` — application/x-www-form-urlencoded serialization
+- [x] `iter() -> Iter[(String, String)]`
+- [x] `for_each((String, String) -> Unit)`
 
 ### Key implementation notes
 
-- Serializer: space→`+`, safe chars literal, else `%XX`; safe = `*-._ 0-9 A-Z a-z`
-- `sort()` uses UTF-16 code unit comparison (stable)
+- `url_form_decode`: `+`→space, then percent-decode (lenient: invalid `%XX` passed through)
+- `url_form_encode`: space→`+`, safe chars literal, else `%XX`; safe = `*-._ 0-9 A-Z a-z`
+- `sort()` uses UTF-16 code unit comparison via `compare_utf16` (stable)
 - `has_entry` / `delete_entry` = two-argument form from WHATWG spec
 
 ---

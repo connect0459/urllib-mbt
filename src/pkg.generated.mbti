@@ -64,6 +64,25 @@ pub enum UrlPath {
   Opaque(String)
 } derive(@debug.Debug)
 
+pub struct UrlSearchParams {
+  mut list : Array[(String, String)]
+}
+pub fn UrlSearchParams::append(Self, String, String) -> Unit
+pub fn UrlSearchParams::delete(Self, String) -> Unit
+pub fn UrlSearchParams::delete_entry(Self, String, String) -> Unit
+pub fn UrlSearchParams::for_each(Self, (String, String) -> Unit) -> Unit
+pub fn UrlSearchParams::from_string(String) -> Self
+pub fn UrlSearchParams::get(Self, String) -> String?
+pub fn UrlSearchParams::get_all(Self, String) -> Array[String]
+pub fn UrlSearchParams::has(Self, String) -> Bool
+pub fn UrlSearchParams::has_entry(Self, String, String) -> Bool
+pub fn UrlSearchParams::iter(Self) -> Iter[(String, String)]
+pub fn UrlSearchParams::new() -> Self
+pub fn UrlSearchParams::set(Self, String, String) -> Unit
+pub fn UrlSearchParams::size(Self) -> Int
+pub fn UrlSearchParams::sort(Self) -> Unit
+pub fn UrlSearchParams::to_string(Self) -> String
+
 // Type aliases
 
 // Traits
