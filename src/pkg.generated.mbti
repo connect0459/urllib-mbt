@@ -6,7 +6,11 @@ import {
 }
 
 // Values
+pub fn can_parse(String, Url?) -> Bool
+
 pub fn parse(String) -> Url raise UrlParseError
+
+pub fn parse_maybe(String, Url?) -> Url?
 
 pub fn parse_with_base(String, Url?) -> Url raise UrlParseError
 
@@ -53,6 +57,7 @@ pub fn Url::set_port(Self, String) -> Self
 pub fn Url::set_protocol(Self, String) -> Self
 pub fn Url::set_search(Self, String) -> Self
 pub fn Url::set_username(Self, String) -> Self
+pub fn Url::to_json(Self) -> String
 
 pub enum UrlPath {
   Segments(Array[String])
