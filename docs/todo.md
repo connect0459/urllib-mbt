@@ -1,4 +1,4 @@
-# todo - moon_uri
+# todo - uri
 
 Current state: **568/611 WPT success cases pass (93.0%)**  
 All 40 unit tests pass. WPT failure rejection: 167/275 (60.7%).
@@ -82,5 +82,8 @@ All 40 unit tests pass. WPT failure rejection: 167/275 (60.7%).
 ## Done
 
 - [x] **`src/` layout migration** — Added `"source": "src"` to `moon.mod.json`
-  and moved all source files under `src/`. Public module name
-  `connect0459/moon_uri` unchanged.
+  and moved all source files under `src/`. Public module name `connect0459/moon_uri`.
+
+- [x] **Module rename `moon_uri` → `uri`** — Renamed module to `connect0459/uri`
+  to match the repository directory name `uri.mbt`. Updated all source file names,
+  test aliases, and `.mbti` interface files.

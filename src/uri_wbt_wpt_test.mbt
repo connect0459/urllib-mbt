@@ -1237,17 +1237,17 @@ test "WPT success cases: href round-trip" {
   let mut failed = 0
   for item in cases {
     let (input, base_opt, expected_href) = item
-    let base_url : @moon_uri.Url? = match base_opt {
+    let base_url : @uri.Url? = match base_opt {
       None => None
       Some(base_str) =>
-        Some(@moon_uri.parse(base_str)) catch {
+        Some(@uri.parse(base_str)) catch {
           _ => {
             failed = failed + 1
             continue
           }
         }
     }
-    let url = @moon_uri.parse_with_base(input, base_url) catch {
+    let url = @uri.parse_with_base(input, base_url) catch {
       e => {
         println("ERR: input=\{input} base=\{base_opt} error=\{e}")
         failed = failed + 1
@@ -1555,12 +1555,12 @@ test "WPT failure cases: parse rejects invalid URLs" {
   let mut accepted = 0
   for item in cases {
     let (input, base_opt) = item
-    let base_url : @moon_uri.Url? = match base_opt {
+    let base_url : @uri.Url? = match base_opt {
       None => None
-      Some(base_str) => Some(@moon_uri.parse(base_str)) catch { _ => None }
+      Some(base_str) => Some(@uri.parse(base_str)) catch { _ => None }
     }
-    let result : Result[@moon_uri.Url, @moon_uri.UrlParseError] = Ok(
-      @moon_uri.parse_with_base(input, base_url),
+    let result : Result[@uri.Url, @uri.UrlParseError] = Ok(
+      @uri.parse_with_base(input, base_url),
     ) catch {
       e => Err(e)
     }
