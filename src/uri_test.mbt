@@ -465,3 +465,47 @@ test "IPv4 single-part hex 0xffffffff is valid max address" {
   let url = @uri.parse("http://0xffffffff")
   assert_eq(url.href(), "http://255.255.255.255/")
 }
+
+///|
+test "non-special empty host with colon and no port is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("sc://:/")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "non-special empty host with numeric port is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("sc://:12/")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "data scheme empty host with port is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("data://:443")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "javascript scheme empty host with port is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("javascript://:443")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "non-special empty host without port is valid" {
+  let url = @uri.parse("sc:///")
+  assert_eq(url.href(), "sc:///")
+}
+
+///|
+test "non-special non-empty host with port is valid" {
+  let url = @uri.parse("sc://host:12/")
+  assert_eq(url.href(), "sc://host:12/")
+}

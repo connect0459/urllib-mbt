@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **607/611 WPT success cases pass (99.3%)**  
-All 68 unit tests pass. WPT failure rejection: 181/275 (65.8%).
+All 74 unit tests pass. WPT failure rejection: 190/275 (69.1%).
 
 ---
 
@@ -70,9 +70,10 @@ All 68 unit tests pass. WPT failure rejection: 181/275 (65.8%).
   saturation at 2^32; `parse_ipv4_number` rejects values ≥ 2^32.  
   Fixed 6 WPT failure cases: 175→181 correctly rejected.
 
-- [ ] **Empty host with port for non-special schemes** (`host.mbt` / `parser.mbt`)  
+- [x] **Empty host with port for non-special schemes** (`parser.mbt` — `parse_host_and_port`)  
   `sc://:/` / `sc://:12/` / `data://:443` should fail; currently accepted.  
-  ~9 WPT failure cases incorrectly accepted.
+  In `parse_host_and_port`, raise error when non-special + colon found + host part empty.  
+  Fixed 9 WPT failure cases: 181→190 correctly rejected.
 
 ---
 

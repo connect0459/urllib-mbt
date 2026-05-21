@@ -627,6 +627,9 @@ fn parse_host_and_port(
       Some(colon_pos) => {
         let host_part = input[0:colon_pos].to_owned()
         let port_str = input[colon_pos + 1:].to_owned()
+        if !is_special && host_part.is_empty() {
+          raise UrlParseError("empty host with port for non-special URL")
+        }
         let h = parse_host(host_part, is_special)
         let p = if port_str.is_empty() {
           None
