@@ -122,12 +122,6 @@ fn parse_host(input : String, is_special : Bool) -> Host raise UrlParseError {
   if domain_has_forbidden_char(ascii_domain) {
     raise UrlParseError("domain has forbidden host code point")
   }
-  // Reject labels that are exactly "xn--" (empty Punycode extension — invalid ACE label)
-  for label in split_on_char(ascii_domain, '.') {
-    if label == "xn--" {
-      raise UrlParseError("invalid ACE label: empty xn-- extension")
-    }
-  }
   if ends_in_number(ascii_domain) {
     let addr = parse_ipv4(ascii_domain)
     return Host::Ipv4(addr)
@@ -172,6 +166,7 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
   if domain.is_empty() {
     raise UrlParseError("empty domain")
   }
+  // Phase 1: strip ignorables, map full-width/math chars, lowercase ASCII
   let buf = StringBuilder::new()
   for c in domain {
     let cp = c.to_int()
@@ -196,11 +191,67 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
       }
     }
   }
-  let result = buf.to_string()
+  let mapped = buf.to_string()
+  if mapped.is_empty() {
+    raise UrlParseError("empty domain")
+  }
+  // Phase 2: per-label Punycode encode/validate
+  let labels = split_on_char(mapped, '.')
+  let out = StringBuilder::new()
+  for i = 0; i < labels.length(); i = i + 1 {
+    if i > 0 {
+      out.write_char('.')
+    }
+    let label = labels[i]
+    if label.is_empty() {
+      continue
+    }
+    let mut has_non_ascii = false
+    let cps : Array[Int] = []
+    for c in label {
+      let cp = c.to_int()
+      cps.push(cp)
+      if cp > 0x7F {
+        has_non_ascii = true
+      }
+    }
+    if has_non_ascii {
+      for cp in cps {
+        if is_idna_forbidden_cp(cp) {
+          raise UrlParseError("domain has IDNA-forbidden code point")
+        }
+      }
+      let encoded = punycode_encode(cps)
+      out.write_string("xn--")
+      out.write_string(encoded)
+    } else {
+      // ASCII label: validate existing xn-- labels
+      if label.has_prefix("xn--") {
+        let suffix = label[4:label.length()].to_owned()
+        if suffix.is_empty() {
+          raise UrlParseError("invalid ACE label: empty xn-- extension")
+        }
+        let _ = punycode_decode(suffix)
+      }
+      out.write_string(label)
+    }
+  }
+  let result = out.to_string()
   if result.is_empty() {
     raise UrlParseError("empty domain")
   }
   result
+}
+
+///|
+fn is_idna_forbidden_cp(cp : Int) -> Bool {
+  cp == 0xFFFD ||
+  (cp >= 0xFDD0 && cp <= 0xFDEF) ||
+  (cp & 0xFFFF) == 0xFFFE ||
+  (cp & 0xFFFF) == 0xFFFF ||
+  cp == 0x00A0 ||
+  cp == 0x3000 ||
+  (cp >= 0x80 && cp <= 0x9F)
 }
 
 ///|

@@ -1,6 +1,6 @@
 # todo - uri
 
-Current state: **607/611 WPT success cases pass (99.3%)**  
+Current state: **611/611 WPT success cases pass (100%)**  
 All 74 unit tests pass. WPT failure rejection: 269/275 (97.8%).
 
 ---
@@ -59,10 +59,12 @@ All 74 unit tests pass. WPT failure rejection: 269/275 (97.8%).
   mathematical bold A-Z (U+1D400..U+1D419) and a-z (U+1D41A..U+1D433).  
   Raise error on empty domain after stripping. Covers all partial-fix WPT cases (+8).
 
-- [ ] **IDNA / Punycode** (`host.mbt` — `domain_to_ascii`)  
-  Full Punycode required for: `https://faß.ExAmPlE/` → `https://xn--fa-hia.example/`,  
-  `http://你好你好` → `http://xn--6qqa088eba/`, `ftp://%e2%98%83` → `ftp://xn--n3h/`.  
-  Remaining 4 WPT failures. Requires external Punycode library — out of scope for now.
+- [x] **IDNA / Punycode** (`host.mbt` — `domain_to_ascii`, `punycode.mbt`)  
+  Full Punycode (RFC 3492) implemented in `src/punycode.mbt`.  
+  `domain_to_ascii` Phase 2: per-label encode non-ASCII labels to ACE form (`xn--`),  
+  validate existing `xn--` labels via decode, reject IDNA-forbidden codepoints before encode.  
+  Fixed 4 WPT success cases: 607/611 → 611/611 (100%).  
+  Remaining 6 failure cases (`xn--pokxncvks`) require IDNA validation tables — out of scope.
 
 - [x] **IPv4 overflow** (`host.mbt` — `parse_ipv4_number`)  
   `http://4294967296` / `http://0x100000000` should fail; currently wraps at 32-bit.  
