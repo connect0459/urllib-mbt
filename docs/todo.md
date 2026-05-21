@@ -1,7 +1,58 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 74 unit tests pass. WPT failure rejection: 269/275 (97.8%).
+All 146 unit tests pass. WPT failure rejection: 269/275 (97.8%).
+
+---
+
+## Phase 1 — Static utilities (completed)
+
+- [x] **`can_parse(url, base?)`** — `src/uri.mbt`
+  Returns `Bool` instead of raising. WHATWG `URL.canParse()` equivalent.
+
+- [x] **`parse_maybe(url, base?)`** — `src/uri.mbt`
+  Returns `Url?` instead of raising. WHATWG `URL.parse()` equivalent.
+
+- [x] **`Url::to_json()`** — `src/uri.mbt`
+  Alias for `href()`. WHATWG `URL.toJSON()` equivalent.
+
+---
+
+## Phase 2 — URLSearchParams (in progress)
+
+WHATWG `URLSearchParams` interface. WPT coverage: 11 test files
+(`urlsearchparams-*.any.js` and `urlencoded-parser.any.js`).
+
+### Type and constructor
+
+- [ ] `pub struct UrlSearchParams` with mutable `list : Array[(String, String)]`
+- [ ] `UrlSearchParams::new() -> UrlSearchParams`
+- [ ] `UrlSearchParams::from_string(s: String) -> UrlSearchParams`
+  - Strip leading `?`
+  - Split on `&`, split each pair on first `=`
+  - Replace `+` with space, then percent-decode (application/x-www-form-urlencoded)
+
+### Operations
+
+- [ ] `append(name, value)` — add pair at end
+- [ ] `delete(name)` — remove all pairs with name
+- [ ] `delete_entry(name, value)` — remove all pairs with exact (name, value)
+- [ ] `get(name) -> String?` — first value for name
+- [ ] `get_all(name) -> Array[String]` — all values for name
+- [ ] `has(name) -> Bool` — any pair with name
+- [ ] `has_entry(name, value) -> Bool` — any pair with exact (name, value)
+- [ ] `set(name, value)` — replace all; if none, append
+- [ ] `sort()` — stable sort by name using UTF-16 code unit order
+- [ ] `size() -> Int` — number of pairs
+- [ ] `to_string() -> String` — application/x-www-form-urlencoded serialization
+- [ ] `iter() -> Iter[(String, String)]`
+- [ ] `for_each((String, String) -> Unit)`
+
+### Key implementation notes
+
+- Serializer: space→`+`, safe chars literal, else `%XX`; safe = `*-._ 0-9 A-Z a-z`
+- `sort()` uses UTF-16 code unit comparison (stable)
+- `has_entry` / `delete_entry` = two-argument form from WHATWG spec
 
 ---
 
