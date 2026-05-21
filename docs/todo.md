@@ -76,3 +76,11 @@ All 40 unit tests pass. WPT failure rejection: 167/275 (60.7%).
 - [ ] Restore WPT debug output limit: `if failed < 10 { println(...) }`
 - [ ] Remove `ERR:` debug printing from the WPT success test
 - [ ] Investigate WPT failure rejection rate (167/275 = 60.7%) — which cases are incorrectly accepted
+
+---
+
+## Done
+
+- [x] **`src/` layout migration** — Added `"source": "src"` to `moon.mod.json`
+  and moved all source files under `src/`. Public module name
+  `connect0459/moon_uri` unchanged.
