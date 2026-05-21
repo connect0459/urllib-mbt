@@ -1,7 +1,7 @@
 # todo - moon_uri
 
-Current state: **542/611 WPT success cases pass (88.7%)**  
-All 27 unit tests pass. WPT failure rejection: 167/275 (60.7%).
+Current state: **568/611 WPT success cases pass (93.0%)**  
+All 40 unit tests pass. WPT failure rejection: 167/275 (60.7%).
 
 ---
 
@@ -9,36 +9,34 @@ All 27 unit tests pass. WPT failure rejection: 167/275 (60.7%).
 
 ### Quick wins
 
-- [ ] **`%2e%2e` trailing slash** (`parser.mbt` — Path state)  
+- [x] **`%2e%2e` trailing slash** (`parser.mbt` — Path state)  
   `https://example.com/aaa/bbb/%2e%2e?query` → got `aaa?query`, want `aaa/?query`  
-  After resolving a double-dot segment, push `""` to preserve the trailing slash when `c == Some('/')`.
+  Removed `is_sep &&` guard so `""` is pushed after dot segments before `?`, `#`, or EOF.
 
-- [ ] **IPv4 fallback on invalid hex** (`host.mbt` — `parse_host`)  
-  `http://0x7f.0.0.0x7g` → currently raises error, want `http://0x7f.0.0.0x7g/` (treat as domain)  
-  Wrap the `parse_ipv4` call in a try/catch; on failure return `Host::Domain(ascii_domain)`.
+- [x] **IPv4 fallback on invalid hex** (`host.mbt` — `ends_in_number`)  
+  `http://0x7f.0.0.0x7g` → was raising error, now returns `http://0x7f.0.0.0x7g/` (treat as domain)  
+  Rewrote `ends_in_number` to validate all hex digits; `0x7g` → returns false → treated as domain.
 
-- [ ] **Opaque path encoding** (`parser.mbt` — `OpaquePath` state)  
+- [x] **Opaque path encoding** (`parser.mbt` — `OpaquePath` state)  
   `non-special:opaque  ?hi` → got passthrough, want `non-special:opaque %20?hi`  
-  Apply the C0 percent-encode set (U+0000–U+001F, >U+007E) plus space to each code point.  
-  Also covers: `wow:￿` → `wow:%EF%BF%BF`, `non-special: y` → `non-special:%00y`.
+  Apply C0 percent-encode set + trailing-space `%20` rule at `?`/`#` stops.  
+  Also fixed: `wow:￿` → `wow:%EF%BF%BF`, `non-special:\u{0000}y` → `non-special:%00y`.
 
 ---
 
 ### Moderate effort
 
-- [ ] **Multiple `@` in credentials** (`parser.mbt` — Authority state)  
-  `https://@@@example` → got `%40%40:%40%40@example/`, want `%40%40@example/`  
-  When `at_sign_seen` is already true, the accumulated buffer should be re-percent-encoded
-  and prepended to username (everything before last `@` goes into credentials). Fix the
-  credential accumulation logic for the repeated-`@` case.
+- [x] **Multiple `@` in credentials** (`parser.mbt` — Authority state)  
+  `https://@@@example` → was `%40%40:%40%40@example/`, now `%40%40@example/`  
+  Per WHATWG spec: prepend `%40` to buffer only; do NOT reset `password_token_seen`.
 
-- [ ] **`///` and `////` relative to non-special base** (`parser.mbt`)  
-  `///` with base `sc://x/` → got `sc://`, want `sc:///`  
-  Leading slashes beyond `//` must be preserved as empty path segments, not collapsed.
+- [x] **`///` and `////` relative to non-special base** (`parser.mbt`)  
+  `///` with base `sc://x/` → was `sc://`, now `sc:///`  
+  Fixed dead-code branch in RelativeSlash state: non-special `//` now goes to Authority state.
 
-- [ ] **Percent-encode set correctness** (`percent_encode.mbt`)  
-  `foo://host/ !"$...^...~` — `^` (U+005E) not encoded in path, want `%5E`  
-  Review `percent_encode_path_seg` and `percent_encode_userinfo` against WHATWG spec tables.
+- [x] **Percent-encode set correctness** (`percent_encode.mbt`)  
+  `foo://host/a^b` — `^` (U+005E) was not encoded in path, now `%5E`  
+  Added `0x5E` to `in_path_set`.
 
 ---
 
@@ -64,12 +62,12 @@ All 27 unit tests pass. WPT failure rejection: 167/275 (60.7%).
   Also affects relative URLs whose base path contains `/.//`.
 
 - [ ] **IDNA / Punycode** (`host.mbt` — `domain_to_ascii`)  
-  `https://faß.ExAmPlE/` → want `https://xn--fa-hia.example/`  
-  `http://你好你好` → want `http://xn--6qqa088eba/`  
-  `http://www.foo。bar.com` → want `http://www.foo.bar.com/` (full-width period)  
-  `file://a­b/p` → want `file://ab/p` (soft hyphen U+00AD stripped)  
-  Requires UTS#46 mapping table + Punycode encoding. Consider a third-party MoonBit library
-  or limit scope to full-width ASCII mapping + soft-hyphen stripping as a partial fix.
+  Full Punycode: `https://faß.ExAmPlE/` → `https://xn--fa-hia.example/`, `http://你好你好` → `http://xn--6qqa088eba/`  
+  Partial fixes implementable without Punycode library:
+  - Strip soft hyphen U+00AD and ignored chars (U+200B, U+2060, U+FEFF) from domains
+  - Map full-width period U+3002 → `.`
+  - Map full-width ASCII U+FF01..U+FF5E → U+0021..U+007E
+  These partial fixes cover ~4 additional WPT cases.
 
 ---
 
@@ -77,5 +75,4 @@ All 27 unit tests pass. WPT failure rejection: 167/275 (60.7%).
 
 - [ ] Restore WPT debug output limit: `if failed < 10 { println(...) }`
 - [ ] Remove `ERR:` debug printing from the WPT success test
-- [ ] Run `moon info && moon fmt`
 - [ ] Investigate WPT failure rejection rate (167/275 = 60.7%) — which cases are incorrectly accepted
