@@ -43,6 +43,16 @@ pub fn Url::pathname(Self) -> String
 pub fn Url::port_str(Self) -> String
 pub fn Url::protocol(Self) -> String
 pub fn Url::search(Self) -> String
+pub fn Url::set_hash(Self, String) -> Self
+pub fn Url::set_host(Self, String) -> Self
+pub fn Url::set_hostname(Self, String) -> Self
+pub fn Url::set_href(Self, String) -> Self raise UrlParseError
+pub fn Url::set_password(Self, String) -> Self
+pub fn Url::set_pathname(Self, String) -> Self
+pub fn Url::set_port(Self, String) -> Self
+pub fn Url::set_protocol(Self, String) -> Self
+pub fn Url::set_search(Self, String) -> Self
+pub fn Url::set_username(Self, String) -> Self
 
 pub enum UrlPath {
   Segments(Array[String])

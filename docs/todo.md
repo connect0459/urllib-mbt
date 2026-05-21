@@ -112,6 +112,41 @@ require a Punycode decoder to detect invalid Punycode-encoded strings (out of sc
 
 ---
 
+## URL Setters — Completed
+
+### Design
+
+- `Url` remains immutable; all setters return a new `Url` value.
+- Setter signatures: `Url::set_<name>(self, value: String) -> Url`
+  (exception: `set_href` raises `UrlParseError` on invalid input)
+
+### WPT: setters_tests.json, 278 cases — **278/278 pass**
+
+- [x] Fix `search()` / `hash()` getters for empty-string `Some("")` case
+- [x] `set_href(value)` — 1 WPT case
+- [x] `set_protocol(value)` — 35 WPT cases
+- [x] `set_username(value)` — 13 WPT cases
+- [x] `set_password(value)` — 12 WPT cases
+- [x] `set_host(value)` — 67 WPT cases
+- [x] `set_hostname(value)` — 48 WPT cases
+- [x] `set_port(value)` — 27 WPT cases
+- [x] `set_pathname(value)` — 33 WPT cases
+- [x] `set_search(value)` — 16 WPT cases
+- [x] `set_hash(value)` — 26 WPT cases
+
+### Key implementation notes
+
+- `src/setters.mbt`: all 10 setter methods + helper functions
+- `strip_ascii_tabs_newlines`: setters strip only `\t`/`\n`/`\r` (NOT leading/trailing C0 or space),
+  matching WHATWG basic URL parse with state override behaviour
+- `hostname()` serializer: IPv6 includes `[...]` brackets (matches WHATWG)
+- `url_can_have_credentials`: rejects `Domain("")` (empty host) and `file:` scheme
+- File URL special cases: `localhost` host → `""`, port forbidden, empty host settable
+- `set_pathname("")` with host: produces `Segments([])` (not `Segments([""])`)
+- `set_port("")`: clears port (original empty); stripped-to-empty → no-op (keep existing)
+
+---
+
 ## Done
 
 - [x] **`src/` layout migration** — Added `"source": "src"` to `moon.mod.json`

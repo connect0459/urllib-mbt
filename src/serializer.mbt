@@ -93,7 +93,6 @@ pub fn Url::protocol(self : Url) -> String {
 ///|
 pub fn Url::hostname(self : Url) -> String {
   match self.host {
-    Some(Ipv6(pieces)) => serialize_ipv6(pieces)
     Some(h) => serialize_host(h)
     None => ""
   }
@@ -127,7 +126,7 @@ pub fn Url::pathname(self : Url) -> String {
     Opaque(s) => s
     Segments(segs) =>
       if segs.is_empty() {
-        if is_special_scheme(self.scheme) || self.host != None {
+        if is_special_scheme(self.scheme) {
           "/"
         } else {
           ""
@@ -146,7 +145,7 @@ pub fn Url::pathname(self : Url) -> String {
 ///|
 pub fn Url::search(self : Url) -> String {
   match self.query {
-    None => ""
+    None | Some("") => ""
     Some(q) => "?" + q
   }
 }
@@ -154,7 +153,7 @@ pub fn Url::search(self : Url) -> String {
 ///|
 pub fn Url::hash(self : Url) -> String {
   match self.fragment {
-    None => ""
+    None | Some("") => ""
     Some(f) => "#" + f
   }
 }
