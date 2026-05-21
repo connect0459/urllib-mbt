@@ -270,3 +270,50 @@ test "caret in URL path is percent-encoded" {
   let url = @uri.parse("foo://host/a^b")
   assert_eq(url.pathname(), "/a%5Eb")
 }
+
+///|
+test "soft hyphen in HTTPS domain is stripped" {
+  let url = @uri.parse("https://a%C2%ADb/")
+  assert_eq(url.hostname(), "ab")
+  assert_eq(url.href(), "https://ab/")
+}
+
+///|
+test "soft hyphen raw in HTTP domain is stripped" {
+  let url = @uri.parse("http://a\u{00AD}b.com/")
+  assert_eq(url.hostname(), "ab.com")
+}
+
+///|
+test "zero-width and invisible ignored chars in domain are stripped" {
+  let url = @uri.parse("http://foo\u{200B}\u{2060}\u{FEFF}bar.com/")
+  assert_eq(url.hostname(), "foobar.com")
+}
+
+///|
+test "ideographic full stop U+3002 is treated as domain label separator" {
+  let url = @uri.parse("http://www\u{3002}example\u{3002}com/")
+  assert_eq(url.hostname(), "www.example.com")
+}
+
+///|
+test "full-width ASCII letters in domain are mapped to ASCII" {
+  let url = @uri.parse("http://\u{FF27}\u{FF4F}.com/")
+  assert_eq(url.hostname(), "go.com")
+}
+
+///|
+test "soft hyphen in file URL host is stripped" {
+  let url = @uri.parse("file://a\u{00AD}b/p")
+  assert_eq(url.hostname(), "ab")
+  assert_eq(url.href(), "file://ab/p")
+}
+
+///|
+test "mathematical bold localhost in file URL resolves to empty host" {
+  let url = @uri.parse(
+    "file://loC\u{1D400}\u{1D40B}\u{1D407}\u{1D428}\u{1D42C}\u{1D42D}/usr/bin",
+  )
+  assert_eq(url.hostname(), "")
+  assert_eq(url.href(), "file:///usr/bin")
+}

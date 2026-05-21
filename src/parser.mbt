@@ -451,13 +451,12 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
               url.host = Some(Host::Domain(""))
               state = State::PathStart
             } else {
-              let normalized = if ascii_lower(host_str) == "localhost" {
-                ""
-              } else {
-                host_str
+              let h = parse_host(host_str, true)
+              let final_h = match h {
+                Domain(d) if d == "localhost" => Host::Domain("")
+                _ => h
               }
-              let h = parse_host(normalized, false)
-              url.host = Some(h)
+              url.host = Some(final_h)
               state = State::PathStart
             }
             advance = false

@@ -169,13 +169,32 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
   let buf = StringBuilder::new()
   for c in domain {
     let cp = c.to_int()
-    if cp >= 'A'.to_int() && cp <= 'Z'.to_int() {
-      buf.write_char(Int::unsafe_to_char(cp + 32))
+    if cp == 0x00AD || cp == 0x200B || cp == 0x2060 || cp == 0xFEFF {
+      continue
+    } else if cp == 0x3002 {
+      buf.write_char('.')
     } else {
-      buf.write_char(c)
+      let mapped = if cp >= 0xFF01 && cp <= 0xFF5E {
+        cp - 0xFEE0
+      } else if cp >= 0x1D400 && cp <= 0x1D419 {
+        cp - 0x1D400 + 0x41
+      } else if cp >= 0x1D41A && cp <= 0x1D433 {
+        cp - 0x1D41A + 0x61
+      } else {
+        cp
+      }
+      if mapped >= 0x41 && mapped <= 0x5A {
+        buf.write_char(Int::unsafe_to_char(mapped + 32))
+      } else {
+        buf.write_char(Int::unsafe_to_char(mapped))
+      }
     }
   }
-  buf.to_string()
+  let result = buf.to_string()
+  if result.is_empty() {
+    raise UrlParseError("empty domain")
+  }
+  result
 }
 
 ///|
