@@ -68,9 +68,27 @@ All 61 unit tests pass. WPT failure rejection: 175/275 (63.6%).
 
 ## Cleanup (after fixes are done)
 
-- [ ] Restore WPT debug output limit: `if failed < 10 { println(...) }`
-- [ ] Remove `ERR:` debug printing from the WPT success test
-- [ ] Investigate WPT failure rejection rate (175/275 = 63.6%) — which cases are incorrectly accepted
+- [x] Restore WPT debug output limit: `if failed < 10 { println(...) }`
+- [x] Remove `ERR:` debug printing from the WPT success test
+- [x] Investigate WPT failure rejection rate (175/275 = 63.6%) — which cases are incorrectly accepted
+
+### WPT failure rejection: investigation findings (100 incorrectly accepted)
+
+| Category | Count | Example | Root cause |
+| :--- | ---: | :--- | :--- |
+| Percent-encoded forbidden host code points | ~33 | `http://ho%01st/` | %01–%1F/%7F decoded but not rejected |
+| Literal control chars stripped from host | ~32 | `http://a\u{0001}b/` | C0/DEL chars silently removed |
+| Invalid ACE / xn-- labels | ~8 | `http://a.b.c.xn--pokxncvks` | No Punycode decode validation |
+| IPv4 overflow (> 0xFFFFFFFF) | ~6 | `http://4294967296` | 32-bit wrap instead of error |
+| Non-character / forbidden Unicode in host | ~7 | `http://GOO\u{00A0}goo.com` | IDNA forbidden chars not checked |
+| Full-width `%` sign in host | ~4 | `http://\u{FF05}\u{FF14}\u{FF11}.com` | Full-width `%` maps to valid `%XX` |
+| High-byte %-encoding in host | ~4 | `ftp://example.com%80/` | Non-ASCII byte via `%80`/`%A0` accepted |
+| Invalid percent encoding in host | ~4 | `file://example%/`, `http://%25` | Incomplete or bare `%` not rejected |
+| Empty host with port | ~2 | `sc://:/`, `sc://:12/` | Non-special empty host+port accepted |
+| Non-special schemes with empty host + port | ~7 | `data://:443` | Same root cause as above |
+
+Most categories require full IDNA/Punycode support to fix properly. The IPv4 overflow
+and empty-host-with-port categories are fixable without IDNA.
 
 ---
 
