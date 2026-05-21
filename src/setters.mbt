@@ -1,6 +1,7 @@
 // Remove ASCII tab (0x09), LF (0x0A), CR (0x0D) from input without touching
 // leading/trailing C0 controls or spaces. Used by URL setters per WHATWG spec
 // (basic URL parse with state override skips the C0/space trim).
+
 ///|
 fn strip_ascii_tabs_newlines(s : String) -> String {
   let buf = StringBuilder::new()
