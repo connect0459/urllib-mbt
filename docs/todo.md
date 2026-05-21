@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **607/611 WPT success cases pass (99.3%)**  
-All 61 unit tests pass. WPT failure rejection: 175/275 (63.6%).
+All 68 unit tests pass. WPT failure rejection: 181/275 (65.8%).
 
 ---
 
@@ -63,6 +63,16 @@ All 61 unit tests pass. WPT failure rejection: 175/275 (63.6%).
   Full Punycode required for: `https://faß.ExAmPlE/` → `https://xn--fa-hia.example/`,  
   `http://你好你好` → `http://xn--6qqa088eba/`, `ftp://%e2%98%83` → `ftp://xn--n3h/`.  
   Remaining 4 WPT failures. Requires external Punycode library — out of scope for now.
+
+- [x] **IPv4 overflow** (`host.mbt` — `parse_ipv4_number`)  
+  `http://4294967296` / `http://0x100000000` should fail; currently wraps at 32-bit.  
+  Changed `parse_decimal_u64`/`parse_hex_u64`/`parse_octal_u64` to use `UInt64` with
+  saturation at 2^32; `parse_ipv4_number` rejects values ≥ 2^32.  
+  Fixed 6 WPT failure cases: 175→181 correctly rejected.
+
+- [ ] **Empty host with port for non-special schemes** (`host.mbt` / `parser.mbt`)  
+  `sc://:/` / `sc://:12/` / `data://:443` should fail; currently accepted.  
+  ~9 WPT failure cases incorrectly accepted.
 
 ---
 

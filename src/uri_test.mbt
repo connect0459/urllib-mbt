@@ -411,3 +411,57 @@ test "empty input against non-special double-slash base preserves /. prefix" {
   let url = @uri.parse_with_base("", Some(base))
   assert_eq(url.href(), "non-spec:/.//p")
 }
+
+///|
+test "IPv4 single-part decimal 2^32 is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("http://4294967296")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "IPv4 single-part decimal larger than 2^32 is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("http://10000000000")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "IPv4 single-part decimal much larger than 2^64 is rejected" {
+  let result : Result[@uri.Url, _] = Ok(
+    @uri.parse("http://18446744073709551616"),
+  ) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "IPv4 single-part hex 0x100000000 equals 2^32 is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("https://0x100000000/test")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "IPv4 single-part hex 0xffffffff1 exceeds 2^32 is rejected" {
+  let result : Result[@uri.Url, _] = Ok(@uri.parse("http://0xffffffff1")) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
+
+///|
+test "IPv4 single-part decimal 2^32-1 is valid max address" {
+  let url = @uri.parse("http://4294967295")
+  assert_eq(url.href(), "http://255.255.255.255/")
+}
+
+///|
+test "IPv4 single-part hex 0xffffffff is valid max address" {
+  let url = @uri.parse("http://0xffffffff")
+  assert_eq(url.href(), "http://255.255.255.255/")
+}

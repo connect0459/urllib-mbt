@@ -333,42 +333,58 @@ fn parse_ipv4_number(input : String) -> UInt raise UrlParseError {
   if n == 0 {
     raise UrlParseError("empty IPv4 number")
   }
-  if n >= 2 {
+  let val : UInt64 = if n >= 2 {
     let c0 = input.get_char(0)
     let c1 = input.get_char(1)
     if c0 == Some('0') && (c1 == Some('x') || c1 == Some('X')) {
       let hex_str = input[2:].to_owned()
       if hex_str.is_empty() {
-        return 0U
+        0UL
+      } else {
+        parse_hex_u64(hex_str)
       }
-      return parse_hex_uint(hex_str)
+    } else if c0 == Some('0') {
+      parse_octal_u64(input[1:].to_owned())
+    } else {
+      parse_decimal_u64(input)
     }
-    if c0 == Some('0') {
-      return parse_octal_uint(input[1:].to_owned())
-    }
+  } else {
+    parse_decimal_u64(input)
   }
-  parse_decimal_uint(input)
+  if val >= 0x1_0000_0000UL {
+    raise UrlParseError("IPv4 number >= 2^32")
+  }
+  val.to_uint()
 }
 
 ///|
-fn parse_decimal_uint(input : String) -> UInt raise UrlParseError {
-  let mut result = 0U
+fn parse_decimal_u64(input : String) -> UInt64 raise UrlParseError {
+  let mut result = 0UL
+  let cap = 0x1_0000_0000UL
   for c in input {
     if c < '0' || c > '9' {
       raise UrlParseError("invalid decimal digit")
     }
-    let digit = (c.to_int() - '0'.to_int()).reinterpret_as_uint()
-    result = result * 10U + digit
+    let digit = (c.to_int() - '0'.to_int()).to_uint64()
+    if result <= cap {
+      let next = result * 10UL + digit
+      result = if next > cap { cap + 1UL } else { next }
+    }
   }
   result
 }
 
 ///|
-fn parse_hex_uint(input : String) -> UInt raise UrlParseError {
-  let mut result = 0U
+fn parse_hex_u64(input : String) -> UInt64 raise UrlParseError {
+  let mut result = 0UL
+  let cap = 0x1_0000_0000UL
   for c in input {
     match hex_digit_value(c) {
-      Some(v) => result = (result << 4) | v.reinterpret_as_uint()
+      Some(v) =>
+        if result <= cap {
+          let next = (result << 4) | v.to_uint64()
+          result = if next > cap { cap + 1UL } else { next }
+        }
       None => raise UrlParseError("invalid hex digit")
     }
   }
@@ -376,14 +392,18 @@ fn parse_hex_uint(input : String) -> UInt raise UrlParseError {
 }
 
 ///|
-fn parse_octal_uint(input : String) -> UInt raise UrlParseError {
-  let mut result = 0U
+fn parse_octal_u64(input : String) -> UInt64 raise UrlParseError {
+  let mut result = 0UL
+  let cap = 0x1_0000_0000UL
   for c in input {
     if c < '0' || c > '7' {
       raise UrlParseError("invalid octal digit")
     }
-    let digit = (c.to_int() - '0'.to_int()).reinterpret_as_uint()
-    result = result * 8U + digit
+    let digit = (c.to_int() - '0'.to_int()).to_uint64()
+    if result <= cap {
+      let next = result * 8UL + digit
+      result = if next > cap { cap + 1UL } else { next }
+    }
   }
   result
 }
