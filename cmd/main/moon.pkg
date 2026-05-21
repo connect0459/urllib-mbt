@@ -1,0 +1,7 @@
+// import {
+//   "connect0459/moon_uri" @lib,
+// }
+
+options(
+  "is-main": true,
+)
