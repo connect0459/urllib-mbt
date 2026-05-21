@@ -317,3 +317,65 @@ test "mathematical bold localhost in file URL resolves to empty host" {
   assert_eq(url.hostname(), "")
   assert_eq(url.href(), "file:///usr/bin")
 }
+
+///|
+test "Windows drive letter with single slash and file base overrides base path" {
+  let base = @uri.parse("file:///tmp/mock/path")
+  let url = @uri.parse_with_base("file:c:\\foo\\bar.html", Some(base))
+  assert_eq(url.href(), "file:///c:/foo/bar.html")
+}
+
+///|
+test "relative Windows drive letter with file base starts from drive root" {
+  let base = @uri.parse("file:///tmp/mock/path")
+  let url = @uri.parse_with_base("C|/foo/bar", Some(base))
+  assert_eq(url.href(), "file:///C:/foo/bar")
+}
+
+///|
+test "pipe in Windows drive letter is normalized to colon" {
+  let base = @uri.parse("file:///tmp/mock/path")
+  let url = @uri.parse_with_base("//C|/foo/bar", Some(base))
+  assert_eq(url.href(), "file:///C:/foo/bar")
+}
+
+///|
+test "absolute path with drive letter does not duplicate base drive" {
+  let base = @uri.parse("file:///c:/baz/qux")
+  let url = @uri.parse_with_base("/c:/foo/bar", Some(base))
+  assert_eq(url.href(), "file:///c:/foo/bar")
+}
+
+///|
+test "double-slash drive letter in file URL host position becomes path" {
+  let base = @uri.parse("file:///C:/a/b")
+  let url = @uri.parse_with_base("//d:", Some(base))
+  assert_eq(url.href(), "file:///d:")
+}
+
+///|
+test "double-slash drive with dotdot resolves to drive root" {
+  let base = @uri.parse("file:///C:/a/b")
+  let url = @uri.parse_with_base("//d:/..", Some(base))
+  assert_eq(url.href(), "file:///d:/")
+}
+
+///|
+test "drive letter in authority of file URL is treated as path" {
+  let url = @uri.parse("file://C|/")
+  assert_eq(url.href(), "file:///C:/")
+}
+
+///|
+test "drive letter relative to file host base preserves host" {
+  let base = @uri.parse("file://host/dir/file")
+  let url = @uri.parse_with_base("C|", Some(base))
+  assert_eq(url.href(), "file://host/C:")
+}
+
+///|
+test "drive letter with query relative to file host base" {
+  let base = @uri.parse("file://host/dir/file")
+  let url = @uri.parse_with_base("C|?q=1", Some(base))
+  assert_eq(url.href(), "file://host/C:?q=1")
+}

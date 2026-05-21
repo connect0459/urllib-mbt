@@ -63,6 +63,26 @@ fn is_windows_drive_letter(s : String) -> Bool {
 }
 
 ///|
+fn chars_start_with_wdl(chars : Array[Char], from : Int, n : Int) -> Bool {
+  if from + 1 >= n {
+    return false
+  }
+  let c0 = chars[from]
+  let c1 = chars[from + 1]
+  if !is_ascii_alpha(c0) {
+    return false
+  }
+  if c1 != ':' && c1 != '|' {
+    return false
+  }
+  if from + 2 >= n {
+    return true
+  }
+  let c2 = chars[from + 2]
+  c2 == '/' || c2 == '\\' || c2 == '?' || c2 == '#'
+}
+
+///|
 fn shorten_url_path(url : UrlRecord) -> Unit {
   let is_file_drive = url.scheme == "file" &&
     url.path_segments.length() == 1 &&
@@ -407,7 +427,11 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                 None => ()
                 _ => {
                   url.query = None
-                  shorten_url_path(url)
+                  if chars_start_with_wdl(chars, pointer, n) {
+                    url.path_segments = []
+                  } else {
+                    shorten_url_path(url)
+                  }
                   state = State::Path
                   advance = false
                 }
@@ -426,12 +450,14 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             match base {
               Some(b) if b.scheme == "file" => {
                 url.host = b.host
-                let first_seg = match b.path {
-                  Segments(segs) if segs.length() > 0 => segs[0]
-                  _ => ""
-                }
-                if is_windows_drive_letter(first_seg) {
-                  url.path_segments.push(first_seg)
+                if !chars_start_with_wdl(chars, pointer, n) {
+                  let first_seg = match b.path {
+                    Segments(segs) if segs.length() > 0 => segs[0]
+                    _ => ""
+                  }
+                  if is_windows_drive_letter(first_seg) {
+                    url.path_segments.push(first_seg)
+                  }
                 }
               }
               _ => ()
@@ -444,20 +470,22 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
         match c {
           None | Some('/') | Some('\\') | Some('?') | Some('#') => {
             let host_str = buf.to_string()
-            buf.reset()
             if is_windows_drive_letter(host_str) {
               state = State::Path
-            } else if host_str.is_empty() {
-              url.host = Some(Host::Domain(""))
-              state = State::PathStart
             } else {
-              let h = parse_host(host_str, true)
-              let final_h = match h {
-                Domain(d) if d == "localhost" => Host::Domain("")
-                _ => h
+              buf.reset()
+              if host_str.is_empty() {
+                url.host = Some(Host::Domain(""))
+                state = State::PathStart
+              } else {
+                let h = parse_host(host_str, true)
+                let final_h = match h {
+                  Domain(d) if d == "localhost" => Host::Domain("")
+                  _ => h
+                }
+                url.host = Some(final_h)
+                state = State::PathStart
               }
-              url.host = Some(final_h)
-              state = State::PathStart
             }
             advance = false
           }
