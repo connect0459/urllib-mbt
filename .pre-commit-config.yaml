@@ -1,0 +1,38 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-json
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.22.1
+    hooks:
+      - id: markdownlint-cli2
+        args: ["--fix"]
+
+  - repo: local
+    hooks:
+      - id: moonbit-fmt
+        name: MoonBit Format
+        entry: moon fmt
+        language: system
+        files: '\.mbt$'
+        pass_filenames: false
+      - id: moonbit-check
+        name: MoonBit Type Check
+        entry: moon check
+        language: system
+        files: '\.mbt$'
+        pass_filenames: false
+      - id: moonbit-test
+        name: MoonBit Test
+        entry: moon test
+        language: system
+        files: '\.mbt$'
+        pass_filenames: false
