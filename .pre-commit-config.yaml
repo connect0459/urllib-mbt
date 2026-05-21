@@ -5,6 +5,7 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
+        exclude: '\.pkg$'
       - id: check-json
       - id: check-yaml
       - id: check-added-large-files
