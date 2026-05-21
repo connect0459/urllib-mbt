@@ -1,0 +1,54 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "connect0459/moon_uri"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parse(String) -> Url raise UrlParseError
+
+pub fn parse_with_base(String, Url?) -> Url raise UrlParseError
+
+// Errors
+pub suberror UrlParseError {
+  UrlParseError(String)
+}
+pub impl Show for UrlParseError
+
+// Types and methods
+pub enum Host {
+  Domain(String)
+  Ipv4(UInt)
+  Ipv6(Array[UInt])
+  OpaqueHost(String)
+} derive(Eq, @debug.Debug)
+
+pub struct Url {
+  scheme : String
+  username : String
+  password : String
+  host : Host?
+  port : Int?
+  path : UrlPath
+  query : String?
+  fragment : String?
+} derive(Eq, @debug.Debug)
+pub fn Url::hash(Self) -> String
+pub fn Url::host_str(Self) -> String
+pub fn Url::hostname(Self) -> String
+pub fn Url::href(Self) -> String
+pub fn Url::origin(Self) -> String
+pub fn Url::pathname(Self) -> String
+pub fn Url::port_str(Self) -> String
+pub fn Url::protocol(Self) -> String
+pub fn Url::search(Self) -> String
+
+pub enum UrlPath {
+  Segments(Array[String])
+  Opaque(String)
+} derive(@debug.Debug)
+
+// Type aliases
+
+// Traits
