@@ -122,6 +122,12 @@ fn parse_host(input : String, is_special : Bool) -> Host raise UrlParseError {
   if domain_has_forbidden_char(ascii_domain) {
     raise UrlParseError("domain has forbidden host code point")
   }
+  // Reject labels that are exactly "xn--" (empty Punycode extension — invalid ACE label)
+  for label in split_on_char(ascii_domain, '.') {
+    if label == "xn--" {
+      raise UrlParseError("invalid ACE label: empty xn-- extension")
+    }
+  }
   if ends_in_number(ascii_domain) {
     let addr = parse_ipv4(ascii_domain)
     return Host::Ipv4(addr)
@@ -200,7 +206,32 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
 ///|
 fn domain_has_forbidden_char(domain : String) -> Bool {
   for c in domain {
-    if is_forbidden_host_cp(c.to_int()) {
+    let cp = c.to_int()
+    // All C0 control chars and DEL are IDNA-disallowed in domain labels
+    if cp <= 0x1F || cp == 0x7F {
+      return true
+    }
+    if is_forbidden_host_cp(cp) {
+      return true
+    }
+    // '%' must not appear in domain names (result of %25 decoding or invalid %-seq)
+    if cp == 0x25 {
+      return true
+    }
+    // U+FFFD is produced from invalid UTF-8 byte sequences and is IDNA-disallowed
+    if cp == 0xFFFD {
+      return true
+    }
+    // Unicode noncharacters U+FDD0-U+FDEF
+    if cp >= 0xFDD0 && cp <= 0xFDEF {
+      return true
+    }
+    // Noncharacters at end of each Unicode plane (U+XFFFE and U+XFFFF)
+    if (cp & 0xFFFF) == 0xFFFE || (cp & 0xFFFF) == 0xFFFF {
+      return true
+    }
+    // IDNA-disallowed space characters
+    if cp == 0x00A0 || cp == 0x3000 {
       return true
     }
   }

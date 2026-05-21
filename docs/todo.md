@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **607/611 WPT success cases pass (99.3%)**  
-All 74 unit tests pass. WPT failure rejection: 190/275 (69.1%).
+All 74 unit tests pass. WPT failure rejection: 269/275 (97.8%).
 
 ---
 
@@ -75,6 +75,13 @@ All 74 unit tests pass. WPT failure rejection: 190/275 (69.1%).
   In `parse_host_and_port`, raise error when non-special + colon found + host part empty.  
   Fixed 9 WPT failure cases: 181→190 correctly rejected.
 
+- [x] **Forbidden chars in special URL domain hosts** (`host.mbt` — `domain_has_forbidden_char`)  
+  `http://a\u{0001}b/` / `http://ho%01st/` / `ftp://example.com%80/` should fail.  
+  Expanded checks: all C0 (0x00-0x1F), DEL (0x7F), `%`, U+FFFD, Unicode nonchars  
+  (U+FDD0-U+FDEF, U+XFFFE/U+XFFFF), IDNA-disallowed spaces (U+00A0, U+3000).  
+  Also added `xn--` empty-extension label rejection.  
+  Fixed 79 WPT failure cases: 190→269 correctly rejected.
+
 ---
 
 ## Cleanup (after fixes are done)
@@ -83,23 +90,23 @@ All 74 unit tests pass. WPT failure rejection: 190/275 (69.1%).
 - [x] Remove `ERR:` debug printing from the WPT success test
 - [x] Investigate WPT failure rejection rate (175/275 = 63.6%) — which cases are incorrectly accepted
 
-### WPT failure rejection: investigation findings (100 incorrectly accepted)
+### WPT failure rejection: investigation findings (resolved to 6/275 remaining)
 
-| Category | Count | Example | Root cause |
+| Category | Count | Fixed? | Root cause |
 | :--- | ---: | :--- | :--- |
-| Percent-encoded forbidden host code points | ~33 | `http://ho%01st/` | %01–%1F/%7F decoded but not rejected |
-| Literal control chars stripped from host | ~32 | `http://a\u{0001}b/` | C0/DEL chars silently removed |
-| Invalid ACE / xn-- labels | ~8 | `http://a.b.c.xn--pokxncvks` | No Punycode decode validation |
-| IPv4 overflow (> 0xFFFFFFFF) | ~6 | `http://4294967296` | 32-bit wrap instead of error |
-| Non-character / forbidden Unicode in host | ~7 | `http://GOO\u{00A0}goo.com` | IDNA forbidden chars not checked |
-| Full-width `%` sign in host | ~4 | `http://\u{FF05}\u{FF14}\u{FF11}.com` | Full-width `%` maps to valid `%XX` |
-| High-byte %-encoding in host | ~4 | `ftp://example.com%80/` | Non-ASCII byte via `%80`/`%A0` accepted |
-| Invalid percent encoding in host | ~4 | `file://example%/`, `http://%25` | Incomplete or bare `%` not rejected |
-| Empty host with port | ~2 | `sc://:/`, `sc://:12/` | Non-special empty host+port accepted |
-| Non-special schemes with empty host + port | ~7 | `data://:443` | Same root cause as above |
+| Percent-encoded forbidden host code points | ~33 | ✅ | Expanded C0/DEL range in `domain_has_forbidden_char` |
+| Literal control chars stripped from host | ~32 | ✅ | Same expansion |
+| Invalid ACE / xn-- labels | ~8 | ⚠️ (2 of 8) | `xn--` empty extension rejected; full Punycode needed for rest |
+| IPv4 overflow (> 0xFFFFFFFF) | ~6 | ✅ | Fixed in earlier commits |
+| Non-character / forbidden Unicode in host | ~7 | ✅ | U+FFFD, nonchars, forbidden spaces added |
+| Full-width `%` sign in host | ~4 | ✅ | `%` in domain now rejected |
+| High-byte %-encoding in host | ~4 | ✅ | U+FFFD check catches invalid UTF-8 bytes |
+| Invalid percent encoding in host | ~4 | ✅ | `%` in domain now rejected |
+| Empty host with port | ~2 | ✅ | Fixed in earlier commit |
+| Non-special schemes with empty host + port | ~7 | ✅ | Fixed in earlier commit |
 
-Most categories require full IDNA/Punycode support to fix properly. The IPv4 overflow
-and empty-host-with-port categories are fixable without IDNA.
+**Remaining 6 incorrectly accepted cases** are all invalid `xn--pokxncvks` Punycode labels —
+require a Punycode decoder to detect invalid Punycode-encoded strings (out of scope).
 
 ---
 
