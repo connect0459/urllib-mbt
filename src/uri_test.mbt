@@ -379,3 +379,35 @@ test "drive letter with query relative to file host base" {
   let url = @uri.parse_with_base("C|?q=1", Some(base))
   assert_eq(url.href(), "file://host/C:?q=1")
 }
+
+///|
+test "non-special double-slash path gets /. prefix in href" {
+  let url = @uri.parse("non-spec:/.//")
+  assert_eq(url.href(), "non-spec:/.//")
+}
+
+///|
+test "non-special dotdot resolves to double-slash path with /. prefix" {
+  let url = @uri.parse("non-spec:/..//")
+  assert_eq(url.href(), "non-spec:/.//")
+}
+
+///|
+test "non-special dotdot with path segment gets /. prefix" {
+  let url = @uri.parse("non-spec:/..//path")
+  assert_eq(url.href(), "non-spec:/.//path")
+}
+
+///|
+test "non-special double-slash path relative to base gets /. prefix" {
+  let base = @uri.parse("non-spec:/p")
+  let url = @uri.parse_with_base("..//path", Some(base))
+  assert_eq(url.href(), "non-spec:/.//path")
+}
+
+///|
+test "empty input against non-special double-slash base preserves /. prefix" {
+  let base = @uri.parse("non-spec:/..//p")
+  let url = @uri.parse_with_base("", Some(base))
+  assert_eq(url.href(), "non-spec:/.//p")
+}

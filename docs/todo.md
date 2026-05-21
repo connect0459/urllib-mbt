@@ -1,7 +1,7 @@
 # todo - uri
 
-Current state: **568/611 WPT success cases pass (93.0%)**  
-All 40 unit tests pass. WPT failure rejection: 167/275 (60.7%).
+Current state: **607/611 WPT success cases pass (99.3%)**  
+All 61 unit tests pass. WPT failure rejection: 175/275 (63.6%).
 
 ---
 
@@ -42,32 +42,27 @@ All 40 unit tests pass. WPT failure rejection: 167/275 (60.7%).
 
 ### Complex
 
-- [ ] **Windows drive letter in file URLs** (`parser.mbt` — File/FileSlash/FileHost/Path states)  
-  Multiple sub-cases:
-  - `file:c:\foo\bar.html` with file base → `file:///c:/foo/bar.html`  
-    (single-slash + drive letter should go to path, not merge with base)
-  - `C|/foo/bar` with file base → `file:///C:/foo/bar`  
-    (`C|` must be recognized as drive letter and `|` normalized to `:`)
-  - `//C|/foo/bar`, `file://C:/`, `file://C|/` → drive letter in authority position  
-    (when authority is a Windows drive letter, treat it as a path segment instead)
-  - `/c:/foo/bar` with `file:///c:/baz/qux` base → `file:///c:/foo/bar`  
-    (path starting with drive letter should replace from drive root, not duplicate it)
-  - `//d:`, `//d:/..` with file base → `file:///d:`, `file:///d:/`  
-  Read WHATWG spec "file slash state" and "Windows drive letter" notes carefully before starting.
+- [x] **Windows drive letter in file URLs** (`parser.mbt` — File/FileSlash/FileHost/Path states)  
+  File state: detect WDL in remaining input → clear path instead of shortening.  
+  FileSlash state: always copy base host; skip drive-segment copy only when WDL detected.  
+  FileHost state: when buffer is a WDL, stay in Path state without clearing buffer.  
+  Added `chars_start_with_wdl` helper; `|` normalized to `:` in Path state.
 
-- [ ] **Non-special `//` path normalization** (`parser.mbt` — Path state)  
+- [x] **Non-special `//` path normalization** (`serializer.mbt` — `Url::href`)  
   `non-spec:/a/..//path` → got `non-spec://path`, want `non-spec:/.//path`  
-  After `..` resolves, the `//` that follows must emit an empty segment so the path
-  becomes `["", "", "path"]` → `/.//path`, preventing reinterpretation as authority.  
-  Also affects relative URLs whose base path contains `/.//`.
+  WHATWG serializer step 5a: when `host == None && path[0] == "" && path.length > 1`,
+  prepend `/.` before normal segment serialization to prevent `//` being read as authority.
+
+- [x] **IDNA partial fixes** (`host.mbt` — `domain_to_ascii`)  
+  Strip soft hyphen U+00AD and ignored chars (U+200B, U+2060, U+FEFF).  
+  Map full-width period U+3002 → `.`, full-width ASCII U+FF01..FF5E → ASCII,  
+  mathematical bold A-Z (U+1D400..U+1D419) and a-z (U+1D41A..U+1D433).  
+  Raise error on empty domain after stripping. Covers all partial-fix WPT cases (+8).
 
 - [ ] **IDNA / Punycode** (`host.mbt` — `domain_to_ascii`)  
-  Full Punycode: `https://faß.ExAmPlE/` → `https://xn--fa-hia.example/`, `http://你好你好` → `http://xn--6qqa088eba/`  
-  Partial fixes implementable without Punycode library:
-  - Strip soft hyphen U+00AD and ignored chars (U+200B, U+2060, U+FEFF) from domains
-  - Map full-width period U+3002 → `.`
-  - Map full-width ASCII U+FF01..U+FF5E → U+0021..U+007E
-  These partial fixes cover ~4 additional WPT cases.
+  Full Punycode required for: `https://faß.ExAmPlE/` → `https://xn--fa-hia.example/`,  
+  `http://你好你好` → `http://xn--6qqa088eba/`, `ftp://%e2%98%83` → `ftp://xn--n3h/`.  
+  Remaining 4 WPT failures. Requires external Punycode library — out of scope for now.
 
 ---
 
@@ -75,7 +70,7 @@ All 40 unit tests pass. WPT failure rejection: 167/275 (60.7%).
 
 - [ ] Restore WPT debug output limit: `if failed < 10 { println(...) }`
 - [ ] Remove `ERR:` debug printing from the WPT success test
-- [ ] Investigate WPT failure rejection rate (167/275 = 60.7%) — which cases are incorrectly accepted
+- [ ] Investigate WPT failure rejection rate (175/275 = 63.6%) — which cases are incorrectly accepted
 
 ---
 

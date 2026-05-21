@@ -36,6 +36,9 @@ pub fn Url::href(self : Url) -> String {
           buf.write_char('/')
         }
       } else {
+        if self.host == None && segs.length() > 1 && segs[0] == "" {
+          buf.write_string("/.")
+        }
         for seg in segs {
           buf.write_char('/')
           buf.write_string(seg)
