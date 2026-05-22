@@ -494,6 +494,27 @@ and `src/search_params.mbt`. Tested in `src/uri_test.mbt` and appended to
 `search_params()` passes the raw query string directly to `parse_urlencoded`
 (URL association behavior per WHATWG spec).
 
+### WPT `url-searchparams.any.js` — scope analysis
+
+This file contains 4 test cases. All 4 are **out-of-scope** for the current
+immutable `Url` design:
+
+| Test case | Reason out-of-scope |
+| :--- | :--- |
+| `URL.searchParams getter` — object identity (`url.searchParams === url.searchParams`) | `search_params()` returns a new snapshot each call; identity cannot be maintained without an internally cached mutable object |
+| `URL.searchParams updating, clearing` — `url.search = ''` propagates to held `searchParams` | Requires mutable `Url` with live `Url ↔ UrlSearchParams` bidirectional sync |
+| `URL.searchParams setter, invalid values` — assigning to `url.searchParams` throws `TypeError` | JS-only readonly property semantics; not representable in MoonBit |
+| `URL.searchParams and URL.search setters, update propagation` — full bidirectional live sync | Same as above: requires mutable `Url` |
+
+The "WPT searchParams: 9/9" score in our test suite refers to the
+`searchParams` property getter cases from `urltestdata.json` (tested in
+`uri_getters_wpt_test.mbt`), which verify that the parsed `UrlSearchParams`
+value matches the expected serialization — these are fully compliant.
+
+**To implement live sync**, `Url` would need to become mutable (or hold an
+`Rc`-like reference to a shared `UrlSearchParams` that reflects back to the URL
+on mutation). This would be a significant architectural change and is not planned.
+
 ---
 
 ## Phase 7 — WPT percent-encoding tests (completed)
@@ -661,6 +682,22 @@ fixture at `resources/IdnaTestV2.json` (Unicode 17.0.0).
   > 0x7E). User-friendly alternative name to the internal `percent_encode_opaque_path`.
   Also added 31 whitebox tests covering all public API functions in
   `percent_encoding_wbtest.mbt`.
+
+---
+
+## Out-of-scope WPT files
+
+The following WPT test files in `.connect0459/wpt/url/` are **not implemented**
+because they test browser-specific or JavaScript-specific behaviour that has no
+equivalent in a MoonBit URL parsing library.
+
+| File | Reason |
+| :--- | :--- |
+| `url-searchparams.any.js` | Live `Url ↔ UrlSearchParams` bidirectional sync; object-identity guarantees; JS readonly-property TypeError. See Phase 5 analysis above. |
+| `url-setters-a-area.window.js` | Tests HTML `<a>` / `<area>` elements via DOM APIs (`document.createElement`). DOM is not available. |
+| `historical.any.js` | Tests JS-only features: `location.searchParams`, `structuredClone`, `URL.domainToASCII/Unicode` being `undefined`, `Constructor only takes strings` (coercion). None applicable to a static parser library. |
+| `javascript-urls.window.js` | Tests navigation and execution of `javascript:` URLs in a browser context. Not applicable. |
+| `idlharness.any.js` | Tests the WebIDL interface of `URL` and `URLSearchParams` (attribute types, inheritance, etc.). Requires a WebIDL test harness. |
 
 ---
 
