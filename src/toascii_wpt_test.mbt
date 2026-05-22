@@ -39,8 +39,9 @@ test "WPT toascii: domain-to-ascii cases" {
       )
     }
   }
-  for msg in failures {
-    println(msg)
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i = 0; i < n; i = i + 1 {
+    println(failures[i])
   }
   println(
     "WPT toascii: \{cases.length() - failures.length()}/\{cases.length()} passed",
