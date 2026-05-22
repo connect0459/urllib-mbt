@@ -1,0 +1,41 @@
+///|
+test "try_nfc_compose: grave accent combinations (U+0300)" {
+  assert_eq(try_nfc_compose(0x0041, 0x0300), 0x00C0) // A + ` → À
+  assert_eq(try_nfc_compose(0x0061, 0x0300), 0x00E0) // a + ` → à
+  assert_eq(try_nfc_compose(0x006F, 0x0300), 0x00F2) // o + ` → ò
+}
+
+///|
+test "try_nfc_compose: diaeresis combinations (U+0308)" {
+  assert_eq(try_nfc_compose(0x0041, 0x0308), 0x00C4) // A + ¨ → Ä
+  assert_eq(try_nfc_compose(0x0061, 0x0308), 0x00E4) // a + ¨ → ä
+  assert_eq(try_nfc_compose(0x004F, 0x0308), 0x00D6) // O + ¨ → Ö
+  assert_eq(try_nfc_compose(0x006F, 0x0308), 0x00F6) // o + ¨ → ö
+  assert_eq(try_nfc_compose(0x0055, 0x0308), 0x00DC) // U + ¨ → Ü
+  assert_eq(try_nfc_compose(0x0075, 0x0308), 0x00FC) // u + ¨ → ü
+}
+
+///|
+test "try_nfc_compose: circumflex combinations (U+0302)" {
+  assert_eq(try_nfc_compose(0x0053, 0x0302), 0x015C) // S + ^ → Ŝ
+  assert_eq(try_nfc_compose(0x0073, 0x0302), 0x015D) // s + ^ → ŝ
+}
+
+///|
+test "try_nfc_compose: dot above combinations (U+0307)" {
+  assert_eq(try_nfc_compose(0x0059, 0x0307), 0x1E8E) // Y + ˙ → Ẏ
+  assert_eq(try_nfc_compose(0x0079, 0x0307), 0x1E8F) // y + ˙ → ẏ
+}
+
+///|
+test "try_nfc_compose: acute accent combinations (U+0301)" {
+  assert_eq(try_nfc_compose(0x039F, 0x0301), 0x038C) // Ο + ´ → Ό
+  assert_eq(try_nfc_compose(0x03BF, 0x0301), 0x03CC) // ο + ´ → ό
+  assert_eq(try_nfc_compose(0x006F, 0x0301), 0x00F3) // o + ´ → ó
+  assert_eq(try_nfc_compose(0x006B, 0x0301), 0x1E31) // k + ´ → ḱ
+}
+
+///|
+test "try_nfc_compose: no composition returns -1" {
+  assert_eq(try_nfc_compose(0x0041, 0x0041), -1) // A + A → no composition
+}
