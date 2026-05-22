@@ -17,6 +17,21 @@ pub fn Url::to_json(self : Url) -> String {
 }
 
 ///|
+pub fn Url::is_special(self : Url) -> Bool {
+  is_special_scheme(self.scheme)
+}
+
+///|
+pub fn Url::has_credentials(self : Url) -> Bool {
+  self.username != "" || self.password != ""
+}
+
+///|
+pub fn Url::has_opaque_path(self : Url) -> Bool {
+  self.path is UrlPath::Opaque(_)
+}
+
+///|
 pub fn Url::join(self : Url, url : String) -> Url raise UrlParseError {
   parse_with_base(url, Some(self))
 }

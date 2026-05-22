@@ -32,10 +32,13 @@ pub struct Url {
   query : String?
   fragment : String?
 } derive(Eq, @debug.Debug)
+pub fn Url::has_credentials(Self) -> Bool
+pub fn Url::has_opaque_path(Self) -> Bool
 pub fn Url::hash(Self) -> String
 pub fn Url::host_str(Self) -> String
 pub fn Url::hostname(Self) -> String
 pub fn Url::href(Self) -> String
+pub fn Url::is_special(Self) -> Bool
 pub fn Url::join(Self, String) -> Self raise UrlParseError
 pub fn Url::origin(Self) -> String
 pub fn Url::pathname(Self) -> String

@@ -172,3 +172,77 @@ test "join raises for URL with invalid port" {
   }
   assert_true(result is Err(_))
 }
+
+// ===== Url::is_special =====
+
+///|
+test "is_special returns true for http URL" {
+  assert_eq(@uri.parse("http://example.com/").is_special(), true)
+}
+
+///|
+test "is_special returns true for https URL" {
+  assert_eq(@uri.parse("https://example.com/").is_special(), true)
+}
+
+///|
+test "is_special returns true for ftp URL" {
+  assert_eq(@uri.parse("ftp://example.com/").is_special(), true)
+}
+
+///|
+test "is_special returns true for file URL" {
+  assert_eq(@uri.parse("file:///tmp/file").is_special(), true)
+}
+
+///|
+test "is_special returns true for ws URL" {
+  assert_eq(@uri.parse("ws://example.com/").is_special(), true)
+}
+
+///|
+test "is_special returns true for wss URL" {
+  assert_eq(@uri.parse("wss://example.com/").is_special(), true)
+}
+
+///|
+test "is_special returns false for non-special scheme" {
+  assert_eq(@uri.parse("custom://example.com/").is_special(), false)
+}
+
+// ===== Url::has_credentials =====
+
+///|
+test "has_credentials returns false when no username or password" {
+  assert_eq(@uri.parse("https://example.com/").has_credentials(), false)
+}
+
+///|
+test "has_credentials returns true when username is non-empty" {
+  assert_eq(@uri.parse("https://user@example.com/").has_credentials(), true)
+}
+
+///|
+test "has_credentials returns true when both username and password are set" {
+  assert_eq(
+    @uri.parse("https://user:pass@example.com/").has_credentials(),
+    true,
+  )
+}
+
+// ===== Url::has_opaque_path =====
+
+///|
+test "has_opaque_path returns false for hierarchical URL" {
+  assert_eq(@uri.parse("https://example.com/path").has_opaque_path(), false)
+}
+
+///|
+test "has_opaque_path returns true for data URL" {
+  assert_eq(@uri.parse("data:text/html,Hello").has_opaque_path(), true)
+}
+
+///|
+test "has_opaque_path returns true for mailto URL" {
+  assert_eq(@uri.parse("mailto:user@example.com").has_opaque_path(), true)
+}
