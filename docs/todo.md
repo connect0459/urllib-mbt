@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **270 unit tests pass. 65 uncovered lines in 9 files.**  
+Coverage: **276 unit tests pass. 57 uncovered lines in 9 files.**  
 All 270 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  
@@ -29,14 +29,14 @@ branches in `parser.mbt` / `host.mbt` are excluded from the plan.
 These specific Unicode compositions were not triggered by the WPT/IDNA fixture
 data. Implementation is correct; tests just need input that exercises each pair.
 
-- [ ] **B1** Add whitebox test: `A` + U+0300 (grave) → À (U+00C0)
-- [ ] **B2** Add whitebox test: `A` + U+0308 (diaeresis) → Ä (U+00C4)
-- [ ] **B3** Add whitebox test: `O` + U+0308 → Ö (U+00D6)
-- [ ] **B4** Add whitebox test: `U` + U+0308 → Ü (U+00DC)
-- [ ] **B5** Add whitebox test: `S` + U+0302 (circumflex) → Ŝ (U+015C)
-- [ ] **B6** Add whitebox test: `Y` + U+0307 (dot above) → Ẏ (U+1E8E)
-- [ ] **B7** Add whitebox test: Greek Ο (U+039F) + U+0301 (acute) → Ό (U+038C)
-- [ ] **B8** Add whitebox test: `o` + U+0301 → ó (U+00F3)
+- [x] **B1** Add whitebox test: `A` + U+0300 (grave) → À (U+00C0)
+- [x] **B2** Add whitebox test: `A` + U+0308 (diaeresis) → Ä (U+00C4)
+- [x] **B3** Add whitebox test: `O` + U+0308 → Ö (U+00D6)
+- [x] **B4** Add whitebox test: `U` + U+0308 → Ü (U+00DC)
+- [x] **B5** Add whitebox test: `S` + U+0302 (circumflex) → Ŝ (U+015C)
+- [x] **B6** Add whitebox test: `Y` + U+0307 (dot above) → Ẏ (U+1E8E)
+- [x] **B7** Add whitebox test: Greek Ο (U+039F) + U+0301 (acute) → Ό (U+038C)
+- [x] **B8** Add whitebox test: `o` + U+0301 → ó (U+00F3)
 
 ### C — Untested edge cases (~35 lines across 7 files)
 
