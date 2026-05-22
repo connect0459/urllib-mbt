@@ -17,62 +17,32 @@ WPT IdnaTestV2: 2670/2670 (100%).
 
 ---
 
-## Refactor: Package & File Structure
+## Refactor: Package & File Structure (completed: `7487afdc`)
 
 Goal: clarify file responsibilities and test-to-implementation correspondence by
 extracting IDNA into a dedicated sub-package and splitting overloaded files.
 
-### Resulting package graph
-
-```
-connect0459/uri/idna   — self-contained; no imports from uri
-connect0459/uri        — imports uri/idna (@idna alias)
-```
-
-### Resulting file-to-test correspondence
-
-| Implementation file | Test file(s) |
-| :--- | :--- |
-| `src/parser.mbt` | `src/parser_test.mbt` |
-| `src/host.mbt` | embedded in `src/parser_test.mbt` (integration) |
-| `src/idna/idna.mbt` | `src/idna/punycode_wbtest.mbt`, `src/toascii_wpt_test.mbt`, `src/idna_v2_wpt_test.mbt` |
-| `src/serializer.mbt` | `src/uri_getters_wpt_test.mbt` |
-| `src/setters.mbt` | `src/setters_test.mbt`, `src/uri_setters_wpt_test.mbt` |
-| `src/percent_encode.mbt` | `src/percent_encoding_wpt_test.mbt` |
-| `src/search_params.mbt` | `src/search_params_test.mbt`, `src/urlsearchparams_wpt_test.mbt` |
-| `src/uri.mbt` | `src/uri_test.mbt` |
-
 ### Step A — Create `src/idna/` sub-package
 
-- [ ] **A1** Create `src/idna/moon.pkg` (empty `import {}` block — no external deps)
-- [ ] **A2** `git mv src/idna_status.mbt src/idna/idna_status.mbt`
-- [ ] **A3** `git mv src/idna_mapping.mbt src/idna/idna_mapping.mbt`
-- [ ] **A4** `git mv src/combining_mark.mbt src/idna/combining_mark.mbt`
-- [ ] **A5** `git mv src/punycode.mbt src/idna/punycode.mbt`
-- [ ] **A6** `git mv src/punycode_wbtest.mbt src/idna/punycode_wbtest.mbt`
-- [ ] **A7** Create `src/idna/idna.mbt` — move from `src/host.mbt`:
-  - `split_on_char` (helper used only by `domain_to_ascii`)
-  - `is_idna_forbidden_cp`
-  - `is_virama`, `is_arabic_script`, `is_arabic_right_joining`, `is_arabic_nonjoining`
-  - `validate_contextj`, `validate_bidi`
-  - `hangul_compose`, `try_nfc_compose`, `nfc_compose`
-  - `domain_to_ascii`
+- [x] **A1** Create `src/idna/moon.pkg`
+- [x] **A2** `git mv src/idna_status.mbt src/idna/idna_status.mbt`
+- [x] **A3** `git mv src/idna_mapping.mbt src/idna/idna_mapping.mbt`
+- [x] **A4** `git mv src/combining_mark.mbt src/idna/combining_mark.mbt`
+- [x] **A5** `git mv src/punycode.mbt src/idna/punycode.mbt`
+- [x] **A6** `git mv src/punycode_wbtest.mbt src/idna/punycode_wbtest.mbt`
+- [x] **A7** Create `src/idna/idna.mbt` with `domain_to_ascii` and all IDNA helpers
 
 ### Step B — Wire `src/` to the new sub-package
 
-- [ ] **B1** Add `"connect0459/uri/idna" @idna` to `src/moon.pkg`
-- [ ] **B2** In `src/host.mbt`: remove the moved functions; change the one
-  call-site to `@idna.domain_to_ascii(domain)`
-- [ ] **B3** Update `tools/gen_idna_mapping.py` — change output paths
-  `src/idna_status.mbt` → `src/idna/idna_status.mbt` and
-  `src/idna_mapping.mbt` → `src/idna/idna_mapping.mbt`
-- [ ] **B4** Update `tools/gen_combining_mark.py` invocation — redirect output
-  to `src/idna/combining_mark.mbt`
+- [x] **B1** Add `"connect0459/uri/idna" @idna` to `src/moon.pkg`
+- [x] **B2** `src/host.mbt` calls `@idna.domain_to_ascii`
+- [x] **B3** `tools/gen_idna_mapping.py` outputs to `src/idna/`
+- [x] **B4** `tools/gen_combining_mark.py` outputs to `src/idna/`
 
 ### Step C — Move IPv4/IPv6 parsers into `src/host.mbt`
 
 Move from `src/parser.mbt` to `src/host.mbt` (same package — no import
-changes needed; `hex_digit_value` stays in `percent_encode.mbt`):
+changes needed):
 
 - [ ] **C1** Move `parse_ipv6`
 - [ ] **C2** Move `parse_ipv4`, `parse_ipv4_number`
@@ -80,27 +50,111 @@ changes needed; `hex_digit_value` stays in `percent_encode.mbt`):
 
 ### Step D — Reorganize test files
 
-- [ ] **D1** Create `src/parser_test.mbt` — move URL-parsing tests from
-  `src/uri_test.mbt` (lines covering scheme, authority, path, relative URLs,
-  file URLs, opaque path, IDNA integration, IPv4/IPv6 overflow, non-special
-  scheme edge cases)
-- [ ] **D2** Create `src/setters_test.mbt` — move setter tests from
-  `src/uri_test.mbt` (`set_hash`, `set_search`, `set_pathname`,
-  `set_username`, `set_password`, `set_port`, `set_host`, `set_hostname`,
-  `set_protocol`, `set_href`)
-- [ ] **D3** Trim `src/uri_test.mbt` to: getter edge cases (`search`/`hash`
-  empty-string), static API (`can_parse`, `parse_maybe`, `to_json`),
-  `search_params` integration
-- [ ] **D4** `git mv src/url_search_params_test.mbt src/search_params_test.mbt`
+- [x] **D1** `src/parser_test.mbt` — URL-parsing tests
+- [x] **D2** `src/setters_test.mbt` — setter tests
+- [x] **D3** `src/uri_test.mbt` trimmed to getter edge cases + static API
+- [x] **D4** `src/search_params_test.mbt` (renamed from `url_search_params_test.mbt`)
 
-### Step E — Verify
+---
 
-- [ ] **E1** `moon check` passes with no errors
-- [ ] **E2** `moon test` — all tests pass (same counts as current state)
-- [ ] **E3** `moon info && moon fmt` — `.mbti` diffs show only expected changes
-  (new `src/idna/pkg.generated.mbti`; `src/pkg.generated.mbti` loses IDNA
-  symbols)
-- [ ] **E4** Commit: `refactor: extract idna sub-package and reorganize files`
+## Refactor: Extract `percent_encoding` and `host` sub-packages
+
+Goal: align package graph with rust-url's architecture. `hex_digit_value`,
+`percent_decode`, and UTF-8 helpers are currently shared by both `host.mbt`
+and `search_params.mbt` — extracting them into a dedicated sub-package removes
+the duplication and enables the `host` sub-package split.
+
+### Target package graph
+
+```
+connect0459/uri/idna              — IDNA (no deps)           [done]
+connect0459/uri/percent_encoding  — percent encode/decode (no deps)
+connect0459/uri/host              — Host type + parsing/serialization
+                                    deps: @idna, @pe
+connect0459/uri                   — URL parser/API
+                                    deps: @host, @pe
+```
+
+### File-to-test correspondence (after refactor)
+
+| Implementation | Test file(s) |
+| :--- | :--- |
+| `src/percent_encoding/percent_encoding.mbt` | `src/percent_encoding_wpt_test.mbt` (moved) |
+| `src/host/host.mbt` | `src/host/host_test.mbt` (new unit tests) |
+| `src/parser.mbt` | `src/parser_test.mbt` |
+| `src/serializer.mbt` | `src/uri_getters_wpt_test.mbt` |
+| `src/setters.mbt` | `src/setters_test.mbt`, `src/uri_setters_wpt_test.mbt` |
+| `src/search_params.mbt` | `src/search_params_test.mbt`, `src/urlsearchparams_wpt_test.mbt` |
+| `src/uri.mbt` | `src/uri_test.mbt` |
+
+### Step P — Extract `src/percent_encoding/` sub-package
+
+Move all of `src/percent_encode.mbt` to a new sub-package. Zero external deps.
+
+- [ ] **P1** Create `src/percent_encoding/moon.pkg` (empty import block)
+- [ ] **P2** Create `src/percent_encoding/percent_encoding.mbt` — move from
+  `src/percent_encode.mbt`:
+  - `is_c0`, `in_fragment_set`, `in_query_set`, `in_special_query_set`,
+    `in_path_set`, `in_userinfo_set`
+  - `to_hex_upper`, `percent_encode_byte`, `char_to_utf8_bytes`
+  - `percent_encode`, `percent_encode_fragment`, `percent_encode_query`,
+    `percent_encode_path_seg`, `percent_encode_userinfo`,
+    `percent_encode_opaque_path`, `percent_encode_opaque_path_at_stop`
+  - `hex_digit_value`, `percent_decode`, `is_continuation`, `utf8_bytes_to_string`
+- [ ] **P3** Delete `src/percent_encode.mbt`
+- [ ] **P4** Update `src/moon.pkg`: replace `moonbitlang/core/debug` import with
+  `"connect0459/uri/percent_encoding" @pe`
+- [ ] **P5** Update all call-sites in `src/` to use `@pe.` prefix:
+  - `parser.mbt`: all `percent_encode_*` calls
+  - `host.mbt`: `percent_decode`, `hex_digit_value`, `percent_encode`
+  - `setters.mbt`: all `percent_encode_*` calls
+  - `search_params.mbt`: `hex_digit_value`, `char_to_utf8_bytes`,
+    `utf8_bytes_to_string`, `percent_encode_byte`
+- [ ] **P6** Move `src/percent_encoding_wpt_test.mbt` to
+  `src/percent_encoding/percent_encoding_wpt_test.mbt`
+
+### Step H — Extract `src/host/` sub-package
+
+- [ ] **H1** Create `src/host/moon.pkg`:
+  ```json
+  import {
+    "connect0459/uri/idna" @idna,
+    "connect0459/uri/percent_encoding" @pe,
+  }
+  ```
+- [ ] **H2** Create `src/host/host.mbt` — move from `src/host.mbt` and
+  `src/parser.mbt` (after Step C):
+  - `Host` enum (move from `src/types.mbt`)
+  - `serialize_host`, `serialize_ipv4`, `serialize_ipv6`
+  - `nibble_to_lower_hex`, `uint_to_lower_hex`, `find_ipv6_compress`
+  - `parse_host`, `parse_opaque_host`
+  - `is_forbidden_host_cp`, `domain_has_forbidden_char`, `ends_in_number`,
+    `split_on_char`
+  - `parse_ipv4`, `parse_ipv4_number`, `parse_ipv6`
+  - `parse_decimal_u64`, `parse_hex_u64`, `parse_octal_u64`
+  - Update all `@idna.*` and `@pe.*` call-sites
+- [ ] **H3** Delete `src/host.mbt`
+- [ ] **H4** In `src/types.mbt`: remove `Host` enum definition; add
+  `pub typealias Host = @host.Host` to re-export the type for public API consumers
+- [ ] **H5** Update `src/moon.pkg`: add `"connect0459/uri/host" @host`
+- [ ] **H6** Update call-sites in `src/`:
+  - `parser.mbt`: `parse_host`, `parse_host_and_port` → `@host.*`; `Host::*`
+    constructors → `@host.Host::*`
+  - `serializer.mbt`: `serialize_host` → `@host.serialize_host`; `Host::*`
+    patterns remain valid via typealias
+  - `setters.mbt`: `parse_host`, `safe_parse_host`, `Host::*` references
+
+### Step V — Verify
+
+- [ ] **V1** `moon check` — no errors
+- [ ] **V2** `moon test` — all test counts unchanged
+- [ ] **V3** `moon info && moon fmt` — `.mbti` diffs show:
+  - new `src/percent_encoding/pkg.generated.mbti`
+  - new `src/host/pkg.generated.mbti`
+  - `src/pkg.generated.mbti` loses `percent_encode_*`, `Host`, `parse_host`
+    symbols (now re-exported via typealias for `Host`)
+- [ ] **V4** Commit each step separately: `refactor(percent_encoding): ...`,
+  `refactor(host): ...`
 
 ---
 
