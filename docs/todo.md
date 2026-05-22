@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 268 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
+All 269 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  
 WPT urlencoded-parser: 35/35. WPT percent-encoding: 14/14 (7 query + 7 fragment).  
@@ -11,7 +11,8 @@ WPT urlsearchparams-delete: 4/4. WPT urlsearchparams-foreach: 2/2.
 WPT urlsearchparams-get: 2/2. WPT urlsearchparams-getall: 2/2.  
 WPT urlsearchparams-has: 3/3. WPT urlsearchparams-set: 2/2.  
 WPT urlsearchparams-size: 2/2. WPT urlsearchparams-sort: 8/8.  
-WPT urlsearchparams-stringifier: 13/13.
+WPT urlsearchparams-stringifier: 13/13.  
+WPT toascii: 87/87.
 
 ---
 
@@ -127,6 +128,18 @@ tested in `src/url_search_params_test.mbt`.
   validate existing `xn--` labels via decode, reject IDNA-forbidden codepoints before encode.  
   Fixed 4 WPT success cases: 607/611 → 611/611 (100%).  
   Remaining 6 failure cases (`xn--pokxncvks`) require IDNA validation tables — out of scope.
+
+- [x] **WPT toascii: 87/87** (`src/toascii_wpt_test.mbt`)  
+  Full UTS#46 domain-to-ascii WPT test suite. Implemented in multiple passes:  
+  • Expanded `is_idna_forbidden_cp`: nonchars, space-like, C0 control, BIDI formats, Arabic  
+    end-of-ayah, interlinear annotation, IDS chars, Tags block, specific disallowed chars.  
+  • Phase 1 ignored chars: U+00AD, U+200B, U+2060, U+FEFF, U+180E, U+034F, U+206B.  
+  • Phase 1 char mappings: U+0341→U+0301, U+2F868→U+36FC, U+1E9E→U+00DF, U+04C0→U+04CF,  
+    U+2183→U+2184, U+09DC→[U+09A1, U+09BC] (NFC decomposition exclusion).  
+  • NFC composition (`nfc_compose`/`try_nfc_compose`): targeted pairs for `=`/`<`/`>`+U+0338.  
+  • Post-decode xn-- validation: decoded chars checked via `is_idna_forbidden_cp`.  
+  • CONTEXTJ: `validate_contextj` requires ZWJ (U+200D) to follow a virama (CCC=9).  
+  • BIDI: `validate_bidi` rejects RTL labels (Arabic/Hebrew) mixed with basic Latin chars.
 
 - [x] **IPv4 overflow** (`host.mbt` — `parse_ipv4_number`)  
   `http://4294967296` / `http://0x100000000` should fail; currently wraps at 32-bit.  

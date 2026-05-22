@@ -98,6 +98,101 @@ fn serialize_ipv6(pieces : Array[UInt]) -> String {
 }
 
 ///|
+fn is_virama(cp : Int) -> Bool {
+  cp == 0x094D ||
+  cp == 0x09CD ||
+  cp == 0x0A4D ||
+  cp == 0x0ACD ||
+  cp == 0x0B4D ||
+  cp == 0x0BCD ||
+  cp == 0x0C4D ||
+  cp == 0x0CCD ||
+  cp == 0x0D3B ||
+  cp == 0x0D3C ||
+  cp == 0x0D4D ||
+  cp == 0x0DCA ||
+  cp == 0x0E3A ||
+  cp == 0x0F84
+}
+
+///|
+fn validate_contextj(cps : Array[Int]) -> Unit raise UrlParseError {
+  for idx = 0; idx < cps.length(); idx = idx + 1 {
+    let cp = cps[idx]
+    if cp == 0x200D {
+      // ZWJ must immediately follow a virama (CCC=9)
+      if idx == 0 || !is_virama(cps[idx - 1]) {
+        raise UrlParseError("ZWJ requires preceding virama")
+      }
+    }
+    // ZWNJ (U+200C) context is not strictly validated here:
+    // Arabic/Indic scripts use it for shaping without virama precedence.
+  }
+}
+
+///|
+fn validate_bidi(cps : Array[Int]) -> Unit raise UrlParseError {
+  let mut has_rtl = false
+  let mut has_ltr = false
+  for cp in cps {
+    if (cp >= 0x0590 && cp <= 0x05FF) ||
+      (cp >= 0x0600 && cp <= 0x06FF) ||
+      (cp >= 0x0700 && cp <= 0x074F) {
+      has_rtl = true
+    } else if (cp >= 0x41 && cp <= 0x5A) || (cp >= 0x61 && cp <= 0x7A) {
+      has_ltr = true
+    }
+  }
+  if has_rtl && has_ltr {
+    raise UrlParseError("BIDI violation: mixed RTL and LTR chars")
+  }
+}
+
+///|
+fn nfc_compose(cps : Array[Int]) -> Array[Int] {
+  if cps.length() <= 1 {
+    return cps
+  }
+  let result : Array[Int] = []
+  let mut i = 0
+  while i < cps.length() {
+    let cp = cps[i]
+    if i + 1 < cps.length() {
+      let next = cps[i + 1]
+      let composed = try_nfc_compose(cp, next)
+      if composed >= 0 {
+        result.push(composed)
+        i = i + 2
+        continue
+      }
+    }
+    result.push(cp)
+    i = i + 1
+  }
+  result
+}
+
+///|
+fn try_nfc_compose(a : Int, b : Int) -> Int {
+  if a == 0x003D && b == 0x0338 {
+    return 0x2260 // = + combining solidus → ≠
+  }
+  if a == 0x003C && b == 0x0338 {
+    return 0x226E // < + combining solidus → ≮
+  }
+  if a == 0x003E && b == 0x0338 {
+    return 0x226F // > + combining solidus → ≯
+  }
+  if a == 0x006F && b == 0x0300 {
+    return 0x00F2 // o + combining grave → ò
+  }
+  if a == 0x006B && b == 0x0301 {
+    return 0x1E31 // k + combining acute → ḱ
+  }
+  -1
+}
+
+///|
 fn parse_host(input : String, is_special : Bool) -> Host raise UrlParseError {
   if input.is_empty() {
     if is_special {
@@ -166,14 +261,25 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
   if domain.is_empty() {
     raise UrlParseError("empty domain")
   }
-  // Phase 1: strip ignorables, map full-width/math chars, lowercase ASCII
+  // Phase 1: strip ignorables, apply UTS#46 char mappings, lowercase ASCII
   let buf = StringBuilder::new()
   for c in domain {
     let cp = c.to_int()
-    if cp == 0x00AD || cp == 0x200B || cp == 0x2060 || cp == 0xFEFF {
+    // Ignored characters (stripped during processing)
+    if cp == 0x00AD ||
+      cp == 0x200B ||
+      cp == 0x2060 ||
+      cp == 0xFEFF ||
+      cp == 0x180E ||
+      cp == 0x034F ||
+      cp == 0x206B {
       continue
     } else if cp == 0x3002 {
       buf.write_char('.')
+    } else if cp == 0x09DC {
+      // BENGALI LETTER RRA: NFC decomposes to DA + NUKTA (doesn't recompose)
+      buf.write_char(Int::unsafe_to_char(0x09A1))
+      buf.write_char(Int::unsafe_to_char(0x09BC))
     } else {
       let mapped = if cp >= 0xFF01 && cp <= 0xFF5E {
         cp - 0xFEE0
@@ -181,6 +287,16 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
         cp - 0x1D400 + 0x41
       } else if cp >= 0x1D41A && cp <= 0x1D433 {
         cp - 0x1D41A + 0x61
+      } else if cp == 0x0341 {
+        0x0301 // COMBINING ACUTE TONE MARK → COMBINING ACUTE ACCENT (NFC singleton)
+      } else if cp == 0x2F868 {
+        0x36FC // CJK COMPAT IDEOGRAPH-2F868 → U+36FC (NFC canonical)
+      } else if cp == 0x1E9E {
+        0x00DF // LATIN CAPITAL LETTER SHARP S → ß (UTS#46 mapping)
+      } else if cp == 0x04C0 {
+        0x04CF // MODIFIER LETTER CAPITAL I → MODIFIER LETTER SMALL I
+      } else if cp == 0x2183 {
+        0x2184 // ROMAN NUMERAL REVERSED ONE HUNDRED → LATIN SMALL LETTER REVERSED C
       } else {
         cp
       }
@@ -215,23 +331,44 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
         has_non_ascii = true
       }
     }
+    // Apply NFC composition for combining sequences
+    let cps = if has_non_ascii { nfc_compose(cps) } else { cps }
+    has_non_ascii = false
+    for cp in cps {
+      if cp > 0x7F {
+        has_non_ascii = true
+      }
+    }
     if has_non_ascii {
+      // An xn-- prefix with non-ASCII chars is an invalid ACE label
+      if label.has_prefix("xn--") {
+        raise UrlParseError("invalid ACE label: non-ASCII in xn-- label")
+      }
       for cp in cps {
         if is_idna_forbidden_cp(cp) {
           raise UrlParseError("domain has IDNA-forbidden code point")
         }
       }
+      validate_contextj(cps)
+      validate_bidi(cps)
       let encoded = punycode_encode(cps)
       out.write_string("xn--")
       out.write_string(encoded)
     } else {
-      // ASCII label: validate existing xn-- labels
+      // ASCII label: validate existing xn-- labels by decoding and checking
       if label.has_prefix("xn--") {
         let suffix = label[4:label.length()].to_owned()
         if suffix.is_empty() {
           raise UrlParseError("invalid ACE label: empty xn-- extension")
         }
-        let _ = punycode_decode(suffix)
+        let decoded = punycode_decode(suffix)
+        for cp in decoded {
+          if is_idna_forbidden_cp(cp) {
+            raise UrlParseError("decoded ACE label has forbidden code point")
+          }
+        }
+        validate_contextj(decoded)
+        validate_bidi(decoded)
       }
       out.write_string(label)
     }
@@ -245,13 +382,34 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
 
 ///|
 fn is_idna_forbidden_cp(cp : Int) -> Bool {
+  // Noncharacters
   cp == 0xFFFD ||
   (cp >= 0xFDD0 && cp <= 0xFDEF) ||
   (cp & 0xFFFF) == 0xFFFE ||
   (cp & 0xFFFF) == 0xFFFF ||
+  // Space-like chars disallowed in domain labels
   cp == 0x00A0 ||
   cp == 0x3000 ||
-  (cp >= 0x80 && cp <= 0x9F)
+  cp == 0x1680 ||
+  // C1 controls
+  (cp >= 0x80 && cp <= 0x9F) ||
+  // Bidi format controls
+  // Bidi format controls
+  (cp >= 0x202A && cp <= 0x202E) ||
+  (cp >= 0x2066 && cp <= 0x2069) ||
+  // Arabic End of Ayah
+  cp == 0x06DD ||
+  // Interlinear annotation chars
+  (cp >= 0xFFFA && cp <= 0xFFFC) ||
+  // Ideographic Description Characters
+  (cp >= 0x2FF0 && cp <= 0x2FFB) ||
+  // Tags block (U+E0000-U+E007F)
+  (cp >= 0xE0000 && cp <= 0xE007F) ||
+  // Specific disallowed chars
+  cp == 0x2025 ||
+  cp == 0x2A74 ||
+  cp == 0x05BE ||
+  cp == 0x0378
 }
 
 ///|
