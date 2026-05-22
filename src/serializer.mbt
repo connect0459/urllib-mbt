@@ -80,6 +80,27 @@ pub fn Url::origin(self : Url) -> String {
       None => ()
     }
     buf.to_string()
+  } else if self.scheme == "blob" {
+    let inner_str = match self.path {
+      Opaque(s) => s
+      Segments(segs) =>
+        if segs.is_empty() {
+          ""
+        } else {
+          let b = StringBuilder::new()
+          for seg in segs {
+            b.write_char('/')
+            b.write_string(seg)
+          }
+          b.to_string()
+        }
+    }
+    let inner = parse_with_base(inner_str, None) catch { _ => return "null" }
+    if inner.scheme != "http" && inner.scheme != "https" {
+      "null"
+    } else {
+      inner.origin()
+    }
   } else {
     "null"
   }

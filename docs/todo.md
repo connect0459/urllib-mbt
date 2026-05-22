@@ -1,7 +1,8 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 190 unit tests pass. WPT failure rejection: 269/275 (97.8%).
+All 192 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
+WPT getters: 611/611. WPT origin: 399/399.
 
 ---
 
@@ -196,6 +197,21 @@ require a Punycode decoder to detect invalid Punycode-encoded strings (out of sc
 - File URL special cases: `localhost` host → `""`, port forbidden, empty host settable
 - `set_pathname("")` with host: produces `Segments([])` (not `Segments([""])`)
 - `set_port("")`: clears port (original empty); stripped-to-empty → no-op (keep existing)
+
+---
+
+## Phase 3 — WPT URL getter tests (completed)
+
+Extended WPT test coverage to verify all URL property getters against WHATWG spec
+test vectors. Implemented in `src/uri_getters_wpt_test.mbt`.
+
+- [x] **WPT getter tests** — 611/611 cases: `protocol`, `username`, `password`,
+  `hostname`, `host`, `port`, `pathname`, `search`, `hash`
+- [x] **WPT origin tests** — 399/399 cases: `origin` getter for all URL types
+- [x] **`blob:` URL origin** (`serializer.mbt` — `Url::origin`)
+  `blob:https://example.com:443/` → `https://example.com` (http/https inner only)
+  Fixed by parsing the blob URL's opaque path as an inner URL; only http/https
+  schemes yield a non-null origin per WHATWG spec.
 
 ---
 
