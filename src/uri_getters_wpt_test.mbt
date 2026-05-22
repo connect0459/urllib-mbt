@@ -6573,7 +6573,7 @@ test "WPT URL getters: protocol, username, password, hostname, host, port, pathn
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (
       input,
@@ -6594,90 +6594,67 @@ test "WPT URL getters: protocol, username, password, hostname, host, port, pathn
     }
     let url = @uri.parse_with_base(input, base_url) catch {
       _ => {
-        failed = failed + 1
+        failures.push("FAIL parse: input=\{input}")
         continue
       }
     }
-    let mut ok = true
+    let prev_len = failures.length()
     if url.protocol() != exp_protocol {
-      if failed < 10 {
-        println(
-          "FAIL protocol: input=\{input} got=\{url.protocol()} want=\{exp_protocol}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL protocol: input=\{input} got=\{url.protocol()} want=\{exp_protocol}",
+      )
     }
     if url.username != exp_username {
-      if failed < 10 {
-        println(
-          "FAIL username: input=\{input} got=\{url.username} want=\{exp_username}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL username: input=\{input} got=\{url.username} want=\{exp_username}",
+      )
     }
     if url.password != exp_password {
-      if failed < 10 {
-        println(
-          "FAIL password: input=\{input} got=\{url.password} want=\{exp_password}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL password: input=\{input} got=\{url.password} want=\{exp_password}",
+      )
     }
     if url.hostname() != exp_hostname {
-      if failed < 10 {
-        println(
-          "FAIL hostname: input=\{input} got=\{url.hostname()} want=\{exp_hostname}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL hostname: input=\{input} got=\{url.hostname()} want=\{exp_hostname}",
+      )
     }
     if url.host_str() != exp_host {
-      if failed < 10 {
-        println(
-          "FAIL host: input=\{input} got=\{url.host_str()} want=\{exp_host}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL host: input=\{input} got=\{url.host_str()} want=\{exp_host}",
+      )
     }
     if url.port_str() != exp_port {
-      if failed < 10 {
-        println(
-          "FAIL port: input=\{input} got=\{url.port_str()} want=\{exp_port}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL port: input=\{input} got=\{url.port_str()} want=\{exp_port}",
+      )
     }
     if url.pathname() != exp_pathname {
-      if failed < 10 {
-        println(
-          "FAIL pathname: input=\{input} got=\{url.pathname()} want=\{exp_pathname}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL pathname: input=\{input} got=\{url.pathname()} want=\{exp_pathname}",
+      )
     }
     if url.search() != exp_search {
-      if failed < 10 {
-        println(
-          "FAIL search: input=\{input} got=\{url.search()} want=\{exp_search}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL search: input=\{input} got=\{url.search()} want=\{exp_search}",
+      )
     }
     if url.hash() != exp_hash {
-      if failed < 10 {
-        println("FAIL hash: input=\{input} got=\{url.hash()} want=\{exp_hash}")
-      }
-      ok = false
+      failures.push(
+        "FAIL hash: input=\{input} got=\{url.hash()} want=\{exp_hash}",
+      )
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT getters: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT getter cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT getters: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT getter assertions failed")
   }
 }
 
@@ -7292,8 +7269,7 @@ test "WPT URL getter: origin" {
     ("non-special:/\\path", None, "null"),
     ("non-special://host/a\\b", None, "null"),
   ]
-  let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (input, base_opt, exp_origin) = item
     let base_url : @uri.Url? = match base_opt {
@@ -7302,24 +7278,25 @@ test "WPT URL getter: origin" {
     }
     let url = @uri.parse_with_base(input, base_url) catch {
       _ => {
-        failed = failed + 1
+        failures.push("FAIL parse: input=\{input}")
         continue
       }
     }
     if url.origin() != exp_origin {
-      if failed < 10 {
-        println(
-          "FAIL origin: input=\{input} got=\{url.origin()} want=\{exp_origin}",
-        )
-      }
-      failed = failed + 1
-    } else {
-      passed = passed + 1
+      failures.push(
+        "FAIL origin: input=\{input} got=\{url.origin()} want=\{exp_origin}",
+      )
     }
   }
-  println("WPT origin: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT origin cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println(
+    "WPT origin: \{cases.length() - failures.length()}/\{cases.length()} passed",
+  )
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT origin cases failed")
   }
 }
 
@@ -7336,8 +7313,7 @@ test "WPT URL getter: searchParams" {
     ("http://foo.bar/baz?qux#foo>bar", None, "qux="),
     ("http://foo.bar/baz?qux#foo\u{0060}bar", None, "qux="),
   ]
-  let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (input, base_opt, exp_sp) = item
     let base_url : @uri.Url? = match base_opt {
@@ -7346,22 +7322,25 @@ test "WPT URL getter: searchParams" {
     }
     let url = @uri.parse_with_base(input, base_url) catch {
       _ => {
-        failed = failed + 1
+        failures.push("FAIL parse: input=\{input}")
         continue
       }
     }
     let got = url.search_params().to_string()
     if got != exp_sp {
-      if failed < 10 {
-        println("FAIL searchParams: input=\{input} got=\{got} want=\{exp_sp}")
-      }
-      failed = failed + 1
-    } else {
-      passed = passed + 1
+      failures.push(
+        "FAIL searchParams: input=\{input} got=\{got} want=\{exp_sp}",
+      )
     }
   }
-  println("WPT searchParams: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT searchParams cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println(
+    "WPT searchParams: \{cases.length() - failures.length()}/\{cases.length()} passed",
+  )
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT searchParams cases failed")
   }
 }

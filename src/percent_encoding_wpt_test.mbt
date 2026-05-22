@@ -17,23 +17,25 @@ test "WPT percent-encoding: UTF-8 query encoding" {
     ("\u{00A2}", "%C2%A2"),
     ("á|", "%C3%A1|"),
   ]
-  let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (input, expected) = item
     let url = @uri.parse("http://example.com/?\{input}")
     let got = url.search()
-    if got == "?\{expected}" {
-      passed = passed + 1
-    } else {
-      if failed < 10 {
-        println("FAIL query: input=\{input} expected=?\{expected} got=\{got}")
-      }
-      failed = failed + 1
+    if got != "?\{expected}" {
+      failures.push(
+        "FAIL query: input=\{input} expected=?\{expected} got=\{got}",
+      )
     }
   }
-  println("WPT percent-encoding/query: \{passed}/\{cases.length()} passed")
-  assert_eq(failed, 0)
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println(
+    "WPT percent-encoding/query: \{cases.length() - failures.length()}/\{cases.length()} passed",
+  )
+  assert_eq(failures.length(), 0)
 }
 
 ///|
@@ -47,23 +49,23 @@ test "WPT percent-encoding: UTF-8 fragment encoding" {
     ("\u{00A2}", "%C2%A2"),
     ("á|", "%C3%A1|"),
   ]
-  let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (input, expected) = item
     let url = @uri.parse("http://example.com/#\{input}")
     let got = url.hash()
-    if got == "#\{expected}" {
-      passed = passed + 1
-    } else {
-      if failed < 10 {
-        println(
-          "FAIL fragment: input=\{input} expected=#\{expected} got=\{got}",
-        )
-      }
-      failed = failed + 1
+    if got != "#\{expected}" {
+      failures.push(
+        "FAIL fragment: input=\{input} expected=#\{expected} got=\{got}",
+      )
     }
   }
-  println("WPT percent-encoding/fragment: \{passed}/\{cases.length()} passed")
-  assert_eq(failed, 0)
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println(
+    "WPT percent-encoding/fragment: \{cases.length() - failures.length()}/\{cases.length()} passed",
+  )
+  assert_eq(failures.length(), 0)
 }

@@ -137,7 +137,7 @@ fn split_host_port(s : String) -> (String, String?) {
 }
 
 ///|
-pub fn Url::set_href(self : Url, value : String) -> Url raise UrlParseError {
+pub fn Url::set_href(_ : Url, value : String) -> Url raise UrlParseError {
   parse(value)
 }
 

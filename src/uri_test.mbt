@@ -151,7 +151,7 @@ test "no base and no scheme raises error" {
   ) catch {
     e => Err(e)
   }
-  assert_eq(result.is_err(), true)
+  assert_true(result is Err(_))
 }
 
 ///|
@@ -945,8 +945,8 @@ test "search_params parses key-value pairs from query" {
   let url = @uri.parse("http://example.com/path?a=b&c=d")
   let params = url.search_params()
   assert_eq(params.to_string(), "a=b&c=d")
-  assert_eq(params.get("a"), Some("b"))
-  assert_eq(params.get("c"), Some("d"))
+  @debug.assert_eq(params.get("a"), Some("b"))
+  @debug.assert_eq(params.get("c"), Some("d"))
 }
 
 ///|

@@ -561,7 +561,7 @@ test "WPT success cases: href round-trip" {
       "http://googoo.com/",
     ),
     (
-      "\x00\u{001B}\u{0004}\u{0012} http://example.com/\u{001F} \r ",
+      "\u{0000}\u{001B}\u{0004}\u{0012} http://example.com/\u{001F} \r ",
       None,
       "http://example.com/",
     ),
@@ -982,16 +982,16 @@ test "WPT success cases: href round-trip" {
       "a://b/test-a-colon-slash-slash-b.html",
     ),
     (
-      "http://example.org/test?a#b\x00c",
+      "http://example.org/test?a#b\u{0000}c",
       None,
       "http://example.org/test?a#b%00c",
     ),
     (
-      "non-spec://example.org/test?a#b\x00c",
+      "non-spec://example.org/test?a#b\u{0000}c",
       None,
       "non-spec://example.org/test?a#b%00c",
     ),
-    ("non-spec:/test?a#b\x00c", None, "non-spec:/test?a#b%00c"),
+    ("non-spec:/test?a#b\u{0000}c", None, "non-spec:/test?a#b%00c"),
     (
       "10.0.0.7:8080/foo.html",
       Some("file:///some/dir/bar.html"),
@@ -1016,7 +1016,7 @@ test "WPT success cases: href round-trip" {
     ),
     ("#link", Some("https://example.org/##link"), "https://example.org/#link"),
     (
-      "non-special:cannot-be-a-base-url-\x00\u{0001}\u{001F}\u{001E}~\u{007F}\u{0080}",
+      "non-special:cannot-be-a-base-url-\u{0000}\u{0001}\u{001F}\u{001E}~\u{007F}\u{0080}",
       None,
       "non-special:cannot-be-a-base-url-%00%01%1F%1E~%7F%C2%80",
     ),
@@ -1092,16 +1092,16 @@ test "WPT success cases: href round-trip" {
     ("abc:rootless", Some("abc:path"), "abc:rootless"),
     ("abc:/rooted", Some("abc://host/path"), "abc:/rooted"),
     ("http://foo.09..", None, "http://foo.09../"),
-    ("https://x/\x00y", None, "https://x/%00y"),
-    ("https://x/?\x00y", None, "https://x/?%00y"),
-    ("https://x/?#\x00y", None, "https://x/?#%00y"),
+    ("https://x/\u{0000}y", None, "https://x/%00y"),
+    ("https://x/?\u{0000}y", None, "https://x/?%00y"),
+    ("https://x/?#\u{0000}y", None, "https://x/?#%00y"),
     ("https://x/\u{FFFF}y", None, "https://x/%EF%BF%BFy"),
     ("https://x/?\u{FFFF}y", None, "https://x/?%EF%BF%BFy"),
     ("https://x/?#\u{FFFF}y", None, "https://x/?#%EF%BF%BFy"),
-    ("non-special:\x00y", None, "non-special:%00y"),
-    ("non-special:x/\x00y", None, "non-special:x/%00y"),
-    ("non-special:x/?\x00y", None, "non-special:x/?%00y"),
-    ("non-special:x/?#\x00y", None, "non-special:x/?#%00y"),
+    ("non-special:\u{0000}y", None, "non-special:%00y"),
+    ("non-special:x/\u{0000}y", None, "non-special:x/%00y"),
+    ("non-special:x/?\u{0000}y", None, "non-special:x/?%00y"),
+    ("non-special:x/?#\u{0000}y", None, "non-special:x/?#%00y"),
     ("non-special:\u{FFFF}y", None, "non-special:%EF%BF%BFy"),
     ("non-special:x/\u{FFFF}y", None, "non-special:x/%EF%BF%BFy"),
     ("non-special:x/?\u{FFFF}y", None, "non-special:x/?%EF%BF%BFy"),
@@ -1223,18 +1223,17 @@ test "WPT success cases: href round-trip" {
     ),
     ("about:blank#<foo> <bar>", None, "about:blank#%3Cfoo%3E%20%3Cbar%3E"),
     (
-      "data:text/plain,test#\x00\u{0001}\t\n\r\u{001F} !\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\u{007F}\u{0080}\u{0081}\u{00C9}\u{00E9}",
+      "data:text/plain,test#\u{0000}\u{0001}\t\n\r\u{001F} !\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\u{007F}\u{0080}\u{0081}\u{00C9}\u{00E9}",
       None,
       "data:text/plain,test#%00%01%1F%20!%22#$%&'()*+,-./09:;%3C=%3E?@AZ[\\]^_%60az{|}~%7F%C2%80%C2%81%C3%89%C3%A9",
     ),
     (
-      "about:blank#\x00\u{0001}\t\n\r\u{001F} !\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\u{007F}\u{0080}\u{0081}\u{00C9}\u{00E9}",
+      "about:blank#\u{0000}\u{0001}\t\n\r\u{001F} !\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\u{007F}\u{0080}\u{0081}\u{00C9}\u{00E9}",
       None,
       "about:blank#%00%01%1F%20!%22#$%&'()*+,-./09:;%3C=%3E?@AZ[\\]^_%60az{|}~%7F%C2%80%C2%81%C3%89%C3%A9",
     ),
   ]
-  let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (input, base_opt, expected_href) = item
     let base_url : @uri.Url? = match base_opt {
@@ -1242,31 +1241,32 @@ test "WPT success cases: href round-trip" {
       Some(base_str) =>
         Some(@uri.parse(base_str)) catch {
           _ => {
-            failed = failed + 1
+            failures.push("FAIL parse_base: base=\{base_str}")
             continue
           }
         }
     }
     let url = @uri.parse_with_base(input, base_url) catch {
       _ => {
-        failed = failed + 1
+        failures.push("FAIL parse: input=\{input} base=\{to_repr(base_opt)}")
         continue
       }
     }
     if url.href() != expected_href {
-      if failed < 10 {
-        println(
-          "FAIL: input=\{input} base=\{base_opt} got=\{url.href()} want=\{expected_href}",
-        )
-      }
-      failed = failed + 1
-    } else {
-      passed = passed + 1
+      failures.push(
+        "FAIL: input=\{input} base=\{to_repr(base_opt)} got=\{url.href()} want=\{expected_href}",
+      )
     }
   }
-  println("WPT success: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT success cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println(
+    "WPT success: \{cases.length() - failures.length()}/\{cases.length()} passed",
+  )
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT success cases failed")
   }
 }
 
@@ -1351,7 +1351,7 @@ test "WPT failure cases: parse rejects invalid URLs" {
     ("sc://te@s:t@/", None),
     ("sc://:/", None),
     ("sc://:12/", None),
-    ("sc://a\x00b/", None),
+    ("sc://a\u{0000}b/", None),
     ("sc://a b/", None),
     ("sc://a<b", None),
     ("sc://a>b", None),
@@ -1360,7 +1360,7 @@ test "WPT failure cases: parse rejects invalid URLs" {
     ("sc://a]b/", None),
     ("sc://a^b", None),
     ("sc://a|b/", None),
-    ("http://a\x00b/", None),
+    ("http://a\u{0000}b/", None),
     ("http://a\u{0001}b/", None),
     ("http://a\u{0002}b/", None),
     ("http://a\u{0003}b/", None),
@@ -1523,7 +1523,7 @@ test "WPT failure cases: parse rejects invalid URLs" {
     ("http://foo.0x", None),
     ("http://foo.0XFfFfFfFfFfFfFfFfFfAcE123", None),
     ("http://\u{1F4A9}.123/", None),
-    ("https://\x00y", None),
+    ("https://\u{0000}y", None),
     ("https://\u{FFFF}y", None),
     ("", None),
     ("https://\u{00AD}/", None),

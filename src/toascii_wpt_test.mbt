@@ -131,8 +131,7 @@ test "WPT toascii: domain-to-ascii cases" {
     ("xn--0.com", None),
     ("foo\u{0300}.bar.com", Some("xn--fo-3ja.bar.com")),
   ]
-  let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (input, expected) = item
     let url_str = "https://" + input + "/x"
@@ -141,15 +140,17 @@ test "WPT toascii: domain-to-ascii cases" {
       None => None
       Some(url) => Some(url.hostname())
     }
-    if actual == expected {
-      passed = passed + 1
-    } else {
-      println("FAIL toascii: input=\{input}")
-      println("  expected=\{expected}")
-      println("  actual=\{actual}")
-      failed = failed + 1
+    if actual != expected {
+      failures.push(
+        "FAIL toascii: input=\{input}\n  expected=\{to_repr(expected)}\n  actual=\{to_repr(actual)}",
+      )
     }
   }
-  println("WPT toascii: \{passed}/\{cases.length()} passed")
-  assert_eq(failed, 0)
+  for msg in failures {
+    println(msg)
+  }
+  println(
+    "WPT toascii: \{cases.length() - failures.length()}/\{cases.length()} passed",
+  )
+  assert_eq(failures.length(), 0)
 }

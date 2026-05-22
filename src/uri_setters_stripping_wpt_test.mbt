@@ -85,35 +85,33 @@ test "WPT setters-stripping: protocol" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_protocol, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_protocol(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.protocol() != exp_protocol {
-      if failed < 10 {
-        println(
-          "FAIL protocol/protocol: got=\{new_url.protocol()} want=\{exp_protocol}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL protocol/protocol: got=\{new_url.protocol()} want=\{exp_protocol}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println("FAIL protocol/href: got=\{new_url.href()} want=\{exp_href}")
-      }
-      ok = false
+      failures.push(
+        "FAIL protocol/href: got=\{new_url.href()} want=\{exp_href}",
+      )
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/protocol: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/protocol cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/protocol: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/protocol cases failed")
   }
 }
 
@@ -242,35 +240,33 @@ test "WPT setters-stripping: username" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_username, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_username(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.username != exp_username {
-      if failed < 10 {
-        println(
-          "FAIL username/username: got=\{new_url.username} want=\{exp_username}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL username/username: got=\{new_url.username} want=\{exp_username}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println("FAIL username/href: got=\{new_url.href()} want=\{exp_href}")
-      }
-      ok = false
+      failures.push(
+        "FAIL username/href: got=\{new_url.href()} want=\{exp_href}",
+      )
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/username: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/username cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/username: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/username cases failed")
   }
 }
 
@@ -399,35 +395,33 @@ test "WPT setters-stripping: password" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_password, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_password(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.password != exp_password {
-      if failed < 10 {
-        println(
-          "FAIL password/password: got=\{new_url.password} want=\{exp_password}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL password/password: got=\{new_url.password} want=\{exp_password}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println("FAIL password/href: got=\{new_url.href()} want=\{exp_href}")
-      }
-      ok = false
+      failures.push(
+        "FAIL password/href: got=\{new_url.href()} want=\{exp_href}",
+      )
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/password: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/password cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/password: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/password cases failed")
   }
 }
 
@@ -556,45 +550,38 @@ test "WPT setters-stripping: host" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_hostname, exp_host_str, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_host(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.hostname() != exp_hostname {
-      if failed < 10 {
-        println(
-          "FAIL host/hostname: input=\{setter_input} got=\{new_url.hostname()} want=\{exp_hostname}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL host/hostname: input=\{setter_input} got=\{new_url.hostname()} want=\{exp_hostname}",
+      )
     }
     if new_url.host_str() != exp_host_str {
-      if failed < 10 {
-        println(
-          "FAIL host/host_str: input=\{setter_input} got=\{new_url.host_str()} want=\{exp_host_str}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL host/host_str: input=\{setter_input} got=\{new_url.host_str()} want=\{exp_host_str}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println(
-          "FAIL host/href: input=\{setter_input} got=\{new_url.href()} want=\{exp_href}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL host/href: input=\{setter_input} got=\{new_url.href()} want=\{exp_href}",
+      )
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/host: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/host cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/host: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/host cases failed")
   }
 }
 
@@ -723,45 +710,38 @@ test "WPT setters-stripping: hostname" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_hostname, exp_host_str, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_hostname(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.hostname() != exp_hostname {
-      if failed < 10 {
-        println(
-          "FAIL hostname/hostname: input=\{setter_input} got=\{new_url.hostname()} want=\{exp_hostname}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL hostname/hostname: input=\{setter_input} got=\{new_url.hostname()} want=\{exp_hostname}",
+      )
     }
     if new_url.host_str() != exp_host_str {
-      if failed < 10 {
-        println(
-          "FAIL hostname/host_str: input=\{setter_input} got=\{new_url.host_str()} want=\{exp_host_str}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL hostname/host_str: input=\{setter_input} got=\{new_url.host_str()} want=\{exp_host_str}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println(
-          "FAIL hostname/href: input=\{setter_input} got=\{new_url.href()} want=\{exp_href}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL hostname/href: input=\{setter_input} got=\{new_url.href()} want=\{exp_href}",
+      )
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/hostname: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/hostname cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/hostname: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/hostname cases failed")
   }
 }
 
@@ -890,33 +870,31 @@ test "WPT setters-stripping: port" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_port, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_port(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.port_str() != exp_port {
-      if failed < 10 {
-        println("FAIL port/port: got=\{new_url.port_str()} want=\{exp_port}")
-      }
-      ok = false
+      failures.push(
+        "FAIL port/port: got=\{new_url.port_str()} want=\{exp_port}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println("FAIL port/href: got=\{new_url.href()} want=\{exp_href}")
-      }
-      ok = false
+      failures.push("FAIL port/href: got=\{new_url.href()} want=\{exp_href}")
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/port: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/port cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/port: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/port cases failed")
   }
 }
 
@@ -1045,35 +1023,33 @@ test "WPT setters-stripping: pathname" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_pathname, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_pathname(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.pathname() != exp_pathname {
-      if failed < 10 {
-        println(
-          "FAIL pathname/pathname: got=\{new_url.pathname()} want=\{exp_pathname}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL pathname/pathname: got=\{new_url.pathname()} want=\{exp_pathname}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println("FAIL pathname/href: got=\{new_url.href()} want=\{exp_href}")
-      }
-      ok = false
+      failures.push(
+        "FAIL pathname/href: got=\{new_url.href()} want=\{exp_href}",
+      )
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/pathname: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/pathname cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/pathname: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/pathname cases failed")
   }
 }
 
@@ -1202,35 +1178,31 @@ test "WPT setters-stripping: search" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_search, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_search(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.search() != exp_search {
-      if failed < 10 {
-        println(
-          "FAIL search/search: got=\{new_url.search()} want=\{exp_search}",
-        )
-      }
-      ok = false
+      failures.push(
+        "FAIL search/search: got=\{new_url.search()} want=\{exp_search}",
+      )
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println("FAIL search/href: got=\{new_url.href()} want=\{exp_href}")
-      }
-      ok = false
+      failures.push("FAIL search/href: got=\{new_url.href()} want=\{exp_href}")
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/search: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/search cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/search: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/search cases failed")
   }
 }
 
@@ -1359,32 +1331,28 @@ test "WPT setters-stripping: hash" {
     ),
   ]
   let mut passed = 0
-  let mut failed = 0
+  let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_hash, exp_href) = item
     let url = @uri.parse(base_str)
     let new_url = url.set_hash(setter_input)
-    let mut ok = true
+    let prev_len = failures.length()
     if new_url.hash() != exp_hash {
-      if failed < 10 {
-        println("FAIL hash/hash: got=\{new_url.hash()} want=\{exp_hash}")
-      }
-      ok = false
+      failures.push("FAIL hash/hash: got=\{new_url.hash()} want=\{exp_hash}")
     }
     if new_url.href() != exp_href {
-      if failed < 10 {
-        println("FAIL hash/href: got=\{new_url.href()} want=\{exp_href}")
-      }
-      ok = false
+      failures.push("FAIL hash/href: got=\{new_url.href()} want=\{exp_href}")
     }
-    if ok {
+    if failures.length() == prev_len {
       passed = passed + 1
-    } else {
-      failed = failed + 1
     }
   }
-  println("WPT stripping/hash: \{passed}/\{passed + failed} passed")
-  if failed > 0 {
-    println("WARN: \{failed} WPT stripping/hash cases failed")
+  let n = if failures.length() < 10 { failures.length() } else { 10 }
+  for i in 0..<n {
+    println(failures[i])
+  }
+  println("WPT stripping/hash: \{passed}/\{cases.length()} passed")
+  if failures.length() > 0 {
+    println("WARN: \{failures.length()} WPT stripping/hash cases failed")
   }
 }
