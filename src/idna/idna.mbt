@@ -363,7 +363,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
           for t in targets {
             buf.write_char(Int::unsafe_to_char(t))
           }
-        None => buf.write_char(Int::unsafe_to_char(cp))
+        None => panic()
       }
       continue
     }
@@ -410,10 +410,6 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
         if is_idna_forbidden_cp(cp) {
           raise IdnaParseError("domain has IDNA-forbidden code point")
         }
-        let st = idna_status_code(cp)
-        if st == 4 {
-          raise IdnaParseError("domain has IDNA-disallowed code point (V7)")
-        }
       }
       validate_contextj(cps)
       validate_bidi(cps)
@@ -444,16 +440,6 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
         if nfc_decoded.length() != decoded.length() {
           raise IdnaParseError("decoded ACE label is not in NFC form (V2)")
         }
-        let mut nfc_ok = true
-        for k = 0; k < nfc_decoded.length(); k = k + 1 {
-          if nfc_decoded[k] != decoded[k] {
-            nfc_ok = false
-            break
-          }
-        }
-        if !nfc_ok {
-          raise IdnaParseError("decoded ACE label is not in NFC form (V2)")
-        }
         if decoded.length() >= 4 &&
           decoded[0] == 0x78 &&
           decoded[1] == 0x6E &&
@@ -475,9 +461,6 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
             raise IdnaParseError(
               "decoded ACE label has IDNA-disallowed code point (V7)",
             )
-          }
-          if cp < 0x80 && (cp <= 0x1F || cp == 0x7F) {
-            raise IdnaParseError("decoded ACE label has control char")
           }
         }
         validate_contextj(decoded)

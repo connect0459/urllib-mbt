@@ -263,7 +263,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
         }
       Relative =>
         match base {
-          None => raise UrlParseError("relative URL with no base")
+          None => panic()
           Some(b) => {
             url.scheme = b.scheme
             match c {
@@ -309,14 +309,11 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
         } else if c == Some('/') {
           state = State::Authority
         } else {
-          match base {
-            Some(b) => {
-              url.username = b.username
-              url.password = b.password
-              url.host = b.host
-              url.port = b.port
-            }
-            None => ()
+          if base is Some(b) {
+            url.username = b.username
+            url.password = b.password
+            url.host = b.host
+            url.port = b.port
           }
           state = State::Path
           advance = false
@@ -410,7 +407,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             if is_file_base {
               let b = match base {
                 Some(b) => b
-                None => raise UrlParseError("no base")
+                None => panic()
               }
               url.host = b.host
               url.copy_path_from(b)
@@ -539,11 +536,8 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             url.fragment = Some("")
             state = State::Fragment
           }
-        } else {
-          match c {
-            Some(ch) => buf.write_char(ch)
-            None => ()
-          }
+        } else if c is Some(ch) {
+          buf.write_char(ch)
         }
       }
       OpaquePath =>

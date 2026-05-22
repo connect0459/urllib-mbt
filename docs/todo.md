@@ -1,7 +1,10 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **314 unit tests pass. 22 uncovered lines in 5 files (all dead/defensive code).**  
+Coverage: **314 unit tests pass. 9 uncovered lines in 4 files.**  
+- 1 placeholder (`cmd/main/main.mbt`)  
+- 4 `panic()` assertions (unreachable invariants)  
+- 4 defensive guards (parser/idna)  
 WPT failure rejection: 275/275 (100%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  

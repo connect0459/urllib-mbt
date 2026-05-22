@@ -222,9 +222,6 @@ fn domain_has_forbidden_char(domain : String) -> Bool {
 
 ///|
 fn ends_in_number(input : String) -> Bool {
-  if input.is_empty() {
-    return false
-  }
   let effective = if input.has_suffix(".") {
     input[0:input.length() - 1].to_owned()
   } else {
@@ -242,9 +239,6 @@ fn ends_in_number(input : String) -> Bool {
     label_chars.push(c)
   }
   let n = label_chars.length()
-  if n == 0 {
-    return false
-  }
   let mut all_decimal = true
   for c in label_chars {
     if c < '0' || c > '9' {
@@ -320,10 +314,8 @@ fn parse_ipv4(input : String) -> UInt raise HostParseError {
     0xFFFFFFFFU
   } else if n_parts == 2 {
     0xFFFFFFU
-  } else if n_parts == 3 {
-    0xFFFFU
   } else {
-    raise HostParseError("invalid IPv4")
+    0xFFFFU
   }
   if last > max_last {
     raise HostParseError("invalid IPv4: last part too large")
@@ -343,9 +335,6 @@ fn parse_ipv4(input : String) -> UInt raise HostParseError {
 ///|
 fn parse_ipv4_number(input : String) -> UInt raise HostParseError {
   let n = input.length()
-  if n == 0 {
-    raise HostParseError("empty IPv4 number")
-  }
   let val : UInt64 = if n >= 2 {
     let c0 = input.get_char(0)
     let c1 = input.get_char(1)
@@ -504,7 +493,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
         }
         let p = match ipv4_piece {
           Some(v) => v
-          None => raise HostParseError("invalid IPv6: empty IPv4 octet")
+          None => panic()
         }
         pieces[piece_index] = pieces[piece_index] * 0x100U + p
         numbers_seen = numbers_seen + 1

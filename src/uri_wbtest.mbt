@@ -12,9 +12,12 @@ test "Show for UrlParseError includes message text" {
 test "shorten_path_segs: file URL with single Windows-drive segment is not shortened" {
   let segs = ["C:"]
   shorten_path_segs(segs, "file")
-  debug_inspect(segs, content=(
-    #|["C:"]
-  ))
+  debug_inspect(
+    segs,
+    content=(
+      #|["C:"]
+    ),
+  )
 }
 
 ///|

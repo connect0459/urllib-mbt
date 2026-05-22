@@ -167,9 +167,6 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
     i = i + 1
   }
   let new_scheme = buf.to_string()
-  if new_scheme.is_empty() {
-    return self
-  }
   let old_special = is_special_scheme(self.scheme)
   let new_special = is_special_scheme(new_scheme)
   if old_special != new_special {
@@ -326,16 +323,10 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
       if c == None {
         break
       }
-    } else {
-      match c {
-        Some(ch) => buf.write_char(ch)
-        None => ()
-      }
+    } else if c is Some(ch) {
+      buf.write_char(ch)
     }
     i = i + 1
-  }
-  if segs.is_empty() && self.host == None {
-    segs.push("")
   }
   { ..self, path: UrlPath::Segments(segs) }
 }
