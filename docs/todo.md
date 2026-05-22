@@ -1,10 +1,17 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 211 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
+All 268 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  
-WPT urlencoded-parser: 35/35. WPT percent-encoding: 14/14 (7 query + 7 fragment).
+WPT urlencoded-parser: 35/35. WPT percent-encoding: 14/14 (7 query + 7 fragment).  
+WPT url-statics-canparse: 4/4. WPT url-statics-parse: 4/4. WPT url-tojson: 1/1.  
+WPT urlsearchparams-append: 3/3. WPT urlsearchparams-constructor: 14/14.  
+WPT urlsearchparams-delete: 4/4. WPT urlsearchparams-foreach: 2/2.  
+WPT urlsearchparams-get: 2/2. WPT urlsearchparams-getall: 2/2.  
+WPT urlsearchparams-has: 3/3. WPT urlsearchparams-set: 2/2.  
+WPT urlsearchparams-size: 2/2. WPT urlsearchparams-sort: 8/8.  
+WPT urlsearchparams-stringifier: 13/13.
 
 ---
 
@@ -295,6 +302,45 @@ Tested: U+0000 (NULL), U+0009 (TAB), U+000A (LF), U+000D (CR), U+001F (US)
 - [x] `set_pathname` / `set_search` / `set_hash` — 30/30 each: stripped → stripped; others → encoded
 
 All 270 stripping test cases pass; implementation already compliant.
+
+---
+
+## Phase 8 — WPT static methods and URLSearchParams operation tests (completed)
+
+WPT conformance tests for `URL.canParse`, `URL.parse`, `URL.toJSON`, and all
+`URLSearchParams` operation test suites. Implemented in
+`src/url_statics_wpt_test.mbt` and `src/urlsearchparams_wpt_test.mbt`.
+
+JS-specific cases omitted: `undefined`/`null` coercion, `DOMException`, `FormData`,
+live URL↔searchParams bidirectional sync (requires mutable `Url`).
+
+- [x] **WPT url-statics-canparse: 4/4** — `can_parse` with opaque/hierarchical
+  non-special URLs, invalid-port https, and relative-with-base.
+- [x] **WPT url-statics-parse: 4/4** — `parse_maybe` returns `Some`/`None`
+  correctly; relative URL resolves to expected href.
+- [x] **WPT url-tojson: 1/1** — `to_json()` returns the URL href.
+- [x] **WPT urlsearchparams-append: 3/3** — same name, empty strings, multiple.
+- [x] **WPT urlsearchparams-constructor: 14/14** — string edge cases, NUL byte
+  (`\u{0000}` / `%00`), U+2384 COMPOSITION SYMBOL, U+1F4A9 PILE OF POO (4-byte
+  UTF-8 `%f0%9f%92%a9`), `+` and `%20` parsing.
+- [x] **WPT urlsearchparams-delete: 4/4** — basics, duplicates, two-argument
+  `delete_entry`.
+- [x] **WPT urlsearchparams-foreach: 2/2** — ordered iteration, empty params.
+- [x] **WPT urlsearchparams-get: 2/2** — basics including empty-key and
+  empty-value lookups.
+- [x] **WPT urlsearchparams-getall: 2/2** — multiple values, `set` collapses to
+  one.
+- [x] **WPT urlsearchparams-has: 3/3** — basics, after delete, two-argument
+  `has_entry`.
+- [x] **WPT urlsearchparams-set: 2/2** — replaces first, removes duplicates.
+- [x] **WPT urlsearchparams-size: 2/2** — size after delete and append.
+- [x] **WPT urlsearchparams-sort: 8/8** — all Unicode sort cases: U+FFFC/U+FFFD
+  ordering, ligature ﬃ (U+FB03) vs emoji 🌈 (U+1F308 → surrogate D83C), combining
+  marks (é / e+U+0301 / e+U+FFFD), long stable sort, emoji pair (🌈 < 💩 via
+  D83C < D83D).
+- [x] **WPT urlsearchparams-stringifier: 13/13** — all encoding cases (space,
+  `+`, `%`, `=`, `&`, `*-._`, NUL `%00`, emoji `%F0%9F%92%A9`, comma `%2C`),
+  roundtrip, and newline non-normalization (`%0A`, `%0D`).
 
 ---
 
