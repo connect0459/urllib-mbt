@@ -1,8 +1,9 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 192 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
-WPT getters: 611/611. WPT origin: 399/399.
+All 201 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
+WPT getters: 611/611. WPT origin: 399/399.  
+WPT stripping: 270/270 (all setter C0-char cases).
 
 ---
 
@@ -212,6 +213,24 @@ test vectors. Implemented in `src/uri_getters_wpt_test.mbt`.
   `blob:https://example.com:443/` → `https://example.com` (http/https inner only)
   Fixed by parsing the blob URL's opaque path as an inner URL; only http/https
   schemes yield a non-null origin per WHATWG spec.
+
+---
+
+## Phase 4 — WPT url-setters-stripping tests (completed)
+
+WHATWG `url-setters-stripping.any.js`: control-character handling for all setters.
+Tested: U+0000 (NULL), U+0009 (TAB), U+000A (LF), U+000D (CR), U+001F (US)
+× leading/middle/trailing positions × 2 schemes (https, wpt++) × all setter props.
+
+- [x] `set_protocol` with C0 chars — 20/20 cases: stripped (TAB/LF/CR) → scheme changes;
+  others (0x00/0x1F) → scheme unchanged (non-alpha fails grammar)
+- [x] `set_username` / `set_password` — 30/30 each: all chars percent-encoded (no stripping)
+- [x] `set_host` / `set_hostname` — 30/30 each: stripped → changes; 0x00 → rejected (keep original);
+  0x1F + https → rejected; 0x1F + non-special → `%1F` encoded via opaque host
+- [x] `set_port` — 30/30: stripped → parses past char; others → parse stops at non-digit
+- [x] `set_pathname` / `set_search` / `set_hash` — 30/30 each: stripped → stripped; others → encoded
+
+All 270 stripping test cases pass; implementation already compliant.
 
 ---
 
