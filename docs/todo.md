@@ -1,9 +1,10 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 208 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
+All 209 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
-WPT stripping: 270/270 (all setter C0-char cases).
+WPT stripping: 270/270 (all setter C0-char cases).  
+WPT urlencoded-parser: 35/35.
 
 ---
 
@@ -236,6 +237,31 @@ and `src/search_params.mbt`. Tested in `src/uri_test.mbt` and appended to
 `from_string("?a=b")` strips the leading `?` (constructor behavior).
 `search_params()` passes the raw query string directly to `parse_urlencoded`
 (URL association behavior per WHATWG spec).
+
+---
+
+## Phase 6 — WPT urlencoded-parser tests (completed)
+
+WHATWG `urlencoded-parser.any.js`: 35 test vectors for `URLSearchParams` construction
+from `application/x-www-form-urlencoded` strings. Tested in
+`src/urlencoded_parser_wpt_test.mbt`.
+
+- [x] **WPT urlencoded-parser: 35/35 cases** — all pass.
+- [x] **`utf8_bytes_to_string` fix** (`percent_encode.mbt`) — added continuation-byte
+  validation (`(b & 0xC0) == 0x80`) for 2/3/4-byte sequences. Without this,
+  `%C2x` decoded to U+00B8 instead of U+FFFD + `x` because `x` (0x78) was
+  incorrectly consumed as a continuation byte.
+
+### Key cases covered
+
+| Input | Expected output |
+| :--- | :--- |
+| `%C2` | `[("�", "")]` — incomplete 2-byte seq |
+| `%C2x` | `[("�x", "")]` — invalid continuation byte |
+| `%FE%FF` | `[("��", "")]` — 0xFE/0xFF never valid in UTF-8 |
+| `%EF%BB%BF=…` | `[("﻿", "…")]` — BOM round-trips correctly |
+| `b=%%2a` | `[("b", "%*")]` — lone `%` passes through, `%2a` decodes |
+| `a=a+b+c+d` | `[("a", "a b c d")]` — `+` → space |
 
 ---
 

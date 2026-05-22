@@ -197,6 +197,11 @@ fn percent_decode(input : String) -> String {
 }
 
 ///|
+fn is_continuation(b : Int) -> Bool {
+  (b & 0xC0) == 0x80
+}
+
+///|
 fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
   let buf = StringBuilder::new()
   let n = bytes.length()
@@ -205,14 +210,21 @@ fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
     let b = bytes[i]
     let (cp, advance) = if (b & 0x80) == 0 {
       (b, 1)
-    } else if (b & 0xE0) == 0xC0 && i + 1 < n {
+    } else if (b & 0xE0) == 0xC0 && i + 1 < n && is_continuation(bytes[i + 1]) {
       (((b & 0x1F) << 6) | (bytes[i + 1] & 0x3F), 2)
-    } else if (b & 0xF0) == 0xE0 && i + 2 < n {
+    } else if (b & 0xF0) == 0xE0 &&
+      i + 2 < n &&
+      is_continuation(bytes[i + 1]) &&
+      is_continuation(bytes[i + 2]) {
       let cp = ((b & 0x0F) << 12) |
         ((bytes[i + 1] & 0x3F) << 6) |
         (bytes[i + 2] & 0x3F)
       (cp, 3)
-    } else if (b & 0xF8) == 0xF0 && i + 3 < n {
+    } else if (b & 0xF8) == 0xF0 &&
+      i + 3 < n &&
+      is_continuation(bytes[i + 1]) &&
+      is_continuation(bytes[i + 2]) &&
+      is_continuation(bytes[i + 3]) {
       let cp = ((b & 0x07) << 18) |
         ((bytes[i + 1] & 0x3F) << 12) |
         ((bytes[i + 2] & 0x3F) << 6) |
