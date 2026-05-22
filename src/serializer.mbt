@@ -178,3 +178,8 @@ pub fn Url::hash(self : Url) -> String {
     Some(f) => "#" + f
   }
 }
+
+///|
+pub impl Show for Url with fn output(self, logger) {
+  logger.write_string(self.href())
+}

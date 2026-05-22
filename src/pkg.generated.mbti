@@ -53,6 +53,7 @@ pub fn Url::set_protocol(Self, String) -> Self
 pub fn Url::set_search(Self, String) -> Self
 pub fn Url::set_username(Self, String) -> Self
 pub fn Url::to_json(Self) -> String
+pub impl Show for Url
 
 pub enum UrlPath {
   Segments(Array[String])
@@ -77,6 +78,7 @@ pub fn UrlSearchParams::set(Self, String, String) -> Unit
 pub fn UrlSearchParams::size(Self) -> Int
 pub fn UrlSearchParams::sort(Self) -> Unit
 pub fn UrlSearchParams::to_string(Self) -> String
+pub impl Show for UrlSearchParams
 
 // Type aliases
 pub using @host {type Host}

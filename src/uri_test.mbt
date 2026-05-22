@@ -111,3 +111,15 @@ test "search_params returns independent copy (mutations do not affect URL)" {
   assert_eq(url.search(), "?a=b")
   assert_eq(url.search_params().to_string(), "a=b")
 }
+
+///|
+test "Show for Url outputs href" {
+  let url = @uri.parse("https://example.com/path?q=1#hash")
+  assert_eq("\{url}", "https://example.com/path?q=1#hash")
+}
+
+///|
+test "Show for Url works for opaque-path URL" {
+  let url = @uri.parse("mailto:user@example.com")
+  assert_eq("\{url}", "mailto:user@example.com")
+}

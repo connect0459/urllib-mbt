@@ -145,6 +145,11 @@ pub fn UrlSearchParams::to_string(self : UrlSearchParams) -> String {
 }
 
 ///|
+pub impl Show for UrlSearchParams with fn output(self, logger) {
+  logger.write_string(self.to_string())
+}
+
+///|
 pub fn UrlSearchParams::iter(self : UrlSearchParams) -> Iter[(String, String)] {
   self.list.iter()
 }

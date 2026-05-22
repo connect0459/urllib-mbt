@@ -328,3 +328,15 @@ test "iter yields all pairs" {
   }
   @debug.assert_eq(pairs, [("a", "1"), ("b", "2")])
 }
+
+///|
+test "Show for UrlSearchParams outputs serialized form" {
+  let p = @uri.UrlSearchParams::from_string("a=1&b=2")
+  assert_eq("\{p}", "a=1&b=2")
+}
+
+///|
+test "Show for UrlSearchParams outputs empty string for empty params" {
+  let p = @uri.UrlSearchParams::new()
+  assert_eq("\{p}", "")
+}
