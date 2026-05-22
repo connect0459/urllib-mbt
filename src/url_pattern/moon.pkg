@@ -1,0 +1,9 @@
+import {
+  "moonbitlang/core/string",
+  "connect0459/uri",
+}
+
+import {
+  "moonbitlang/x/fs",
+  "moonbitlang/core/json",
+} for "test"

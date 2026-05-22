@@ -1,0 +1,72 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "connect0459/uri/url_pattern"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+pub suberror UrlPatternError {
+  UrlPatternError(String)
+}
+pub impl Show for UrlPatternError
+
+// Types and methods
+pub struct UrlPattern {
+  // private fields
+}
+pub fn UrlPattern::exec_init(Self, UrlPatternInit) -> UrlPatternResult?
+pub fn UrlPattern::exec_url(Self, String) -> UrlPatternResult?
+pub fn UrlPattern::from_init(UrlPatternInit) -> Self raise UrlPatternError
+pub fn UrlPattern::get_hash(Self) -> String
+pub fn UrlPattern::get_hostname(Self) -> String
+pub fn UrlPattern::get_password(Self) -> String
+pub fn UrlPattern::get_pathname(Self) -> String
+pub fn UrlPattern::get_port(Self) -> String
+pub fn UrlPattern::get_protocol(Self) -> String
+pub fn UrlPattern::get_search(Self) -> String
+pub fn UrlPattern::get_username(Self) -> String
+pub fn UrlPattern::test_init(Self, UrlPatternInit) -> Bool
+pub fn UrlPattern::test_url(Self, String) -> Bool
+
+pub struct UrlPatternComponentResult {
+  input : String
+  groups : Map[String, String?]
+} derive(@debug.Debug)
+
+pub struct UrlPatternInit {
+  protocol : String?
+  username : String?
+  password : String?
+  hostname : String?
+  port : String?
+  pathname : String?
+  search : String?
+  hash : String?
+  base_url : String?
+} derive(@debug.Debug)
+pub fn UrlPatternInit::new(protocol? : String?, username? : String?, password? : String?, hostname? : String?, port? : String?, pathname? : String?, search? : String?, hash? : String?, base_url? : String?) -> Self
+
+pub enum UrlPatternInput {
+  Str(String)
+  Init(UrlPatternInit)
+} derive(@debug.Debug)
+
+pub struct UrlPatternResult {
+  inputs : Array[UrlPatternInput]
+  protocol : UrlPatternComponentResult?
+  username : UrlPatternComponentResult?
+  password : UrlPatternComponentResult?
+  hostname : UrlPatternComponentResult?
+  port : UrlPatternComponentResult?
+  pathname : UrlPatternComponentResult?
+  search : UrlPatternComponentResult?
+  hash : UrlPatternComponentResult?
+} derive(@debug.Debug)
+
+// Type aliases
+
+// Traits
+

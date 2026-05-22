@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **370 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **377 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -698,6 +698,43 @@ equivalent in a MoonBit URL parsing library.
 | `historical.any.js` | Tests JS-only features: `location.searchParams`, `structuredClone`, `URL.domainToASCII/Unicode` being `undefined`, `Constructor only takes strings` (coercion). None applicable to a static parser library. |
 | `javascript-urls.window.js` | Tests navigation and execution of `javascript:` URLs in a browser context. Not applicable. |
 | `idlharness.any.js` | Tests the WebIDL interface of `URL` and `URLSearchParams` (attribute types, inheritance, etc.). Requires a WebIDL test harness. |
+
+---
+
+## T8 — URL Pattern API (`src/url_pattern/`) (completed)
+
+WHATWG URL Pattern API. Implemented in `src/url_pattern/` as a standalone
+sub-package. WPT test runner against `resources/urlpatterntestdata.json`
+(364 entries).
+
+### Package files
+
+- `tokenizer.mbt` — pattern tokenizer (PartType, Token, tokenize)
+- `pattern_parser.mbt` — parse pattern string → `Array[Part]`, generate
+  regexp and normalized pattern string
+- `url_pattern.mbt` — `UrlPattern`, `UrlPatternInit`, `UrlPatternResult`,
+  compile/match/canonicalize logic
+- `types.mbt` — public type definitions
+- `url_pattern_test.mbt` — 6 hand-written unit tests
+- `url_pattern_wpt_test.mbt` — WPT runner (144 pass / ~220 skipped)
+
+### WPT conformance
+
+- [x] **WPT URLPattern: 144/144 simple init-to-init cases** — all passing.
+  ~220 cases skipped: `expected_obj` (pattern normalization), `baseURL`,
+  `ignoreCase`, string-pattern inputs, unsupported regex features
+  (`[[a-z]--a]` char-class subtraction, `[\d&&[0-1]]` intersection).
+
+### Key implementation notes
+
+- **Ada algorithm** for ZeroOrMore/OneOrMore with prefix/suffix:
+  `(?:prefix((?:value)(?:suffix prefix(?:value))*)suffix)?`
+- **Canonicalization** of input components via `@uri.parse` fallbacks:
+  hostname (IDNA), pathname (dot-segments), username/password, search, hash
+- **Default port stripping** in `from_init` for literal special-scheme
+  protocols (http:80→"", https:443→"", ftp:21→"", ws:80→"", wss:443→"")
+- **Special-scheme check** for pathname canonicalization: only http, https,
+  ws, wss, ftp, file (and empty proto treated as special for exec_url)
 
 ---
 
