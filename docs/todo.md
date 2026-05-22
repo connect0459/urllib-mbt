@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **325 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **338 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -644,6 +644,17 @@ fixture at `resources/IdnaTestV2.json` (Unicode 17.0.0).
 - [x] **`Url::join(String)`** (`src/uri.mbt`) — resolves a relative or absolute
   URL string against `self`; thin wrapper around `parse_with_base(url, Some(self))`.
   Mirrors rust-url's `Url::join` API.
+
+- [x] **`Url::is_special()`** (`src/uri.mbt`) — `true` when scheme is one of
+  `http`, `https`, `ftp`, `file`, `ws`, `wss`. Exposes the WHATWG "URL is
+  special" concept publicly.
+
+- [x] **`Url::has_credentials()`** (`src/uri.mbt`) — `true` when username or
+  password is non-empty. Matches WHATWG "URL includes credentials".
+
+- [x] **`Url::has_opaque_path()`** (`src/uri.mbt`) — `true` when path variant
+  is `Opaque` (equivalent to rust-url's `cannot_be_a_base()`). Matches WHATWG
+  "URL has an opaque path".
 
 ---
 
