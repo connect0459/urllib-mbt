@@ -1,8 +1,8 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 201 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
-WPT getters: 611/611. WPT origin: 399/399.  
+All 208 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
+WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).
 
 ---
@@ -213,6 +213,29 @@ test vectors. Implemented in `src/uri_getters_wpt_test.mbt`.
   `blob:https://example.com:443/` → `https://example.com` (http/https inner only)
   Fixed by parsing the blob URL's opaque path as an inner URL; only http/https
   schemes yield a non-null origin per WHATWG spec.
+
+---
+
+## Phase 5 — URL.search_params getter (completed)
+
+WHATWG `URLSearchParams` integration with `Url`. Implemented in `src/uri.mbt`
+and `src/search_params.mbt`. Tested in `src/uri_test.mbt` and appended to
+`src/uri_getters_wpt_test.mbt`.
+
+- [x] **`Url::search_params(self) -> UrlSearchParams`** — returns a snapshot of
+  the URL's query parsed as `UrlSearchParams` without stripping a leading `?`.
+  - No query (`None`) → empty `UrlSearchParams`
+  - Empty query (`Some("")`) → empty `UrlSearchParams`
+  - `??a=b&c=d` → query=`?a=b&c=d` → `%3Fa=b&c=d` (leading `?` is data, not stripped)
+- [x] **Internal `parse_urlencoded`** — extracted from `from_string` into a
+  package-private function that parses without any leading-`?` stripping.
+- [x] **WPT searchParams: 9/9 cases** — all WHATWG test vectors pass.
+
+### Key difference from `from_string`
+
+`from_string("?a=b")` strips the leading `?` (constructor behavior).
+`search_params()` passes the raw query string directly to `parse_urlencoded`
+(URL association behavior per WHATWG spec).
 
 ---
 

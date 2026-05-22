@@ -925,3 +925,50 @@ test "to_json equals href for complex URL" {
   let url = @uri.parse("http://user:pass@example.com:8080/path?query#hash")
   assert_eq(url.to_json(), url.href())
 }
+
+// ===== search_params =====
+
+///|
+test "search_params returns empty params when URL has no query" {
+  let url = @uri.parse("http://example.com/path")
+  assert_eq(url.search_params().to_string(), "")
+}
+
+///|
+test "search_params returns empty params for empty query" {
+  let url = @uri.parse("http://example.com/path?")
+  assert_eq(url.search_params().to_string(), "")
+}
+
+///|
+test "search_params parses key-value pairs from query" {
+  let url = @uri.parse("http://example.com/path?a=b&c=d")
+  let params = url.search_params()
+  assert_eq(params.to_string(), "a=b&c=d")
+  assert_eq(params.get("a"), Some("b"))
+  assert_eq(params.get("c"), Some("d"))
+}
+
+///|
+test "search_params: query starting with ? encodes it (no stripping)" {
+  let url = @uri.parse_with_base(
+    "??a=b&c=d",
+    Some(@uri.parse("http://example.org/foo/bar")),
+  )
+  assert_eq(url.search_params().to_string(), "%3Fa=b&c=d")
+}
+
+///|
+test "search_params: key without value yields empty-string value" {
+  let url = @uri.parse("http://foo.bar/baz?qux")
+  assert_eq(url.search_params().to_string(), "qux=")
+}
+
+///|
+test "search_params returns independent copy (mutations do not affect URL)" {
+  let url = @uri.parse("http://example.com/?a=b")
+  let params = url.search_params()
+  params.append("x", "y")
+  assert_eq(url.search(), "?a=b")
+  assert_eq(url.search_params().to_string(), "a=b")
+}

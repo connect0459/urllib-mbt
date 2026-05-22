@@ -7322,3 +7322,46 @@ test "WPT URL getter: origin" {
     println("WARN: \{failed} WPT origin cases failed")
   }
 }
+
+///|
+test "WPT URL getter: searchParams" {
+  let cases : Array[(String, String?, String)] = [
+    ("?a=b&c=d", Some("http://example.org/foo/bar"), "a=b&c=d"),
+    ("??a=b&c=d", Some("http://example.org/foo/bar"), "%3Fa=b&c=d"),
+    ("http:", Some("http://example.org/foo/bar"), ""),
+    ("sc:", Some("https://example.org/foo/bar"), ""),
+    ("http://foo.bar/baz?qux#foo\u{0008}bar", None, "qux="),
+    ("http://foo.bar/baz?qux#foo\"bar", None, "qux="),
+    ("http://foo.bar/baz?qux#foo<bar", None, "qux="),
+    ("http://foo.bar/baz?qux#foo>bar", None, "qux="),
+    ("http://foo.bar/baz?qux#foo\u{0060}bar", None, "qux="),
+  ]
+  let mut passed = 0
+  let mut failed = 0
+  for item in cases {
+    let (input, base_opt, exp_sp) = item
+    let base_url : @uri.Url? = match base_opt {
+      None => None
+      Some(base_str) => Some(@uri.parse(base_str)) catch { _ => None }
+    }
+    let url = @uri.parse_with_base(input, base_url) catch {
+      _ => {
+        failed = failed + 1
+        continue
+      }
+    }
+    let got = url.search_params().to_string()
+    if got != exp_sp {
+      if failed < 10 {
+        println("FAIL searchParams: input=\{input} got=\{got} want=\{exp_sp}")
+      }
+      failed = failed + 1
+    } else {
+      passed = passed + 1
+    }
+  }
+  println("WPT searchParams: \{passed}/\{passed + failed} passed")
+  if failed > 0 {
+    println("WARN: \{failed} WPT searchParams cases failed")
+  }
+}

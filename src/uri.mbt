@@ -15,3 +15,11 @@ pub fn parse_maybe(url : String, base : Url?) -> Url? {
 pub fn Url::to_json(self : Url) -> String {
   self.href()
 }
+
+///|
+pub fn Url::search_params(self : Url) -> UrlSearchParams {
+  match self.query {
+    None | Some("") => UrlSearchParams::new()
+    Some(q) => parse_urlencoded(q)
+  }
+}
