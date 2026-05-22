@@ -1,10 +1,10 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-All 209 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
+All 211 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  
-WPT urlencoded-parser: 35/35.
+WPT urlencoded-parser: 35/35. WPT percent-encoding: 14/14 (7 query + 7 fragment).
 
 ---
 
@@ -237,6 +237,21 @@ and `src/search_params.mbt`. Tested in `src/uri_test.mbt` and appended to
 `from_string("?a=b")` strips the leading `?` (constructor behavior).
 `search_params()` passes the raw query string directly to `parse_urlencoded`
 (URL association behavior per WHATWG spec).
+
+---
+
+## Phase 7 — WPT percent-encoding tests (completed)
+
+WHATWG `percent-encoding.window.js` — UTF-8 encoding cases from
+`resources/percent-encoding.json`. Tested in `src/percent_encoding_wpt_test.mbt`.
+Non-UTF-8 encoding variants (big5, euc-kr, windows-1252, etc.) are out of scope
+because the WHATWG URL parser always uses UTF-8.
+
+- [x] **WPT percent-encoding/query: 7/7** — Unicode chars percent-encoded in URL query
+- [x] **WPT percent-encoding/fragment: 7/7** — fragment always UTF-8 encoded
+
+No implementation changes required; existing `percent_encode_query` and
+`percent_encode_fragment` already handled all cases correctly.
 
 ---
 
