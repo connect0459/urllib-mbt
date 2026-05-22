@@ -1,6 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
+Coverage: **270 unit tests pass. 65 uncovered lines in 9 files.**  
 All 270 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  
@@ -14,6 +15,93 @@ WPT urlsearchparams-size: 2/2. WPT urlsearchparams-sort: 8/8.
 WPT urlsearchparams-stringifier: 13/13.  
 WPT toascii: 87/87.  
 WPT IdnaTestV2: 2670/2670 (100%).
+
+---
+
+## Coverage gaps — action plan
+
+Result of `moon coverage analyze` (65 uncovered lines, 9 files).
+`src/cmd/main/main.mbt` (placeholder `println`) and ~5 logically dead defensive
+branches in `parser.mbt` / `host.mbt` are excluded from the plan.
+
+### B — `try_nfc_compose` unreached branches (8 lines in `src/idna/idna.mbt`)
+
+These specific Unicode compositions were not triggered by the WPT/IDNA fixture
+data. Implementation is correct; tests just need input that exercises each pair.
+
+- [ ] **B1** Add whitebox test: `A` + U+0300 (grave) → À (U+00C0)
+- [ ] **B2** Add whitebox test: `A` + U+0308 (diaeresis) → Ä (U+00C4)
+- [ ] **B3** Add whitebox test: `O` + U+0308 → Ö (U+00D6)
+- [ ] **B4** Add whitebox test: `U` + U+0308 → Ü (U+00DC)
+- [ ] **B5** Add whitebox test: `S` + U+0302 (circumflex) → Ŝ (U+015C)
+- [ ] **B6** Add whitebox test: `Y` + U+0307 (dot above) → Ẏ (U+1E8E)
+- [ ] **B7** Add whitebox test: Greek Ο (U+039F) + U+0301 (acute) → Ό (U+038C)
+- [ ] **B8** Add whitebox test: `o` + U+0301 → ó (U+00F3)
+
+### C — Untested edge cases (~35 lines across 7 files)
+
+#### C-types: `src/types.mbt` (2 lines)
+
+- [ ] **C-types-1** `UrlPath==`: test `Segments != Opaque` (cross-variant mismatch)
+- [ ] **C-types-2** `Show for UrlParseError`: assert formatted string contains message
+
+#### C-host: `src/host/host.mbt` (10 lines)
+
+- [ ] **C-host-1** `Show for HostParseError`: assert formatted string contains message
+- [ ] **C-host-2** `parse_host("[::1"` (no closing `]`) → `HostParseError`
+- [ ] **C-host-3** `domain_has_forbidden_char`: U+FFFD in domain → rejected
+- [ ] **C-host-4** `domain_has_forbidden_char`: U+FDD0 (nonchar) in domain → rejected
+- [ ] **C-host-5** `domain_has_forbidden_char`: U+FFFE in domain → rejected
+- [ ] **C-host-6** `domain_has_forbidden_char`: U+00A0 (NBSP) in domain → rejected
+- [ ] **C-host-7** `parse_ipv4("1.256")` → `HostParseError` (last part too large)
+- [ ] **C-host-8** `parse_ipv4("256.1.1.1")` → `HostParseError` (octet > 255)
+- [ ] **C-host-9** `parse_hex_u64` with invalid hex digit → `HostParseError`
+- [ ] **C-host-10** `parse_ipv6` with empty IPv4 octet → `HostParseError`
+
+#### C-punycode: `src/idna/punycode.mbt` (6 lines)
+
+- [ ] **C-pny-1** `punycode_digit_value` uppercase `A` → digit 0 (not error)
+- [ ] **C-pny-2** `punycode_decode("")` → `IdnaParseError("punycode: empty input")`
+- [ ] **C-pny-3** `punycode_decode` with non-ASCII char before `-` delimiter → error
+- [ ] **C-pny-4** `punycode_decode` crafted input that overflows code point → error
+- [ ] **C-pny-5** `punycode_decode` crafted input yielding surrogate → error
+- [ ] **C-pny-6** `punycode_encode([])` → `IdnaParseError("punycode: empty input")`
+
+#### C-idna: `src/idna/idna.mbt` (5 lines)
+
+- [ ] **C-idna-1** `domain_to_ascii("")` → `IdnaParseError("empty domain")`
+- [ ] **C-idna-2** Non-ASCII label with IDNA-disallowed code point (V7 path) → error
+- [ ] **C-idna-3** `xn--` label whose Punycode decodes to non-NFC form → error
+- [ ] **C-idna-4** `xn--` label with C0 control char in decoded output → error
+- [ ] **C-idna-5** Mapping returns `None` in `idna_mapping_lookup` (defensive path)
+
+#### C-parser: `src/parser.mbt` (4 lines)
+
+- [ ] **C-parser-1** `[::1]:` (IPv6 with empty port) → port `None`
+- [ ] **C-parser-2** `[::1]x` (invalid char after IPv6) → `UrlParseError`
+- [ ] **C-parser-3** `..` segment at `?`/`#` stop in opaque-path-free URL → trailing `/`
+- [ ] **C-parser-4** `copy_path_from` with opaque-path base in `Relative` state
+
+#### C-pe: `src/percent_encoding/percent_encoding.mbt` (1 line)
+
+- [ ] **C-pe-1** `percent_encode_opaque_path_at_stop("")` → `""`
+
+#### C-serial: `src/serializer.mbt` (6 lines)
+
+- [ ] **C-serial-1** `file:` URL with `host == None`: `href()` produces `file:///path`
+- [ ] **C-serial-2** Special-scheme URL with `host == None`: `origin()` → `"null"` check
+- [ ] **C-serial-3** `blob:` URL where inner path is `Segments` (not `Opaque`) → origin
+
+#### C-setters: `src/setters.mbt` (11 lines)
+
+- [ ] **C-set-1** `shorten_path_segs` on `file:` URL with single Windows-drive segment → no-op
+- [ ] **C-set-2** `split_host_port("[" …)` with no closing `]` → returns `(s, None)`
+- [ ] **C-set-3** `set_protocol` where parsed scheme is empty (e.g., input `:`)  → no-op
+- [ ] **C-set-4** `set_protocol`: `file:` → non-file with non-empty, non-localhost host → no-op
+- [ ] **C-set-5** `set_pathname` with single-dot segment at EOF → trailing `""`
+- [ ] **C-set-6** `set_pathname` for `file:` URL where first segment is Windows drive letter
+- [ ] **C-set-7** `set_host`/`set_hostname` on `file:` URL with non-localhost host → kept
+- [ ] **C-set-8** `set_hostname` with `[::1]extra` (extra chars after IPv6 bracket) → no-op
 
 ---
 
