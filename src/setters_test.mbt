@@ -304,3 +304,52 @@ test "set_href re-parses the URL" {
   assert_eq(url.href(), "http://192.168.0.240/")
   assert_eq(url.protocol(), "http:")
 }
+
+///|
+test "set_protocol with colon-only value is a no-op (empty new scheme)" {
+  let url = @uri.parse("https://example.com/")
+  let result = url.set_protocol(":")
+  assert_eq(result.href(), url.href())
+}
+
+///|
+test "set_protocol on file URL with non-empty host converts to non-file scheme" {
+  let url = @uri.parse("file://host.example.com/path")
+  let result = url.set_protocol("https")
+  assert_eq(result.scheme, "https")
+}
+
+///|
+test "set_pathname with single-dot segment at EOF appends trailing slash" {
+  let url = @uri.parse("https://example.com/foo/bar")
+  let result = url.set_pathname("a/.")
+  assert_eq(result.pathname(), "/a/")
+}
+
+///|
+test "set_pathname with Windows drive letter normalizes file URL path" {
+  let url = @uri.parse("file:///tmp/path")
+  let result = url.set_pathname("C:/foo")
+  assert_eq(result.href(), "file:///C:/foo")
+}
+
+///|
+test "set_host on file URL with non-localhost domain sets host" {
+  let url = @uri.parse("file:///path")
+  let result = url.set_host("example.com")
+  assert_eq(result.hostname(), "example.com")
+}
+
+///|
+test "set_hostname on file URL with non-localhost domain sets host" {
+  let url = @uri.parse("file:///path")
+  let result = url.set_hostname("example.com")
+  assert_eq(result.hostname(), "example.com")
+}
+
+///|
+test "set_hostname with extra chars after IPv6 closing bracket is a no-op" {
+  let url = @uri.parse("https://example.com/")
+  let result = url.set_hostname("[::1]extra")
+  assert_eq(result.hostname(), "example.com")
+}

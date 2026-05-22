@@ -39,3 +39,14 @@ test "try_nfc_compose: acute accent combinations (U+0301)" {
 test "try_nfc_compose: no composition returns -1" {
   assert_eq(try_nfc_compose(0x0041, 0x0041), -1) // A + A → no composition
 }
+
+///|
+test "domain_to_ascii: empty input raises IdnaParseError" {
+  let caught = try {
+    let _ = domain_to_ascii("")
+    false
+  } catch {
+    IdnaParseError(_) => true
+  }
+  assert_eq(caught, true)
+}

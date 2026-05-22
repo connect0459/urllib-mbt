@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **276 unit tests pass. 57 uncovered lines in 9 files.**  
+Coverage: **312 unit tests pass. 23 uncovered lines in 7 files (all dead/defensive code).**  
 All 270 unit tests pass. WPT failure rejection: 269/275 (97.8%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  
@@ -42,66 +42,66 @@ data. Implementation is correct; tests just need input that exercises each pair.
 
 #### C-types: `src/types.mbt` (2 lines)
 
-- [ ] **C-types-1** `UrlPath==`: test `Segments != Opaque` (cross-variant mismatch)
-- [ ] **C-types-2** `Show for UrlParseError`: assert formatted string contains message
+- [x] **C-types-1** `UrlPath==`: test `Segments != Opaque` (cross-variant mismatch)
+- [x] **C-types-2** `Show for UrlParseError`: assert formatted string contains message
 
 #### C-host: `src/host/host.mbt` (10 lines)
 
-- [ ] **C-host-1** `Show for HostParseError`: assert formatted string contains message
-- [ ] **C-host-2** `parse_host("[::1"` (no closing `]`) → `HostParseError`
-- [ ] **C-host-3** `domain_has_forbidden_char`: U+FFFD in domain → rejected
-- [ ] **C-host-4** `domain_has_forbidden_char`: U+FDD0 (nonchar) in domain → rejected
-- [ ] **C-host-5** `domain_has_forbidden_char`: U+FFFE in domain → rejected
-- [ ] **C-host-6** `domain_has_forbidden_char`: U+00A0 (NBSP) in domain → rejected
-- [ ] **C-host-7** `parse_ipv4("1.256")` → `HostParseError` (last part too large)
-- [ ] **C-host-8** `parse_ipv4("256.1.1.1")` → `HostParseError` (octet > 255)
-- [ ] **C-host-9** `parse_hex_u64` with invalid hex digit → `HostParseError`
-- [ ] **C-host-10** `parse_ipv6` with empty IPv4 octet → `HostParseError`
+- [x] **C-host-1** `Show for HostParseError`: assert formatted string contains message
+- [x] **C-host-2** `parse_host("[::1"` (no closing `]`) → `HostParseError`
+- [x] **C-host-3** `domain_has_forbidden_char`: U+FFFD in domain → rejected
+- [x] **C-host-4** `domain_has_forbidden_char`: U+FDD0 (nonchar) in domain → rejected
+- [x] **C-host-5** `domain_has_forbidden_char`: U+FFFE in domain → rejected
+- [x] **C-host-6** `domain_has_forbidden_char`: U+00A0 (NBSP) in domain → rejected
+- [x] **C-host-7** `parse_ipv4("1.256")` → `HostParseError` (last part too large)
+- [x] **C-host-8** `parse_ipv4("256.1.1.1")` → `HostParseError` (octet > 255)
+- [x] **C-host-9** `parse_hex_u64` with invalid hex digit → `HostParseError`
+- [ ] **C-host-10** `parse_ipv6` with empty IPv4 octet → dead code (guard checks digit before loop)
 
 #### C-punycode: `src/idna/punycode.mbt` (6 lines)
 
-- [ ] **C-pny-1** `punycode_digit_value` uppercase `A` → digit 0 (not error)
-- [ ] **C-pny-2** `punycode_decode("")` → `IdnaParseError("punycode: empty input")`
-- [ ] **C-pny-3** `punycode_decode` with non-ASCII char before `-` delimiter → error
-- [ ] **C-pny-4** `punycode_decode` crafted input that overflows code point → error
-- [ ] **C-pny-5** `punycode_decode` crafted input yielding surrogate → error
-- [ ] **C-pny-6** `punycode_encode([])` → `IdnaParseError("punycode: empty input")`
+- [x] **C-pny-1** `punycode_digit_value` uppercase `A` → digit 0 (not error)
+- [x] **C-pny-2** `punycode_decode("")` → `IdnaParseError("punycode: empty input")`
+- [x] **C-pny-3** `punycode_decode` with non-ASCII char before `-` delimiter → error
+- [x] **C-pny-4** `punycode_decode` crafted input that overflows code point → error
+- [x] **C-pny-5** `punycode_decode` crafted input yielding surrogate → error
+- [x] **C-pny-6** `punycode_encode([])` → `IdnaParseError("punycode: empty input")`
 
 #### C-idna: `src/idna/idna.mbt` (5 lines)
 
-- [ ] **C-idna-1** `domain_to_ascii("")` → `IdnaParseError("empty domain")`
-- [ ] **C-idna-2** Non-ASCII label with IDNA-disallowed code point (V7 path) → error
-- [ ] **C-idna-3** `xn--` label whose Punycode decodes to non-NFC form → error
-- [ ] **C-idna-4** `xn--` label with C0 control char in decoded output → error
-- [ ] **C-idna-5** Mapping returns `None` in `idna_mapping_lookup` (defensive path)
+- [x] **C-idna-1** `domain_to_ascii("")` → `IdnaParseError("empty domain")`
+- [ ] **C-idna-2** Non-ASCII label with IDNA-disallowed code point (V7 path) → dead code (forbidden check fires first)
+- [ ] **C-idna-3** `xn--` label whose Punycode decodes to non-NFC form → dead code (NFC preserves length invariant)
+- [ ] **C-idna-4** `xn--` label with C0 control char in decoded output → dead code (status-4 check fires first)
+- [ ] **C-idna-5** Mapping returns `None` in `idna_mapping_lookup` → dead code (table is complete)
 
 #### C-parser: `src/parser.mbt` (4 lines)
 
-- [ ] **C-parser-1** `[::1]:` (IPv6 with empty port) → port `None`
-- [ ] **C-parser-2** `[::1]x` (invalid char after IPv6) → `UrlParseError`
-- [ ] **C-parser-3** `..` segment at `?`/`#` stop in opaque-path-free URL → trailing `/`
-- [ ] **C-parser-4** `copy_path_from` with opaque-path base in `Relative` state
+- [x] **C-parser-1** `[::1]:` (IPv6 with empty port) → port `None`
+- [x] **C-parser-2** `[::1]x` (invalid char after IPv6) → `UrlParseError`
+- [x] **C-parser-3** `..` segment at `?`/`#` stop in opaque-path-free URL → trailing `/`
+- [ ] **C-parser-4** `copy_path_from` with opaque-path base → dead code (`Relative` state always has Segments base)
 
 #### C-pe: `src/percent_encoding/percent_encoding.mbt` (1 line)
 
-- [ ] **C-pe-1** `percent_encode_opaque_path_at_stop("")` → `""`
+- [x] **C-pe-1** `percent_encode_opaque_path_at_stop("")` → `""`
 
 #### C-serial: `src/serializer.mbt` (6 lines)
 
-- [ ] **C-serial-1** `file:` URL with `host == None`: `href()` produces `file:///path`
-- [ ] **C-serial-2** Special-scheme URL with `host == None`: `origin()` → `"null"` check
-- [ ] **C-serial-3** `blob:` URL where inner path is `Segments` (not `Opaque`) → origin
+- [x] **C-serial-1** `file:` URL with `host == None`: `href()` produces `file:/.//path`
+- [x] **C-serial-2** Special-scheme URL with `host == None`: `origin()` → scheme-based origin
+- [x] **C-serial-3** `blob:` URL where inner path is `Segments` → origin (non-empty and empty)
 
 #### C-setters: `src/setters.mbt` (11 lines)
 
-- [ ] **C-set-1** `shorten_path_segs` on `file:` URL with single Windows-drive segment → no-op
-- [ ] **C-set-2** `split_host_port("[" …)` with no closing `]` → returns `(s, None)`
-- [ ] **C-set-3** `set_protocol` where parsed scheme is empty (e.g., input `:`)  → no-op
-- [ ] **C-set-4** `set_protocol`: `file:` → non-file with non-empty, non-localhost host → no-op
-- [ ] **C-set-5** `set_pathname` with single-dot segment at EOF → trailing `""`
-- [ ] **C-set-6** `set_pathname` for `file:` URL where first segment is Windows drive letter
-- [ ] **C-set-7** `set_host`/`set_hostname` on `file:` URL with non-localhost host → kept
-- [ ] **C-set-8** `set_hostname` with `[::1]extra` (extra chars after IPv6 bracket) → no-op
+- [x] **C-set-1** `shorten_path_segs` on `file:` URL with single Windows-drive segment → no-op
+- [x] **C-set-2** `split_host_port("[" …)` with no closing `]` → returns `(s, None)`
+- [x] **C-set-3** `set_protocol` where parsed scheme is empty (e.g., input `:`)  → no-op (first guard catches it)
+- [x] **C-set-4** `set_protocol`: `file:` → non-file with non-empty, non-localhost host → scheme converts
+- [x] **C-set-5** `set_pathname` with single-dot segment at EOF → trailing `""`
+- [x] **C-set-6** `set_pathname` for `file:` URL where first segment is Windows drive letter
+- [x] **C-set-7** `set_host`/`set_hostname` on `file:` URL with non-localhost host → kept
+- [x] **C-set-8** `set_hostname` with `[::1]extra` (extra chars after IPv6 bracket) → no-op
 
 ---
 

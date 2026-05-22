@@ -517,3 +517,22 @@ test "hash returns empty string for empty-string fragment" {
   let url = @uri.parse("http://example.com/foo#")
   assert_eq(url.hash(), "")
 }
+
+///|
+test "parse: IPv6 host with empty port parses port as None" {
+  let url = @uri.parse("http://[::1]:/")
+  assert_true(url.port is None)
+  assert_eq(url.href(), "http://[::1]/")
+}
+
+///|
+test "parse: IPv6 host with trailing non-colon char raises UrlParseError" {
+  let result = @uri.parse_maybe("http://[::1]x/", None)
+  assert_true(result is None)
+}
+
+///|
+test "parse: single-dot segment before query produces trailing slash" {
+  let url = @uri.parse("http://example.com/a/..?q=1")
+  assert_eq(url.href(), "http://example.com/?q=1")
+}

@@ -79,6 +79,69 @@ test "punycode encode: RFC 3492 section 7.1 test vectors" {
 }
 
 ///|
+test "punycode_digit_value: uppercase letters are valid digits" {
+  assert_eq(punycode_digit_value('A'), 0)
+  assert_eq(punycode_digit_value('Z'), 25)
+}
+
+///|
+test "punycode_decode: empty input raises IdnaParseError" {
+  let caught = try {
+    let _ = punycode_decode("")
+    false
+  } catch {
+    IdnaParseError(_) => true
+  }
+  assert_eq(caught, true)
+}
+
+///|
+test "punycode_decode: non-ASCII char before delimiter raises error" {
+  let caught = try {
+    let _ = punycode_decode("\u{0080}-")
+    false
+  } catch {
+    IdnaParseError(_) => true
+  }
+  assert_eq(caught, true)
+}
+
+///|
+test "punycode_decode: code point overflow raises error" {
+  // "en32g" encodes delta=1,113,984 which pushes n past U+10FFFF
+  let caught = try {
+    let _ = punycode_decode("en32g")
+    false
+  } catch {
+    IdnaParseError(_) => true
+  }
+  assert_eq(caught, true)
+}
+
+///|
+test "punycode_decode: surrogate code point raises error" {
+  // "ib9b" encodes delta=55,168 which decodes to U+D800 (surrogate)
+  let caught = try {
+    let _ = punycode_decode("ib9b")
+    false
+  } catch {
+    IdnaParseError(_) => true
+  }
+  assert_eq(caught, true)
+}
+
+///|
+test "punycode_encode: empty input raises IdnaParseError" {
+  let caught = try {
+    let _ = punycode_encode([])
+    false
+  } catch {
+    IdnaParseError(_) => true
+  }
+  assert_eq(caught, true)
+}
+
+///|
 test "punycode decode: RFC 3492 section 7.1 test vectors" {
   let cases : Array[(String, String)] = [
     // Arabic (Egyptian)
