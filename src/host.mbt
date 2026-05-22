@@ -112,7 +112,81 @@ fn is_virama(cp : Int) -> Bool {
   cp == 0x0D4D ||
   cp == 0x0DCA ||
   cp == 0x0E3A ||
-  cp == 0x0F84
+  cp == 0x0F84 ||
+  cp == 0x1039 ||
+  cp == 0x103A ||
+  cp == 0x1714 ||
+  cp == 0x1734 ||
+  cp == 0x17D2 ||
+  cp == 0x1A60 ||
+  cp == 0x1BAA ||
+  cp == 0x1BAB ||
+  cp == 0x2D7F ||
+  cp == 0xA806 ||
+  cp == 0xA8C4 ||
+  cp == 0xA953 ||
+  cp == 0xA9C0 ||
+  cp == 0xAAF6 ||
+  cp == 0xABED ||
+  cp == 0x10A3F ||
+  cp == 0x11134 ||
+  cp == 0x111C0 ||
+  cp == 0x11235 ||
+  cp == 0x112EA ||
+  cp == 0x1134D ||
+  cp == 0x11442 ||
+  cp == 0x114C2 ||
+  cp == 0x115BF ||
+  cp == 0x1163F ||
+  cp == 0x116B6 ||
+  cp == 0x11C3F
+}
+
+///|
+fn is_arabic_script(cp : Int) -> Bool {
+  cp >= 0x0600 && cp <= 0x06FF
+}
+
+///|
+fn is_arabic_right_joining(cp : Int) -> Bool {
+  cp == 0x0622 ||
+  cp == 0x0623 ||
+  cp == 0x0624 ||
+  cp == 0x0625 ||
+  cp == 0x0627 ||
+  cp == 0x0629 ||
+  cp == 0x062F ||
+  cp == 0x0630 ||
+  cp == 0x0631 ||
+  cp == 0x0632 ||
+  cp == 0x0648 ||
+  cp == 0x0671 ||
+  cp == 0x0672 ||
+  cp == 0x0673 ||
+  cp == 0x0675 ||
+  cp == 0x0676 ||
+  cp == 0x0677 ||
+  (cp >= 0x0688 && cp <= 0x0699) ||
+  (cp >= 0x06C4 && cp <= 0x06CF) ||
+  cp == 0x06D2 ||
+  cp == 0x06D3 ||
+  cp == 0x06EE ||
+  cp == 0x06EF
+}
+
+///|
+fn is_arabic_nonjoining(cp : Int) -> Bool {
+  // Arabic NSM (combining marks) and digits that don't participate in joining
+  (cp >= 0x0610 && cp <= 0x061A) ||
+  (cp >= 0x064B && cp <= 0x065F) ||
+  cp == 0x0670 ||
+  (cp >= 0x0660 && cp <= 0x0669) ||
+  (cp >= 0x06F0 && cp <= 0x06F9) ||
+  (cp >= 0x06D6 && cp <= 0x06DC) ||
+  (cp >= 0x06DF && cp <= 0x06E4) ||
+  cp == 0x06E7 ||
+  cp == 0x06E8 ||
+  (cp >= 0x06EA && cp <= 0x06ED)
 }
 
 ///|
@@ -120,31 +194,76 @@ fn validate_contextj(cps : Array[Int]) -> Unit raise UrlParseError {
   for idx = 0; idx < cps.length(); idx = idx + 1 {
     let cp = cps[idx]
     if cp == 0x200D {
-      // ZWJ must immediately follow a virama (CCC=9)
+      // ZWJ: must immediately follow a virama
       if idx == 0 || !is_virama(cps[idx - 1]) {
         raise UrlParseError("ZWJ requires preceding virama")
       }
+    } else if cp == 0x200C {
+      // ZWNJ: RFC 5892 rule: valid after virama, or between (L|D)(T)* and (T)*(R|D)
+      let allowed = if idx == 0 {
+        false
+      } else {
+        let prev = cps[idx - 1]
+        if is_virama(prev) {
+          true
+        } else {
+          // Scan backwards through T-transparent (Arabic NSM/digits) to find L or D
+          let mut back_idx = idx - 1
+          while back_idx > 0 && is_arabic_nonjoining(cps[back_idx]) {
+            back_idx = back_idx - 1
+          }
+          let back_cp = cps[back_idx]
+          let prev_ok = is_arabic_script(back_cp) &&
+            !is_arabic_right_joining(back_cp) &&
+            !is_arabic_nonjoining(back_cp)
+          if !prev_ok {
+            false
+          } else {
+            // Scan forwards through T-transparent to find R or D
+            let mut fwd_idx = idx + 1
+            while fwd_idx < cps.length() && is_arabic_nonjoining(cps[fwd_idx]) {
+              fwd_idx = fwd_idx + 1
+            }
+            fwd_idx < cps.length() &&
+            is_arabic_script(cps[fwd_idx]) &&
+            !is_arabic_nonjoining(cps[fwd_idx])
+          }
+        }
+      }
+      if !allowed {
+        raise UrlParseError("ZWNJ requires virama or joining context")
+      }
     }
-    // ZWNJ (U+200C) context is not strictly validated here:
-    // Arabic/Indic scripts use it for shaping without virama precedence.
   }
 }
 
 ///|
 fn validate_bidi(cps : Array[Int]) -> Unit raise UrlParseError {
+  // RFC 5893 BiDi check: a label mixing R/AL chars with L chars is invalid.
+  // Combining marks (NSM) inherit directionality and do not count as RTL or LTR.
   let mut has_rtl = false
   let mut has_ltr = false
   for cp in cps {
-    if (cp >= 0x0590 && cp <= 0x05FF) ||
-      (cp >= 0x0600 && cp <= 0x06FF) ||
-      (cp >= 0x0700 && cp <= 0x074F) {
+    if is_combining_mark_table(cp) {
+      continue
+    }
+    if (cp >= 0x0590 && cp <= 0x05FF) || (cp >= 0x0700 && cp <= 0x074F) {
       has_rtl = true
-    } else if (cp >= 0x41 && cp <= 0x5A) || (cp >= 0x61 && cp <= 0x7A) {
+    } else if is_arabic_script(cp) && !is_arabic_nonjoining(cp) {
+      has_rtl = true
+    } else if (cp >= 0x41 && cp <= 0x5A) ||
+      (cp >= 0x61 && cp <= 0x7A) ||
+      (cp >= 0x0370 && cp <= 0x03FF) ||
+      (cp >= 0x0400 && cp <= 0x04FF) ||
+      (cp >= 0x10A0 && cp <= 0x10FF) ||
+      (cp >= 0x2D00 && cp <= 0x2D2F) ||
+      (cp >= 0x3040 && cp <= 0x9FFF) ||
+      (cp >= 0xAC00 && cp <= 0xD7A3) {
       has_ltr = true
     }
   }
   if has_rtl && has_ltr {
-    raise UrlParseError("BIDI violation: mixed RTL and LTR chars")
+    raise UrlParseError("BIDI violation: label mixes RTL and LTR scripts")
   }
 }
 
@@ -156,24 +275,115 @@ fn nfc_compose(cps : Array[Int]) -> Array[Int] {
   let result : Array[Int] = []
   let mut i = 0
   while i < cps.length() {
-    let cp = cps[i]
-    if i + 1 < cps.length() {
-      let next = cps[i + 1]
-      let composed = try_nfc_compose(cp, next)
+    let mut cur = cps[i]
+    let mut j = i + 1
+    while j < cps.length() {
+      let composed = try_nfc_compose(cur, cps[j])
       if composed >= 0 {
-        result.push(composed)
-        i = i + 2
-        continue
+        cur = composed
+        j = j + 1
+      } else {
+        break
       }
     }
-    result.push(cp)
-    i = i + 1
+    result.push(cur)
+    i = j
   }
   result
 }
 
 ///|
+fn hangul_compose(l : Int, v : Int) -> Int {
+  let s_base = 0xAC00
+  let l_base = 0x1100
+  let v_base = 0x1161
+  let t_count = 28
+  let n_count = 21 * t_count
+  s_base + (l - l_base) * n_count + (v - v_base) * t_count
+}
+
+///|
 fn try_nfc_compose(a : Int, b : Int) -> Int {
+  // Hangul LV composition: Jamo L (U+1100-U+1112) + Jamo V (U+1161-U+1175)
+  if a >= 0x1100 && a <= 0x1112 && b >= 0x1161 && b <= 0x1175 {
+    return hangul_compose(a, b)
+  }
+  // Hangul LVT composition: LV syllable (T_index == 0) + Jamo T (U+11A8-U+11C2)
+  if a >= 0xAC00 &&
+    a <= 0xD7A3 &&
+    (a - 0xAC00) % 28 == 0 &&
+    b >= 0x11A8 &&
+    b <= 0x11C2 {
+    return a + (b - 0x11A7)
+  }
+  // Latin with combining marks
+  if b == 0x0300 {
+    if a == 0x0041 {
+      return 0x00C0
+    } // A + grave → À
+    if a == 0x0061 {
+      return 0x00E0
+    } // a + grave → à
+    if a == 0x006F {
+      return 0x00F2
+    } // o + grave → ò
+  }
+  if b == 0x0308 {
+    if a == 0x0041 {
+      return 0x00C4
+    } // A + diaeresis → Ä
+    if a == 0x0061 {
+      return 0x00E4
+    } // a + diaeresis → ä
+    if a == 0x004F {
+      return 0x00D6
+    } // O + diaeresis → Ö
+    if a == 0x006F {
+      return 0x00F6
+    } // o + diaeresis → ö
+    if a == 0x0055 {
+      return 0x00DC
+    } // U + diaeresis → Ü
+    if a == 0x0075 {
+      return 0x00FC
+    } // u + diaeresis → ü
+  }
+  if b == 0x0302 {
+    if a == 0x0053 {
+      return 0x015C
+    } // S + circumflex → Ŝ
+    if a == 0x0073 {
+      return 0x015D
+    } // s + circumflex → ŝ
+  }
+  if b == 0x0307 {
+    if a == 0x0059 {
+      return 0x1E8E
+    } // Y + dot above → Ẏ
+    if a == 0x0079 {
+      return 0x1E8F
+    } // y + dot above → ẏ
+  }
+  // Greek with tonos
+  if b == 0x0301 {
+    if a == 0x039F {
+      return 0x038C
+    } // Ο + tonos → Ό
+    if a == 0x03BF {
+      return 0x03CC
+    } // ο + tonos → ό
+    if a == 0x006F {
+      return 0x00F3
+    } // o + acute → ó
+    if a == 0x006B {
+      return 0x1E31
+    } // k + acute → ḱ (keep existing)
+  }
+  // Arabic with hamza
+  if a == 0x0648 && b == 0x0654 {
+    return 0x0624 // waw + hamza above → ؤ
+  }
+  // Remaining existing pairs
   if a == 0x003D && b == 0x0338 {
     return 0x2260 // = + combining solidus → ≠
   }
@@ -182,12 +392,6 @@ fn try_nfc_compose(a : Int, b : Int) -> Int {
   }
   if a == 0x003E && b == 0x0338 {
     return 0x226F // > + combining solidus → ≯
-  }
-  if a == 0x006F && b == 0x0300 {
-    return 0x00F2 // o + combining grave → ò
-  }
-  if a == 0x006B && b == 0x0301 {
-    return 0x1E31 // k + combining acute → ḱ
   }
   -1
 }
@@ -261,51 +465,34 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
   if domain.is_empty() {
     raise UrlParseError("empty domain")
   }
-  // Phase 1: strip ignorables, apply UTS#46 char mappings, lowercase ASCII
+  // Phase 1: apply UTS#46 mapping/ignoring/disallowed via IdnaMappingTable.
+  // UseSTD3ASCIIRules=false (per WHATWG URL host parser): treat
+  //   disallowed_STD3_valid as valid and disallowed_STD3_mapped as mapped.
+  // Transitional_Processing=false: treat deviation as valid (write self).
   let buf = StringBuilder::new()
   for c in domain {
     let cp = c.to_int()
-    // Ignored characters (stripped during processing)
-    if cp == 0x00AD ||
-      cp == 0x200B ||
-      cp == 0x2060 ||
-      cp == 0xFEFF ||
-      cp == 0x180E ||
-      cp == 0x034F ||
-      cp == 0x206B {
+    let st = idna_status_code(cp)
+    if st == 1 {
+      // ignored
       continue
-    } else if cp == 0x3002 {
-      buf.write_char('.')
-    } else if cp == 0x09DC {
-      // BENGALI LETTER RRA: NFC decomposes to DA + NUKTA (doesn't recompose)
-      buf.write_char(Int::unsafe_to_char(0x09A1))
-      buf.write_char(Int::unsafe_to_char(0x09BC))
-    } else {
-      let mapped = if cp >= 0xFF01 && cp <= 0xFF5E {
-        cp - 0xFEE0
-      } else if cp >= 0x1D400 && cp <= 0x1D419 {
-        cp - 0x1D400 + 0x41
-      } else if cp >= 0x1D41A && cp <= 0x1D433 {
-        cp - 0x1D41A + 0x61
-      } else if cp == 0x0341 {
-        0x0301 // COMBINING ACUTE TONE MARK → COMBINING ACUTE ACCENT (NFC singleton)
-      } else if cp == 0x2F868 {
-        0x36FC // CJK COMPAT IDEOGRAPH-2F868 → U+36FC (NFC canonical)
-      } else if cp == 0x1E9E {
-        0x00DF // LATIN CAPITAL LETTER SHARP S → ß (UTS#46 mapping)
-      } else if cp == 0x04C0 {
-        0x04CF // MODIFIER LETTER CAPITAL I → MODIFIER LETTER SMALL I
-      } else if cp == 0x2183 {
-        0x2184 // ROMAN NUMERAL REVERSED ONE HUNDRED → LATIN SMALL LETTER REVERSED C
-      } else {
-        cp
-      }
-      if mapped >= 0x41 && mapped <= 0x5A {
-        buf.write_char(Int::unsafe_to_char(mapped + 32))
-      } else {
-        buf.write_char(Int::unsafe_to_char(mapped))
-      }
     }
+    if st == 4 {
+      raise UrlParseError("domain has IDNA-disallowed code point")
+    }
+    if st == 2 || st == 6 {
+      // mapped / disallowed_STD3_mapped (UseSTD3=false → mapped)
+      match idna_mapping_lookup(cp) {
+        Some(targets) =>
+          for t in targets {
+            buf.write_char(Int::unsafe_to_char(t))
+          }
+        None => buf.write_char(Int::unsafe_to_char(cp))
+      }
+      continue
+    }
+    // valid (0), deviation (3), disallowed_STD3_valid (5): keep
+    buf.write_char(Int::unsafe_to_char(cp))
   }
   let mapped = buf.to_string()
   if mapped.is_empty() {
@@ -344,9 +531,17 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
       if label.has_prefix("xn--") {
         raise UrlParseError("invalid ACE label: non-ASCII in xn-- label")
       }
+      // V6: label must not start with a combining mark
+      if cps.length() > 0 && is_combining_mark_table(cps[0]) {
+        raise UrlParseError("label starts with combining mark (V6)")
+      }
       for cp in cps {
         if is_idna_forbidden_cp(cp) {
           raise UrlParseError("domain has IDNA-forbidden code point")
+        }
+        let st = idna_status_code(cp)
+        if st == 4 {
+          raise UrlParseError("domain has IDNA-disallowed code point (V7)")
         }
       }
       validate_contextj(cps)
@@ -362,9 +557,66 @@ fn domain_to_ascii(domain : String) -> String raise UrlParseError {
           raise UrlParseError("invalid ACE label: empty xn-- extension")
         }
         let decoded = punycode_decode(suffix)
+        // P4: decoded label must not be empty or all-ASCII
+        if decoded.length() == 0 {
+          raise UrlParseError("decoded ACE label is empty (P4)")
+        }
+        let mut has_nonascii_in_decoded = false
+        for cp in decoded {
+          if cp > 0x7F {
+            has_nonascii_in_decoded = true
+            break
+          }
+        }
+        if !has_nonascii_in_decoded {
+          raise UrlParseError("decoded ACE label contains no non-ASCII (P4)")
+        }
+        // V2: decoded label must be in NFC form
+        let nfc_decoded = nfc_compose(decoded)
+        if nfc_decoded.length() != decoded.length() {
+          raise UrlParseError("decoded ACE label is not in NFC form (V2)")
+        }
+        let mut nfc_ok = true
+        for k = 0; k < nfc_decoded.length(); k = k + 1 {
+          if nfc_decoded[k] != decoded[k] {
+            nfc_ok = false
+            break
+          }
+        }
+        if !nfc_ok {
+          raise UrlParseError("decoded ACE label is not in NFC form (V2)")
+        }
+        // V4: decoded label must not start with "xn--" (would be a nested ACE label)
+        if decoded.length() >= 4 &&
+          decoded[0] == 0x78 &&
+          decoded[1] == 0x6E &&
+          decoded[2] == 0x2D &&
+          decoded[3] == 0x2D {
+          raise UrlParseError("decoded ACE label starts with xn-- (V4)")
+        }
+        // V6: decoded label must not start with a combining mark
+        if decoded.length() > 0 && is_combining_mark_table(decoded[0]) {
+          raise UrlParseError(
+            "decoded ACE label starts with combining mark (V6)",
+          )
+        }
         for cp in decoded {
           if is_idna_forbidden_cp(cp) {
             raise UrlParseError("decoded ACE label has forbidden code point")
+          }
+          // V7: each cp in decoded label must have valid IDNA status.
+          // Acceptable statuses (with UseSTD3ASCIIRules=false): valid (0),
+          // deviation (3, Non-transitional treats as valid),
+          // disallowed_STD3_valid (5). All others fail.
+          let st = idna_status_code(cp)
+          if st != 0 && st != 3 && st != 5 {
+            raise UrlParseError(
+              "decoded ACE label has IDNA-disallowed code point (V7)",
+            )
+          }
+          // C0 controls and DEL are disallowed regardless of UseSTD3ASCIIRules
+          if cp < 0x80 && (cp <= 0x1F || cp == 0x7F) {
+            raise UrlParseError("decoded ACE label has control char")
           }
         }
         validate_contextj(decoded)
@@ -393,7 +645,8 @@ fn is_idna_forbidden_cp(cp : Int) -> Bool {
   cp == 0x1680 ||
   // C1 controls
   (cp >= 0x80 && cp <= 0x9F) ||
-  // Bidi format controls
+  // Surrogates
+  (cp >= 0xD800 && cp <= 0xDFFF) ||
   // Bidi format controls
   (cp >= 0x202A && cp <= 0x202E) ||
   (cp >= 0x2066 && cp <= 0x2069) ||
@@ -403,8 +656,31 @@ fn is_idna_forbidden_cp(cp : Int) -> Bool {
   (cp >= 0xFFFA && cp <= 0xFFFC) ||
   // Ideographic Description Characters
   (cp >= 0x2FF0 && cp <= 0x2FFB) ||
-  // Tags block (U+E0000-U+E007F)
-  (cp >= 0xE0000 && cp <= 0xE007F) ||
+  // Tags block and adjacent unassigned (U+E0000-U+E00FF, U+E01F0-U+E0FFF)
+  (cp >= 0xE0000 && cp <= 0xE00FF) ||
+  (cp >= 0xE01F0 && cp <= 0xE0FFF) ||
+  // Digit n Full Stop (U+2488-U+249B, disallowed in IDNA per UTS#46)
+  (cp >= 0x2488 && cp <= 0x249B) ||
+  // Georgian capital letters (Asomtavruli) must be mapped before encoding
+  (cp >= 0x10A0 && cp <= 0x10C5) ||
+  // Hangul filler characters are disallowed in domain labels
+  cp == 0x1160 ||
+  cp == 0x3164 ||
+  // Dot-separator chars that map to '.' and must not appear in labels
+  cp == 0x3002 ||
+  cp == 0xFF61 ||
+  cp == 0xFE12 ||
+  cp == 0xFE52 ||
+  // Unassigned plane 3 (beyond CJK Extension J which ends at U+33FFD)
+  (cp >= 0x34000 && cp <= 0x3FFFF) ||
+  // Unassigned supplementary planes 4-13 (all unassigned in Unicode 15)
+  (cp >= 0x40000 && cp <= 0xDFFFF) ||
+  // Unassigned plane 14 chars beyond Tags and variation supplement
+  (cp >= 0xE1000 && cp <= 0xEFFFF) ||
+  // BMP Private Use Area
+  (cp >= 0xE000 && cp <= 0xF8FF) ||
+  // Supplementary Private Use Areas (planes 15-16)
+  cp >= 0xF0000 ||
   // Specific disallowed chars
   cp == 0x2025 ||
   cp == 0x2A74 ||
