@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **338 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **370 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -655,6 +655,12 @@ fixture at `resources/IdnaTestV2.json` (Unicode 17.0.0).
 - [x] **`Url::has_opaque_path()`** (`src/uri.mbt`) — `true` when path variant
   is `Opaque` (equivalent to rust-url's `cannot_be_a_base()`). Matches WHATWG
   "URL has an opaque path".
+
+- [x] **`percent_encode_c0(String)`** (`src/percent_encoding/percent_encoding.mbt`)
+  — encodes using the C0 percent-encode set (control chars ≤ 0x1F and non-ASCII
+  > 0x7E). User-friendly alternative name to the internal `percent_encode_opaque_path`.
+  Also added 31 whitebox tests covering all public API functions in
+  `percent_encoding_wbtest.mbt`.
 
 ---
 
