@@ -59,7 +59,7 @@ tested in `src/url_search_params_test.mbt`.
 - [x] `iter() -> Iter[(String, String)]`
 - [x] `for_each((String, String) -> Unit)`
 
-### Key implementation notes
+### Key implementation notes - 1
 
 - `url_form_decode`: `+`→space, then percent-decode (lenient: invalid `%XX` passed through)
 - `url_form_encode`: space→`+`, safe chars literal, else `%XX`; safe = `*-._ 0-9 A-Z a-z`
@@ -209,7 +209,7 @@ require a Punycode decoder to detect invalid Punycode-encoded strings (out of sc
 - [x] `set_search(value)` — 16 WPT cases
 - [x] `set_hash(value)` — 26 WPT cases
 
-### Key implementation notes
+### Key implementation notes - 2
 
 - `src/setters.mbt`: all 10 setter methods + helper functions
 - `strip_ascii_tabs_newlines`: setters strip only `\t`/`\n`/`\r` (NOT leading/trailing C0 or space),
