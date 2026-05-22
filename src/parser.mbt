@@ -350,7 +350,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                 password_token_seen = true
                 continue
               }
-              let enc = percent_encode_userinfo(ch.to_string())
+              let enc = @pe.percent_encode_userinfo(ch.to_string())
               if password_token_seen {
                 url.password = url.password + enc
               } else {
@@ -527,7 +527,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
               let rest = seg[2:].to_owned()
               url.path_segments.push(c0 + ":" + rest)
             } else {
-              url.path_segments.push(percent_encode_path_seg(seg))
+              url.path_segments.push(@pe.percent_encode_path_seg(seg))
             }
           }
           if is_query {
@@ -547,7 +547,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
       OpaquePath =>
         match c {
           Some('?') => {
-            url.opaque_path = percent_encode_opaque_path_at_stop(
+            url.opaque_path = @pe.percent_encode_opaque_path_at_stop(
               buf.to_string(),
             )
             buf.reset()
@@ -555,14 +555,15 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             state = State::Query
           }
           Some('#') => {
-            url.opaque_path = percent_encode_opaque_path_at_stop(
+            url.opaque_path = @pe.percent_encode_opaque_path_at_stop(
               buf.to_string(),
             )
             buf.reset()
             url.fragment = Some("")
             state = State::Fragment
           }
-          None => url.opaque_path = percent_encode_opaque_path(buf.to_string())
+          None =>
+            url.opaque_path = @pe.percent_encode_opaque_path(buf.to_string())
           Some(ch) => buf.write_char(ch)
         }
       Query =>
@@ -570,19 +571,20 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
           Some('#') => {
             let q = buf.to_string()
             buf.reset()
-            url.query = Some(percent_encode_query(q, url.is_special()))
+            url.query = Some(@pe.percent_encode_query(q, url.is_special()))
             url.fragment = Some("")
             state = State::Fragment
           }
           None =>
             url.query = Some(
-              percent_encode_query(buf.to_string(), url.is_special()),
+              @pe.percent_encode_query(buf.to_string(), url.is_special()),
             )
           Some(ch) => buf.write_char(ch)
         }
       Fragment =>
         match c {
-          None => url.fragment = Some(percent_encode_fragment(buf.to_string()))
+          None =>
+            url.fragment = Some(@pe.percent_encode_fragment(buf.to_string()))
           Some(ch) => buf.write_char(ch)
         }
     }

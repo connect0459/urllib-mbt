@@ -88,27 +88,21 @@ connect0459/uri                   — URL parser/API
 
 Move all of `src/percent_encode.mbt` to a new sub-package. Zero external deps.
 
-- [ ] **P1** Create `src/percent_encoding/moon.pkg` (empty import block)
-- [ ] **P2** Create `src/percent_encoding/percent_encoding.mbt` — move from
-  `src/percent_encode.mbt`:
-  - `is_c0`, `in_fragment_set`, `in_query_set`, `in_special_query_set`,
-    `in_path_set`, `in_userinfo_set`
-  - `to_hex_upper`, `percent_encode_byte`, `char_to_utf8_bytes`
-  - `percent_encode`, `percent_encode_fragment`, `percent_encode_query`,
-    `percent_encode_path_seg`, `percent_encode_userinfo`,
-    `percent_encode_opaque_path`, `percent_encode_opaque_path_at_stop`
-  - `hex_digit_value`, `percent_decode`, `is_continuation`, `utf8_bytes_to_string`
-- [ ] **P3** Delete `src/percent_encode.mbt`
-- [ ] **P4** Update `src/moon.pkg`: replace `moonbitlang/core/debug` import with
-  `"connect0459/uri/percent_encoding" @pe`
-- [ ] **P5** Update all call-sites in `src/` to use `@pe.` prefix:
+- [x] **P1** Create `src/percent_encoding/moon.pkg` (empty import block)
+- [x] **P2** Create `src/percent_encoding/percent_encoding.mbt` — moved from
+  `src/percent_encode.mbt`; encode-set predicates and `percent_encode` stay
+  private; 11 utility functions made `pub`
+- [x] **P3** Delete `src/percent_encode.mbt`
+- [x] **P4** Update `src/moon.pkg`: add `"connect0459/uri/percent_encoding" @pe`
+- [x] **P5** Update all call-sites in `src/` to use `@pe.` prefix:
   - `parser.mbt`: all `percent_encode_*` calls
-  - `host.mbt`: `percent_decode`, `hex_digit_value`, `percent_encode`
+  - `host.mbt`: `percent_decode`, `@pe.hex_digit_value`,
+    `percent_encode_opaque_path` (replaces raw `percent_encode(…, is_c0)`)
   - `setters.mbt`: all `percent_encode_*` calls
   - `search_params.mbt`: `hex_digit_value`, `char_to_utf8_bytes`,
     `utf8_bytes_to_string`, `percent_encode_byte`
-- [ ] **P6** Move `src/percent_encoding_wpt_test.mbt` to
-  `src/percent_encoding/percent_encoding_wpt_test.mbt`
+- [x] **P6** `src/percent_encoding_wpt_test.mbt` stays in `src/` — it depends on
+  `@uri.parse` so moving it to the sub-package would create a circular dependency
 
 ### Step H — Extract `src/host/` sub-package
 

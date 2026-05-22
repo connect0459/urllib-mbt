@@ -200,7 +200,7 @@ pub fn Url::set_username(self : Url, value : String) -> Url {
   if !url_can_have_credentials(self) {
     return self
   }
-  { ..self, username: percent_encode_userinfo(value) }
+  { ..self, username: @pe.percent_encode_userinfo(value) }
 }
 
 ///|
@@ -208,7 +208,7 @@ pub fn Url::set_password(self : Url, value : String) -> Url {
   if !url_can_have_credentials(self) {
     return self
   }
-  { ..self, password: percent_encode_userinfo(value) }
+  { ..self, password: @pe.percent_encode_userinfo(value) }
 }
 
 ///|
@@ -248,7 +248,7 @@ pub fn Url::set_hash(self : Url, value : String) -> Url {
   } else {
     stripped
   }
-  { ..self, fragment: Some(percent_encode_fragment(input)) }
+  { ..self, fragment: Some(@pe.percent_encode_fragment(input)) }
 }
 
 ///|
@@ -262,7 +262,7 @@ pub fn Url::set_search(self : Url, value : String) -> Url {
   } else {
     stripped
   }
-  let encoded = percent_encode_query(input, is_special_scheme(self.scheme))
+  let encoded = @pe.percent_encode_query(input, is_special_scheme(self.scheme))
   { ..self, query: Some(encoded) }
 }
 
@@ -320,7 +320,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
           let rest = seg[2:seg.length()].to_owned()
           segs.push(c0 + ":" + rest)
         } else {
-          segs.push(percent_encode_path_seg(seg))
+          segs.push(@pe.percent_encode_path_seg(seg))
         }
       }
       if c == None {

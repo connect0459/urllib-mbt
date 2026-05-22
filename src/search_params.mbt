@@ -174,28 +174,28 @@ fn url_form_decode(s : String) -> String {
       bytes.push(0x20)
       i = i + 1
     } else if c == '%' && i + 2 < n {
-      let hi = hex_digit_value(chars[i + 1])
-      let lo = hex_digit_value(chars[i + 2])
+      let hi = @pe.hex_digit_value(chars[i + 1])
+      let lo = @pe.hex_digit_value(chars[i + 2])
       match (hi, lo) {
         (Some(h), Some(l)) => {
           bytes.push(h * 16 + l)
           i = i + 3
         }
         _ => {
-          for byte in char_to_utf8_bytes(c) {
+          for byte in @pe.char_to_utf8_bytes(c) {
             bytes.push(byte)
           }
           i = i + 1
         }
       }
     } else {
-      for byte in char_to_utf8_bytes(c) {
+      for byte in @pe.char_to_utf8_bytes(c) {
         bytes.push(byte)
       }
       i = i + 1
     }
   }
-  utf8_bytes_to_string(bytes)
+  @pe.utf8_bytes_to_string(bytes)
 }
 
 ///|
@@ -208,8 +208,8 @@ fn url_form_encode(s : String) -> String {
     } else if is_url_form_safe(cp) {
       buf.write_char(c)
     } else {
-      for byte in char_to_utf8_bytes(c) {
-        buf.write_string(percent_encode_byte(byte))
+      for byte in @pe.char_to_utf8_bytes(c) {
+        buf.write_string(@pe.percent_encode_byte(byte))
       }
     }
   }

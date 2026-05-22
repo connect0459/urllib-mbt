@@ -117,7 +117,7 @@ fn parse_host(input : String, is_special : Bool) -> Host raise UrlParseError {
     let h = parse_opaque_host(input)
     return h
   }
-  let domain = percent_decode(input)
+  let domain = @pe.percent_decode(input)
   let ascii_domain = @idna.domain_to_ascii(domain) catch {
     @idna.IdnaParseError(msg) => raise UrlParseError(msg)
   }
@@ -139,7 +139,7 @@ fn parse_opaque_host(input : String) -> Host raise UrlParseError {
       raise UrlParseError("opaque host has forbidden code point")
     }
   }
-  Host::OpaqueHost(percent_encode(input, fn(cp) { is_c0(cp) }))
+  Host::OpaqueHost(@pe.percent_encode_opaque_path(input))
 }
 
 ///|
@@ -237,7 +237,7 @@ fn ends_in_number(input : String) -> Bool {
     (label_chars[1] == 'x' || label_chars[1] == 'X') {
     let mut all_hex = true
     for i = 2; i < n; i = i + 1 {
-      if hex_digit_value(label_chars[i]) == None {
+      if @pe.hex_digit_value(label_chars[i]) == None {
         all_hex = false
       }
     }
@@ -370,7 +370,7 @@ fn parse_hex_u64(input : String) -> UInt64 raise UrlParseError {
   let mut result = 0UL
   let cap = 0x1_0000_0000UL
   for c in input {
-    match hex_digit_value(c) {
+    match @pe.hex_digit_value(c) {
       Some(v) =>
         if result <= cap {
           let next = (result << 4) | v.to_uint64()
@@ -434,7 +434,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
     let mut value = 0U
     let mut length = 0
     while length < 4 && pointer < n {
-      match hex_digit_value(chars[pointer]) {
+      match @pe.hex_digit_value(chars[pointer]) {
         Some(v) => {
           value = (value << 4) | v.reinterpret_as_uint()
           pointer = pointer + 1

@@ -60,7 +60,7 @@ fn to_hex_upper(n : Int) -> Char {
 }
 
 ///|
-fn percent_encode_byte(byte : Int) -> String {
+pub fn percent_encode_byte(byte : Int) -> String {
   let hi = (byte >> 4) & 0xF
   let lo = byte & 0xF
   let buf = StringBuilder::new(size_hint=3)
@@ -71,7 +71,7 @@ fn percent_encode_byte(byte : Int) -> String {
 }
 
 ///|
-fn char_to_utf8_bytes(c : Char) -> Array[Int] {
+pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
   let cp = c.to_int()
   let result : Array[Int] = []
   if cp <= 0x7F {
@@ -109,12 +109,12 @@ fn percent_encode(input : String, in_encode_set : (Int) -> Bool) -> String {
 }
 
 ///|
-fn percent_encode_fragment(input : String) -> String {
+pub fn percent_encode_fragment(input : String) -> String {
   percent_encode(input, in_fragment_set)
 }
 
 ///|
-fn percent_encode_query(input : String, is_special : Bool) -> String {
+pub fn percent_encode_query(input : String, is_special : Bool) -> String {
   if is_special {
     percent_encode(input, in_special_query_set)
   } else {
@@ -123,22 +123,22 @@ fn percent_encode_query(input : String, is_special : Bool) -> String {
 }
 
 ///|
-fn percent_encode_path_seg(input : String) -> String {
+pub fn percent_encode_path_seg(input : String) -> String {
   percent_encode(input, in_path_set)
 }
 
 ///|
-fn percent_encode_userinfo(input : String) -> String {
+pub fn percent_encode_userinfo(input : String) -> String {
   percent_encode(input, in_userinfo_set)
 }
 
 ///|
-fn percent_encode_opaque_path(input : String) -> String {
+pub fn percent_encode_opaque_path(input : String) -> String {
   percent_encode(input, is_c0)
 }
 
 ///|
-fn percent_encode_opaque_path_at_stop(input : String) -> String {
+pub fn percent_encode_opaque_path_at_stop(input : String) -> String {
   let n = input.length()
   if n > 0 {
     let last = input.get_char(n - 1).unwrap_or('\u{0000}')
@@ -154,7 +154,7 @@ fn percent_encode_opaque_path_at_stop(input : String) -> String {
 }
 
 ///|
-fn hex_digit_value(c : Char) -> Int? {
+pub fn hex_digit_value(c : Char) -> Int? {
   let cp = c.to_int()
   if cp >= '0'.to_int() && cp <= '9'.to_int() {
     Some(cp - '0'.to_int())
@@ -168,7 +168,7 @@ fn hex_digit_value(c : Char) -> Int? {
 }
 
 ///|
-fn percent_decode(input : String) -> String {
+pub fn percent_decode(input : String) -> String {
   let bytes : Array[Int] = []
   let chars : Array[Char] = []
   for c in input {
@@ -202,7 +202,7 @@ fn is_continuation(b : Int) -> Bool {
 }
 
 ///|
-fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
+pub fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
   let buf = StringBuilder::new()
   let n = bytes.length()
   let mut i = 0
