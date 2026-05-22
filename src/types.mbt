@@ -1,10 +1,5 @@
 ///|
-pub enum Host {
-  Domain(String)
-  Ipv4(UInt)
-  Ipv6(Array[UInt])
-  OpaqueHost(String)
-} derive(Eq, Debug)
+pub type Host = @host.Host
 
 ///|
 pub enum UrlPath {
@@ -13,7 +8,7 @@ pub enum UrlPath {
 } derive(Debug)
 
 ///|
-impl Eq for UrlPath with equal(self : UrlPath, other : UrlPath) -> Bool {
+impl Eq for UrlPath with fn equal(self : UrlPath, other : UrlPath) -> Bool {
   match (self, other) {
     (Segments(a), Segments(b)) => a == b
     (Opaque(a), Opaque(b)) => a == b
@@ -27,7 +22,7 @@ pub suberror UrlParseError {
 }
 
 ///|
-pub impl Show for UrlParseError with output(self, logger) {
+pub impl Show for UrlParseError with fn output(self, logger) {
   match self {
     UrlParseError(msg) => logger.write_string("UrlParseError: " + msg)
   }

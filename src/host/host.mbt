@@ -1,5 +1,30 @@
 ///|
-fn serialize_host(host : Host) -> String {
+pub enum Host {
+  Domain(String)
+  Ipv4(UInt)
+  Ipv6(Array[UInt])
+  OpaqueHost(String)
+} derive(Eq, Debug)
+
+///|
+pub suberror HostParseError {
+  HostParseError(String)
+}
+
+///|
+pub impl Show for HostParseError with fn output(self, logger) {
+  match self {
+    HostParseError(msg) => logger.write_string("HostParseError: " + msg)
+  }
+}
+
+///|
+pub fn Host::empty_domain() -> Host {
+  Domain("")
+}
+
+///|
+pub fn serialize_host(host : Host) -> String {
   match host {
     Domain(s) => s
     Ipv4(addr) => serialize_ipv4(addr)
@@ -98,16 +123,19 @@ fn serialize_ipv6(pieces : Array[UInt]) -> String {
 }
 
 ///|
-fn parse_host(input : String, is_special : Bool) -> Host raise UrlParseError {
+pub fn parse_host(
+  input : String,
+  is_special : Bool,
+) -> Host raise HostParseError {
   if input.is_empty() {
     if is_special {
-      raise UrlParseError("empty host for special URL")
+      raise HostParseError("empty host for special URL")
     }
     return Host::Domain("")
   }
   if input.has_prefix("[") {
     if !input.has_suffix("]") {
-      raise UrlParseError("invalid IPv6: missing closing bracket")
+      raise HostParseError("invalid IPv6: missing closing bracket")
     }
     let inner = input[1:input.length() - 1].to_owned()
     let pieces = parse_ipv6(inner)
@@ -119,10 +147,10 @@ fn parse_host(input : String, is_special : Bool) -> Host raise UrlParseError {
   }
   let domain = @pe.percent_decode(input)
   let ascii_domain = @idna.domain_to_ascii(domain) catch {
-    @idna.IdnaParseError(msg) => raise UrlParseError(msg)
+    @idna.IdnaParseError(msg) => raise HostParseError(msg)
   }
   if domain_has_forbidden_char(ascii_domain) {
-    raise UrlParseError("domain has forbidden host code point")
+    raise HostParseError("domain has forbidden host code point")
   }
   if ends_in_number(ascii_domain) {
     let addr = parse_ipv4(ascii_domain)
@@ -132,11 +160,11 @@ fn parse_host(input : String, is_special : Bool) -> Host raise UrlParseError {
 }
 
 ///|
-fn parse_opaque_host(input : String) -> Host raise UrlParseError {
+fn parse_opaque_host(input : String) -> Host raise HostParseError {
   for c in input {
     let cp = c.to_int()
     if is_forbidden_host_cp(cp) && cp != '%'.to_int() {
-      raise UrlParseError("opaque host has forbidden code point")
+      raise HostParseError("opaque host has forbidden code point")
     }
   }
   Host::OpaqueHost(@pe.percent_encode_opaque_path(input))
@@ -167,30 +195,24 @@ fn is_forbidden_host_cp(cp : Int) -> Bool {
 fn domain_has_forbidden_char(domain : String) -> Bool {
   for c in domain {
     let cp = c.to_int()
-    // All C0 control chars and DEL are IDNA-disallowed in domain labels
     if cp <= 0x1F || cp == 0x7F {
       return true
     }
     if is_forbidden_host_cp(cp) {
       return true
     }
-    // '%' must not appear in domain names (result of %25 decoding or invalid %-seq)
     if cp == 0x25 {
       return true
     }
-    // U+FFFD is produced from invalid UTF-8 byte sequences and is IDNA-disallowed
     if cp == 0xFFFD {
       return true
     }
-    // Unicode noncharacters U+FDD0-U+FDEF
     if cp >= 0xFDD0 && cp <= 0xFDEF {
       return true
     }
-    // Noncharacters at end of each Unicode plane (U+XFFFE and U+XFFFF)
     if (cp & 0xFFFF) == 0xFFFE || (cp & 0xFFFF) == 0xFFFF {
       return true
     }
-    // IDNA-disallowed space characters
     if cp == 0x00A0 || cp == 0x3000 {
       return true
     }
@@ -263,7 +285,7 @@ fn split_on_char(s : String, sep : Char) -> Array[String] {
 }
 
 ///|
-fn parse_ipv4(input : String) -> UInt raise UrlParseError {
+fn parse_ipv4(input : String) -> UInt raise HostParseError {
   let effective = if input.has_suffix(".") {
     input[0:input.length() - 1].to_owned()
   } else {
@@ -272,12 +294,12 @@ fn parse_ipv4(input : String) -> UInt raise UrlParseError {
   let parts = split_on_char(effective, '.')
   let n_parts = parts.length()
   if n_parts == 0 || n_parts > 4 {
-    raise UrlParseError("invalid IPv4: bad number of parts")
+    raise HostParseError("invalid IPv4: bad number of parts")
   }
   let numbers : Array[UInt] = []
   for part in parts {
     if part.is_empty() {
-      raise UrlParseError("invalid IPv4: empty part")
+      raise HostParseError("invalid IPv4: empty part")
     }
     let n = parse_ipv4_number(part)
     numbers.push(n)
@@ -285,7 +307,7 @@ fn parse_ipv4(input : String) -> UInt raise UrlParseError {
   if n_parts == 4 {
     for num in numbers {
       if num > 255U {
-        raise UrlParseError("invalid IPv4: octet > 255")
+        raise HostParseError("invalid IPv4: octet > 255")
       }
     }
     return (numbers[0] << 24) |
@@ -301,16 +323,16 @@ fn parse_ipv4(input : String) -> UInt raise UrlParseError {
   } else if n_parts == 3 {
     0xFFFFU
   } else {
-    raise UrlParseError("invalid IPv4")
+    raise HostParseError("invalid IPv4")
   }
   if last > max_last {
-    raise UrlParseError("invalid IPv4: last part too large")
+    raise HostParseError("invalid IPv4: last part too large")
   }
   let mut addr = last
   for i = 0; i < n_parts - 1; i = i + 1 {
     let octet = numbers[i]
     if octet > 255U {
-      raise UrlParseError("invalid IPv4: octet > 255")
+      raise HostParseError("invalid IPv4: octet > 255")
     }
     let shift = (3 - i) * 8
     addr = addr | (octet << shift)
@@ -319,10 +341,10 @@ fn parse_ipv4(input : String) -> UInt raise UrlParseError {
 }
 
 ///|
-fn parse_ipv4_number(input : String) -> UInt raise UrlParseError {
+fn parse_ipv4_number(input : String) -> UInt raise HostParseError {
   let n = input.length()
   if n == 0 {
-    raise UrlParseError("empty IPv4 number")
+    raise HostParseError("empty IPv4 number")
   }
   let val : UInt64 = if n >= 2 {
     let c0 = input.get_char(0)
@@ -343,18 +365,18 @@ fn parse_ipv4_number(input : String) -> UInt raise UrlParseError {
     parse_decimal_u64(input)
   }
   if val >= 0x1_0000_0000UL {
-    raise UrlParseError("IPv4 number >= 2^32")
+    raise HostParseError("IPv4 number >= 2^32")
   }
   val.to_uint()
 }
 
 ///|
-fn parse_decimal_u64(input : String) -> UInt64 raise UrlParseError {
+fn parse_decimal_u64(input : String) -> UInt64 raise HostParseError {
   let mut result = 0UL
   let cap = 0x1_0000_0000UL
   for c in input {
     if c < '0' || c > '9' {
-      raise UrlParseError("invalid decimal digit")
+      raise HostParseError("invalid decimal digit")
     }
     let digit = (c.to_int() - '0'.to_int()).to_uint64()
     if result <= cap {
@@ -366,7 +388,7 @@ fn parse_decimal_u64(input : String) -> UInt64 raise UrlParseError {
 }
 
 ///|
-fn parse_hex_u64(input : String) -> UInt64 raise UrlParseError {
+fn parse_hex_u64(input : String) -> UInt64 raise HostParseError {
   let mut result = 0UL
   let cap = 0x1_0000_0000UL
   for c in input {
@@ -376,19 +398,19 @@ fn parse_hex_u64(input : String) -> UInt64 raise UrlParseError {
           let next = (result << 4) | v.to_uint64()
           result = if next > cap { cap + 1UL } else { next }
         }
-      None => raise UrlParseError("invalid hex digit")
+      None => raise HostParseError("invalid hex digit")
     }
   }
   result
 }
 
 ///|
-fn parse_octal_u64(input : String) -> UInt64 raise UrlParseError {
+fn parse_octal_u64(input : String) -> UInt64 raise HostParseError {
   let mut result = 0UL
   let cap = 0x1_0000_0000UL
   for c in input {
     if c < '0' || c > '7' {
-      raise UrlParseError("invalid octal digit")
+      raise HostParseError("invalid octal digit")
     }
     let digit = (c.to_int() - '0'.to_int()).to_uint64()
     if result <= cap {
@@ -400,7 +422,7 @@ fn parse_octal_u64(input : String) -> UInt64 raise UrlParseError {
 }
 
 ///|
-fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
+fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
   let pieces : Array[UInt] = [0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U]
   let mut piece_index = 0
   let mut compress : Int? = None
@@ -412,7 +434,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
   let mut pointer = 0
   if pointer < n && chars[pointer] == ':' {
     if pointer + 1 >= n || chars[pointer + 1] != ':' {
-      raise UrlParseError("invalid IPv6: single leading colon")
+      raise HostParseError("invalid IPv6: single leading colon")
     }
     pointer = pointer + 2
     piece_index = piece_index + 1
@@ -420,11 +442,11 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
   }
   while pointer < n {
     if piece_index == 8 {
-      raise UrlParseError("invalid IPv6: too many pieces")
+      raise HostParseError("invalid IPv6: too many pieces")
     }
     if chars[pointer] == ':' {
       if compress != None {
-        raise UrlParseError("invalid IPv6: multiple compressions")
+        raise HostParseError("invalid IPv6: multiple compressions")
       }
       pointer = pointer + 1
       piece_index = piece_index + 1
@@ -445,23 +467,23 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
     }
     if pointer < n && chars[pointer] == '.' {
       if length == 0 {
-        raise UrlParseError("invalid IPv6: bad IPv4 in IPv6")
+        raise HostParseError("invalid IPv6: bad IPv4 in IPv6")
       }
       pointer = pointer - length
       if piece_index > 6 {
-        raise UrlParseError("invalid IPv6: IPv4 part overflows")
+        raise HostParseError("invalid IPv6: IPv4 part overflows")
       }
       let mut numbers_seen = 0
       while pointer < n {
         let mut ipv4_piece : UInt? = None
         if numbers_seen > 0 {
           if chars[pointer] != '.' {
-            raise UrlParseError("invalid IPv6: expected dot in IPv4")
+            raise HostParseError("invalid IPv6: expected dot in IPv4")
           }
           pointer = pointer + 1
         }
         if pointer >= n || chars[pointer] < '0' || chars[pointer] > '9' {
-          raise UrlParseError("invalid IPv6: expected digit in IPv4")
+          raise HostParseError("invalid IPv6: expected digit in IPv4")
         }
         while pointer < n && chars[pointer] >= '0' && chars[pointer] <= '9' {
           let digit = (chars[pointer].to_int() - '0'.to_int()).reinterpret_as_uint()
@@ -469,11 +491,11 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
             None => Some(digit)
             Some(v) => {
               if v == 0U {
-                raise UrlParseError("invalid IPv6: leading zero in IPv4")
+                raise HostParseError("invalid IPv6: leading zero in IPv4")
               }
               let new_val = v * 10U + digit
               if new_val > 255U {
-                raise UrlParseError("invalid IPv6: IPv4 octet > 255")
+                raise HostParseError("invalid IPv6: IPv4 octet > 255")
               }
               Some(new_val)
             }
@@ -482,7 +504,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
         }
         let p = match ipv4_piece {
           Some(v) => v
-          None => raise UrlParseError("invalid IPv6: empty IPv4 octet")
+          None => raise HostParseError("invalid IPv6: empty IPv4 octet")
         }
         pieces[piece_index] = pieces[piece_index] * 0x100U + p
         numbers_seen = numbers_seen + 1
@@ -491,7 +513,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
         }
       }
       if numbers_seen != 4 {
-        raise UrlParseError("invalid IPv6: IPv4 must have 4 parts")
+        raise HostParseError("invalid IPv6: IPv4 must have 4 parts")
       }
       break
     }
@@ -499,7 +521,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
     piece_index = piece_index + 1
     if pointer < n {
       if chars[pointer] != ':' {
-        raise UrlParseError("invalid IPv6: expected colon")
+        raise HostParseError("invalid IPv6: expected colon")
       }
       pointer = pointer + 1
     }
@@ -518,7 +540,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise UrlParseError {
     }
     None =>
       if piece_index != 8 {
-        raise UrlParseError("invalid IPv6: too few pieces")
+        raise HostParseError("invalid IPv6: too few pieces")
       }
   }
   pieces

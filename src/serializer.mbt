@@ -17,7 +17,7 @@ pub fn Url::href(self : Url) -> String {
       buf.write_char('@')
     }
     match self.host {
-      Some(h) => buf.write_string(serialize_host(h))
+      Some(h) => buf.write_string(@host.serialize_host(h))
       None => ()
     }
     match self.port {
@@ -69,7 +69,7 @@ pub fn Url::origin(self : Url) -> String {
     buf.write_string(self.scheme)
     buf.write_string("://")
     match self.host {
-      Some(h) => buf.write_string(serialize_host(h))
+      Some(h) => buf.write_string(@host.serialize_host(h))
       None => ()
     }
     match self.port {
@@ -114,7 +114,7 @@ pub fn Url::protocol(self : Url) -> String {
 ///|
 pub fn Url::hostname(self : Url) -> String {
   match self.host {
-    Some(h) => serialize_host(h)
+    Some(h) => @host.serialize_host(h)
     None => ""
   }
 }
@@ -124,7 +124,7 @@ pub fn Url::host_str(self : Url) -> String {
   match self.host {
     None => ""
     Some(h) => {
-      let serialized = serialize_host(h)
+      let serialized = @host.serialize_host(h)
       match self.port {
         None => serialized
         Some(p) => serialized + ":" + p.to_string()

@@ -2,6 +2,7 @@
 package "connect0459/uri"
 
 import {
+  "connect0459/uri/host",
   "moonbitlang/core/debug",
 }
 
@@ -21,18 +22,11 @@ pub suberror UrlParseError {
 pub impl Show for UrlParseError
 
 // Types and methods
-pub enum Host {
-  Domain(String)
-  Ipv4(UInt)
-  Ipv6(Array[UInt])
-  OpaqueHost(String)
-} derive(Eq, @debug.Debug)
-
 pub struct Url {
   scheme : String
   username : String
   password : String
-  host : Host?
+  host : @host.Host?
   port : Int?
   path : UrlPath
   query : String?
@@ -85,6 +79,7 @@ pub fn UrlSearchParams::sort(Self) -> Unit
 pub fn UrlSearchParams::to_string(Self) -> String
 
 // Type aliases
+pub using @host {type Host}
 
 // Traits
 

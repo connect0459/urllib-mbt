@@ -399,7 +399,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
       }
       File => {
         url.scheme = "file"
-        url.host = Some(Host::Domain(""))
+        url.host = Some(@host.Host::empty_domain())
         match c {
           Some('/') | Some('\\') => state = State::FileSlash
           _ => {
@@ -475,12 +475,14 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             } else {
               buf.reset()
               if host_str.is_empty() {
-                url.host = Some(Host::Domain(""))
+                url.host = Some(@host.Host::empty_domain())
                 state = State::PathStart
               } else {
-                let h = parse_host(host_str, true)
+                let h = @host.parse_host(host_str, true) catch {
+                  @host.HostParseError(msg) => raise UrlParseError(msg)
+                }
                 let final_h = match h {
-                  Domain(d) if d == "localhost" => Host::Domain("")
+                  Domain(d) if d == "localhost" => @host.Host::empty_domain()
                   _ => h
                 }
                 url.host = Some(final_h)
@@ -607,7 +609,9 @@ fn parse_host_and_port(
       Some(bracket_pos) => {
         let host_part = input[0:bracket_pos + 1].to_owned()
         let after = input[bracket_pos + 1:].to_owned()
-        let h = parse_host(host_part, is_special)
+        let h = @host.parse_host(host_part, is_special) catch {
+          @host.HostParseError(msg) => raise UrlParseError(msg)
+        }
         let p = if after.has_prefix(":") {
           let port_str = after[1:].to_owned()
           if port_str.is_empty() {
@@ -632,7 +636,9 @@ fn parse_host_and_port(
         if !is_special && host_part.is_empty() {
           raise UrlParseError("empty host with port for non-special URL")
         }
-        let h = parse_host(host_part, is_special)
+        let h = @host.parse_host(host_part, is_special) catch {
+          @host.HostParseError(msg) => raise UrlParseError(msg)
+        }
         let p = if port_str.is_empty() {
           None
         } else {
@@ -641,7 +647,9 @@ fn parse_host_and_port(
         (h, p)
       }
       None => {
-        let h = parse_host(input, is_special)
+        let h = @host.parse_host(input, is_special) catch {
+          @host.HostParseError(msg) => raise UrlParseError(msg)
+        }
         (h, None)
       }
     }

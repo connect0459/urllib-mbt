@@ -26,7 +26,7 @@ fn shorten_path_segs(segs : Array[String], scheme : String) -> Unit {
 
 ///|
 fn safe_parse_host(input : String, is_special : Bool) -> Host? {
-  Some(parse_host(input, is_special)) catch {
+  Some(@host.parse_host(input, is_special)) catch {
     _ => None
   }
 }
@@ -357,7 +357,7 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
       _ => ()
     }
     if host_str == "" {
-      return { ..self, host: Some(Host::Domain("")) }
+      return { ..self, host: Some(@host.Host::empty_domain()) }
     }
   }
   // Empty host + non-empty port is invalid
@@ -373,7 +373,7 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
   }
   let new_host = if self.scheme == "file" {
     match parsed {
-      Host::Domain("localhost") => Host::Domain("")
+      Host::Domain("localhost") => @host.Host::empty_domain()
       h => h
     }
   } else {
@@ -421,7 +421,7 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
   }
   // File URL + empty input: explicitly clear host to ""
   if self.scheme == "file" && truncated == "" {
-    return { ..self, host: Some(Host::Domain("")) }
+    return { ..self, host: Some(@host.Host::empty_domain()) }
   }
   let parsed = match safe_parse_host(truncated, is_special) {
     None => return self
@@ -429,7 +429,7 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
   }
   let new_host = if self.scheme == "file" {
     match parsed {
-      Host::Domain("localhost") => Host::Domain("")
+      Host::Domain("localhost") => @host.Host::empty_domain()
       h => h
     }
   } else {

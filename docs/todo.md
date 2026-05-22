@@ -106,7 +106,7 @@ Move all of `src/percent_encode.mbt` to a new sub-package. Zero external deps.
 
 ### Step H — Extract `src/host/` sub-package
 
-- [ ] **H1** Create `src/host/moon.pkg`:
+- [x] **H1** Create `src/host/moon.pkg`:
 
   ```json
   import {
@@ -115,7 +115,7 @@ Move all of `src/percent_encode.mbt` to a new sub-package. Zero external deps.
   }
   ```
 
-- [ ] **H2** Create `src/host/host.mbt` — move from `src/host.mbt` and
+- [x] **H2** Create `src/host/host.mbt` — move from `src/host.mbt` and
   `src/parser.mbt` (after Step C):
   - `Host` enum (move from `src/types.mbt`)
   - `serialize_host`, `serialize_ipv4`, `serialize_ipv6`
@@ -126,27 +126,31 @@ Move all of `src/percent_encode.mbt` to a new sub-package. Zero external deps.
   - `parse_ipv4`, `parse_ipv4_number`, `parse_ipv6`
   - `parse_decimal_u64`, `parse_hex_u64`, `parse_octal_u64`
   - Update all `@idna.*` and `@pe.*` call-sites
-- [ ] **H3** Delete `src/host.mbt`
-- [ ] **H4** In `src/types.mbt`: remove `Host` enum definition; add
-  `pub typealias Host = @host.Host` to re-export the type for public API consumers
-- [ ] **H5** Update `src/moon.pkg`: add `"connect0459/uri/host" @host`
-- [ ] **H6** Update call-sites in `src/`:
-  - `parser.mbt`: `parse_host`, `parse_host_and_port` → `@host.*`; `Host::*`
-    constructors → `@host.Host::*`
-  - `serializer.mbt`: `serialize_host` → `@host.serialize_host`; `Host::*`
-    patterns remain valid via typealias
-  - `setters.mbt`: `parse_host`, `safe_parse_host`, `Host::*` references
+  - Added `Host::empty_domain()` factory fn (MoonBit external enum constructors
+    are pattern-match-only; factory fn needed for construction from `src/`)
+- [x] **H3** Delete `src/host.mbt`
+- [x] **H4** In `src/types.mbt`: remove `Host` enum definition; add
+  `pub type Host = @host.Host` to re-export the type for public API consumers
+  (generates `pub using @host {type Host}` in `.mbti`)
+- [x] **H5** Update `src/moon.pkg`: add `"connect0459/uri/host"`
+- [x] **H6** Update call-sites in `src/`:
+  - `parser.mbt`: `parse_host` → `@host.parse_host` with
+    `@host.HostParseError(msg) => raise UrlParseError(msg)` conversion;
+    `Host::Domain("")` → `@host.Host::empty_domain()`
+  - `serializer.mbt`: `serialize_host` → `@host.serialize_host`
+  - `setters.mbt`: `safe_parse_host` uses `@host.parse_host`;
+    `Host::Domain("")` → `@host.Host::empty_domain()`
 
 ### Step V — Verify
 
-- [ ] **V1** `moon check` — no errors
-- [ ] **V2** `moon test` — all test counts unchanged
-- [ ] **V3** `moon info && moon fmt` — `.mbti` diffs show:
+- [x] **V1** `moon check` — no errors
+- [x] **V2** `moon test` — all test counts unchanged (270/270)
+- [x] **V3** `moon info && moon fmt` — `.mbti` diffs show:
   - new `src/percent_encoding/pkg.generated.mbti`
   - new `src/host/pkg.generated.mbti`
-  - `src/pkg.generated.mbti` loses `percent_encode_*`, `Host`, `parse_host`
-    symbols (now re-exported via typealias for `Host`)
-- [ ] **V4** Commit each step separately: `refactor(percent_encoding): ...`,
+  - `src/pkg.generated.mbti` loses `Host` enum definition; gains
+    `pub using @host {type Host}` re-export; `Url.host` type is now `@host.Host?`
+- [x] **V4** Commit each step separately: `refactor(percent_encoding): ...`,
   `refactor(host): ...`
 
 ---

@@ -1,7 +1,7 @@
 import {
   "moonbitlang/core/debug",
-  "connect0459/uri/idna",
   "connect0459/uri/percent_encoding" @pe,
+  "connect0459/uri/host",
 }
 
 import {
