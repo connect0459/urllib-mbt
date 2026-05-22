@@ -17,6 +17,11 @@ pub fn Url::to_json(self : Url) -> String {
 }
 
 ///|
+pub fn Url::join(self : Url, url : String) -> Url raise UrlParseError {
+  parse_with_base(url, Some(self))
+}
+
+///|
 pub fn Url::search_params(self : Url) -> UrlSearchParams {
   match self.query {
     None | Some("") => UrlSearchParams::new()

@@ -123,3 +123,52 @@ test "Show for Url works for opaque-path URL" {
   let url = @uri.parse("mailto:user@example.com")
   assert_eq("\{url}", "mailto:user@example.com")
 }
+
+// ===== Url::join =====
+
+///|
+test "join resolves relative path against base" {
+  let base = @uri.parse("https://example.com/a/b/c")
+  assert_eq(base.join("../d").href(), "https://example.com/a/d")
+}
+
+///|
+test "join resolves absolute path against base" {
+  let base = @uri.parse("https://example.com/a/b")
+  assert_eq(base.join("/x/y").href(), "https://example.com/x/y")
+}
+
+///|
+test "join with different scheme overrides base entirely" {
+  let base = @uri.parse("https://example.com/a")
+  assert_eq(base.join("https://other.com/b").href(), "https://other.com/b")
+}
+
+///|
+test "join with query-only input replaces query" {
+  let base = @uri.parse("https://example.com/path?old=1")
+  assert_eq(base.join("?new=2").href(), "https://example.com/path?new=2")
+}
+
+///|
+test "join with fragment-only input replaces fragment" {
+  let base = @uri.parse("https://example.com/path#old")
+  assert_eq(base.join("#new").href(), "https://example.com/path#new")
+}
+
+///|
+test "join with empty string returns base href" {
+  let base = @uri.parse("https://example.com/path?q=1")
+  assert_eq(base.join("").href(), "https://example.com/path?q=1")
+}
+
+///|
+test "join raises for URL with invalid port" {
+  let base = @uri.parse("https://example.com/")
+  let result : Result[@uri.Url, @uri.UrlParseError] = Ok(
+    base.join("https://invalid:port"),
+  ) catch {
+    e => Err(e)
+  }
+  assert_true(result is Err(_))
+}
