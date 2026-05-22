@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Generate a sorted-range table of Unicode Mark code points (Mn, Mc, Me)
-for use by the V6 leading-combining-mark check in IDNA validation."""
+for use by the V6 leading-combining-mark check in IDNA validation.
+
+Usage: python3 tools/gen_combining_mark.py > src/idna/combining_mark.mbt
+"""
 import unicodedata
 ranges = []
 start = None

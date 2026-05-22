@@ -32,7 +32,7 @@ fn punycode_adapt(delta : Int, numpoints : Int, firsttime : Bool) -> Int {
 }
 
 ///|
-fn punycode_digit_value(c : Char) -> Int raise UrlParseError {
+fn punycode_digit_value(c : Char) -> Int raise IdnaParseError {
   let cp = c.to_int()
   if cp >= 'a'.to_int() && cp <= 'z'.to_int() {
     return cp - 'a'.to_int()
@@ -43,7 +43,7 @@ fn punycode_digit_value(c : Char) -> Int raise UrlParseError {
   if cp >= '0'.to_int() && cp <= '9'.to_int() {
     return cp - '0'.to_int() + 26
   }
-  raise UrlParseError("invalid punycode digit")
+  raise IdnaParseError("invalid punycode digit")
 }
 
 ///|
@@ -68,14 +68,14 @@ fn punycode_array_insert(arr : Array[Int], pos : Int, val : Int) -> Unit {
 }
 
 ///|
-fn punycode_decode(input : String) -> Array[Int] raise UrlParseError {
+fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
   let chars : Array[Char] = []
   for c in input {
     chars.push(c)
   }
   let n_input = chars.length()
   if n_input == 0 {
-    raise UrlParseError("punycode: empty input")
+    raise IdnaParseError("punycode: empty input")
   }
   let output : Array[Int] = []
   let mut n = punycode_initial_n
@@ -91,7 +91,7 @@ fn punycode_decode(input : String) -> Array[Int] raise UrlParseError {
   for idx = 0; idx < copy_end; idx = idx + 1 {
     let cp = chars[idx].to_int()
     if cp > 0x7E {
-      raise UrlParseError("punycode: non-ASCII before delimiter")
+      raise IdnaParseError("punycode: non-ASCII before delimiter")
     }
     output.push(cp)
   }
@@ -102,7 +102,7 @@ fn punycode_decode(input : String) -> Array[Int] raise UrlParseError {
     let mut k = punycode_base
     while true {
       if in_pos >= n_input {
-        raise UrlParseError("punycode: unexpected end")
+        raise IdnaParseError("punycode: unexpected end")
       }
       let digit = punycode_digit_value(chars[in_pos])
       in_pos = in_pos + 1
@@ -124,12 +124,12 @@ fn punycode_decode(input : String) -> Array[Int] raise UrlParseError {
     bias = punycode_adapt(i - oldi, out_plus1, oldi == 0)
     let dn = i / out_plus1
     if n > 0x10FFFF - dn {
-      raise UrlParseError("punycode: code point overflow")
+      raise IdnaParseError("punycode: code point overflow")
     }
     n = n + dn
     i = i % out_plus1
     if n >= 0xD800 && n <= 0xDFFF {
-      raise UrlParseError("punycode: surrogate code point")
+      raise IdnaParseError("punycode: surrogate code point")
     }
     punycode_array_insert(output, i, n)
     i = i + 1
@@ -138,10 +138,10 @@ fn punycode_decode(input : String) -> Array[Int] raise UrlParseError {
 }
 
 ///|
-fn punycode_encode(input : Array[Int]) -> String raise UrlParseError {
+fn punycode_encode(input : Array[Int]) -> String raise IdnaParseError {
   let total = input.length()
   if total == 0 {
-    raise UrlParseError("punycode: empty input")
+    raise IdnaParseError("punycode: empty input")
   }
   let buf = StringBuilder::new()
   let mut n = punycode_initial_n
