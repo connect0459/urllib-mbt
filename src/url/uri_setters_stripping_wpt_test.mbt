@@ -88,7 +88,7 @@ test "WPT setters-stripping: protocol" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_protocol, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_protocol(setter_input)
     let prev_len = failures.length()
     if new_url.protocol() != exp_protocol {
@@ -243,7 +243,7 @@ test "WPT setters-stripping: username" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_username, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_username(setter_input)
     let prev_len = failures.length()
     if new_url.username != exp_username {
@@ -398,7 +398,7 @@ test "WPT setters-stripping: password" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_password, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_password(setter_input)
     let prev_len = failures.length()
     if new_url.password != exp_password {
@@ -553,7 +553,7 @@ test "WPT setters-stripping: host" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_hostname, exp_host_str, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_host(setter_input)
     let prev_len = failures.length()
     if new_url.hostname() != exp_hostname {
@@ -713,7 +713,7 @@ test "WPT setters-stripping: hostname" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_hostname, exp_host_str, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_hostname(setter_input)
     let prev_len = failures.length()
     if new_url.hostname() != exp_hostname {
@@ -873,7 +873,7 @@ test "WPT setters-stripping: port" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_port, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_port(setter_input)
     let prev_len = failures.length()
     if new_url.port_str() != exp_port {
@@ -1026,7 +1026,7 @@ test "WPT setters-stripping: pathname" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_pathname, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_pathname(setter_input)
     let prev_len = failures.length()
     if new_url.pathname() != exp_pathname {
@@ -1181,7 +1181,7 @@ test "WPT setters-stripping: search" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_search, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_search(setter_input)
     let prev_len = failures.length()
     if new_url.search() != exp_search {
@@ -1334,7 +1334,7 @@ test "WPT setters-stripping: hash" {
   let failures : Array[String] = []
   for item in cases {
     let (base_str, setter_input, exp_hash, exp_href) = item
-    let url = @uri.parse(base_str)
+    let url = @url.parse(base_str)
     let new_url = url.set_hash(setter_input)
     let prev_len = failures.length()
     if new_url.hash() != exp_hash {

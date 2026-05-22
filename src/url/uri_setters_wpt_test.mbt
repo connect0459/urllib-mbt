@@ -39,7 +39,7 @@ fn load_setter_cases(
 }
 
 ///|
-fn url_field(url : @uri.Url, field : String) -> String {
+fn url_field(url : @url.Url, field : String) -> String {
   match field {
     "href" => url.href()
     "protocol" => url.protocol()
@@ -60,7 +60,7 @@ fn check_setter_fields(
   label : String,
   href : String,
   new_value : String,
-  result : @uri.Url,
+  result : @url.Url,
   expected_fields : Array[(String, String)],
   passed : Ref[Int],
   failed : Ref[Int],
@@ -88,7 +88,7 @@ test "WPT setter cases: protocol" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_protocol(new_value)
     check_setter_fields(
       "set_protocol", href, new_value, result, expected_fields, passed, failed,
@@ -110,7 +110,7 @@ test "WPT setter cases: username" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_username(new_value)
     check_setter_fields(
       "set_username", href, new_value, result, expected_fields, passed, failed,
@@ -132,7 +132,7 @@ test "WPT setter cases: password" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_password(new_value)
     check_setter_fields(
       "set_password", href, new_value, result, expected_fields, passed, failed,
@@ -154,7 +154,7 @@ test "WPT setter cases: host" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_host(new_value)
     check_setter_fields(
       "set_host", href, new_value, result, expected_fields, passed, failed,
@@ -174,7 +174,7 @@ test "WPT setter cases: hostname" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_hostname(new_value)
     check_setter_fields(
       "set_hostname", href, new_value, result, expected_fields, passed, failed,
@@ -196,7 +196,7 @@ test "WPT setter cases: port" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_port(new_value)
     check_setter_fields(
       "set_port", href, new_value, result, expected_fields, passed, failed,
@@ -216,7 +216,7 @@ test "WPT setter cases: pathname" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_pathname(new_value)
     check_setter_fields(
       "set_pathname", href, new_value, result, expected_fields, passed, failed,
@@ -238,7 +238,7 @@ test "WPT setter cases: search" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_search(new_value)
     check_setter_fields(
       "set_search", href, new_value, result, expected_fields, passed, failed,
@@ -258,7 +258,7 @@ test "WPT setter cases: hash" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_hash(new_value)
     check_setter_fields(
       "set_hash", href, new_value, result, expected_fields, passed, failed,
@@ -278,7 +278,7 @@ test "WPT setter cases: href" {
   let failed = Ref::Ref(0)
   for item in cases {
     let (href, new_value, expected_fields) = item
-    let url = @uri.parse(href) catch { _ => continue }
+    let url = @url.parse(href) catch { _ => continue }
     let result = url.set_href(new_value) catch { _ => continue }
     check_setter_fields(
       "set_href", href, new_value, result, expected_fields, passed, failed,

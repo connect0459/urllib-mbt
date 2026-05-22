@@ -44,7 +44,7 @@ test "WPT urlencoded-parser: URLSearchParams constructed from string" {
   let mut failed = 0
   for item in cases {
     let (input, expected) = item
-    let params = @uri.UrlSearchParams::from_string(input)
+    let params = @url.UrlSearchParams::from_string(input)
     let actual : Array[(String, String)] = []
     params.for_each(fn(name, value) { actual.push((name, value)) })
     if actual == expected {

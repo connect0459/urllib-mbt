@@ -67,11 +67,11 @@ test "WPT URL getters: protocol, username, password, hostname, host, port, pathn
       exp_search,
       exp_hash,
     ) = item
-    let base_url : @uri.Url? = match base_opt {
+    let base_url : @url.Url? = match base_opt {
       None => None
-      Some(base_str) => Some(@uri.parse(base_str)) catch { _ => None }
+      Some(base_str) => Some(@url.parse(base_str)) catch { _ => None }
     }
-    let url = @uri.parse_with_base(input, base_url) catch {
+    let url = @url.parse_with_base(input, base_url) catch {
       _ => {
         failures.push("FAIL parse: input=\{input}")
         continue
@@ -161,11 +161,11 @@ test "WPT URL getter: origin" {
   let failures : Array[String] = []
   for item in cases {
     let (input, base_opt, exp_origin) = item
-    let base_url : @uri.Url? = match base_opt {
+    let base_url : @url.Url? = match base_opt {
       None => None
-      Some(base_str) => Some(@uri.parse(base_str)) catch { _ => None }
+      Some(base_str) => Some(@url.parse(base_str)) catch { _ => None }
     }
-    let url = @uri.parse_with_base(input, base_url) catch {
+    let url = @url.parse_with_base(input, base_url) catch {
       _ => {
         failures.push("FAIL parse: input=\{input}")
         continue
@@ -205,11 +205,11 @@ test "WPT URL getter: searchParams" {
   let failures : Array[String] = []
   for item in cases {
     let (input, base_opt, exp_sp) = item
-    let base_url : @uri.Url? = match base_opt {
+    let base_url : @url.Url? = match base_opt {
       None => None
-      Some(base_str) => Some(@uri.parse(base_str)) catch { _ => None }
+      Some(base_str) => Some(@url.parse(base_str)) catch { _ => None }
     }
-    let url = @uri.parse_with_base(input, base_url) catch {
+    let url = @url.parse_with_base(input, base_url) catch {
       _ => {
         failures.push("FAIL parse: input=\{input}")
         continue

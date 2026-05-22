@@ -44,17 +44,17 @@ test "WPT success cases: href round-trip" {
   let failures : Array[String] = []
   for item in cases {
     let (input, base_opt, expected_href) = item
-    let base_url : @uri.Url? = match base_opt {
+    let base_url : @url.Url? = match base_opt {
       None => None
       Some(base_str) =>
-        Some(@uri.parse(base_str)) catch {
+        Some(@url.parse(base_str)) catch {
           _ => {
             failures.push("FAIL parse_base: base=\{base_str}")
             continue
           }
         }
     }
-    let url = @uri.parse_with_base(input, base_url) catch {
+    let url = @url.parse_with_base(input, base_url) catch {
       _ => {
         failures.push("FAIL parse: input=\{input} base=\{to_repr(base_opt)}")
         continue
@@ -103,12 +103,12 @@ test "WPT failure cases: parse rejects invalid URLs" {
   let mut accepted = 0
   for item in cases {
     let (input, base_opt) = item
-    let base_url : @uri.Url? = match base_opt {
+    let base_url : @url.Url? = match base_opt {
       None => None
-      Some(base_str) => Some(@uri.parse(base_str)) catch { _ => None }
+      Some(base_str) => Some(@url.parse(base_str)) catch { _ => None }
     }
-    let result : Result[@uri.Url, @uri.UrlParseError] = Ok(
-      @uri.parse_with_base(input, base_url),
+    let result : Result[@url.Url, @url.UrlParseError] = Ok(
+      @url.parse_with_base(input, base_url),
     ) catch {
       e => Err(e)
     }

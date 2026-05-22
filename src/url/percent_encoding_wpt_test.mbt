@@ -36,7 +36,7 @@ test "WPT percent-encoding: UTF-8 query encoding" {
   let failures : Array[String] = []
   for item in cases {
     let (input, expected) = item
-    let url = @uri.parse("http://example.com/?\{input}")
+    let url = @url.parse("http://example.com/?\{input}")
     let got = url.search()
     if got != "?\{expected}" {
       failures.push(
@@ -60,7 +60,7 @@ test "WPT percent-encoding: UTF-8 fragment encoding" {
   let failures : Array[String] = []
   for item in cases {
     let (input, expected) = item
-    let url = @uri.parse("http://example.com/#\{input}")
+    let url = @url.parse("http://example.com/#\{input}")
     let got = url.hash()
     if got != "#\{expected}" {
       failures.push(

@@ -1,4 +1,4 @@
-name = "connect0459/uri"
+name = "connect0459/urllib"
 
 version = "0.1.0"
 

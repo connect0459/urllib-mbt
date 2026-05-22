@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "connect0459/uri/percent_encoding"
+package "connect0459/urllib/url/percent_encoding"
 
 // Values
 pub fn char_to_utf8_bytes(Char) -> Array[Int]
