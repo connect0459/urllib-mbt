@@ -83,6 +83,20 @@ test "UrlPath Eq: two Segments with equal arrays are equal" {
 }
 
 ///|
+test "UrlPath Eq: two Opaque paths with equal strings are equal" {
+  let a = UrlPath::Opaque("data")
+  let b = UrlPath::Opaque("data")
+  assert_eq(a == b, true)
+}
+
+///|
+test "UrlPath Eq: two Opaque paths with different strings are not equal" {
+  let a = UrlPath::Opaque("data")
+  let b = UrlPath::Opaque("other")
+  assert_eq(a == b, false)
+}
+
+///|
 test "origin: blob URL with empty Segments path returns null" {
   let url : Url = {
     scheme: "blob",
