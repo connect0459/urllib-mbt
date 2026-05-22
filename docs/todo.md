@@ -1,11 +1,12 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **318 unit tests pass. 9 uncovered lines in 4 files.**  
+Coverage: **325 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
 - 4 defensive guards (parser/idna)  
+All remaining uncovered lines are dead code; no further test coverage is planned.  
 WPT failure rejection: 275/275 (100%).  
 WPT getters: 611/611. WPT origin: 399/399. WPT searchParams: 9/9.  
 WPT stripping: 270/270 (all setter C0-char cases).  
@@ -27,6 +28,10 @@ WPT IdnaTestV2: 2670/2670 (100%).
 Result of `moon coverage analyze` (65 uncovered lines, 9 files).
 `src/cmd/main/main.mbt` (placeholder `println`) and ~5 logically dead defensive
 branches in `parser.mbt` / `host.mbt` are excluded from the plan.
+
+**Dead-code policy**: items marked ~~dead code~~ below have been verified
+unreachable by static reasoning. No test can exercise them; they are closed
+without a corresponding test case.
 
 ### B — `try_nfc_compose` unreached branches (8 lines in `src/idna/idna.mbt`)
 
@@ -60,7 +65,7 @@ data. Implementation is correct; tests just need input that exercises each pair.
 - [x] **C-host-7** `parse_ipv4("1.256")` → `HostParseError` (last part too large)
 - [x] **C-host-8** `parse_ipv4("256.1.1.1")` → `HostParseError` (octet > 255)
 - [x] **C-host-9** `parse_hex_u64` with invalid hex digit → `HostParseError`
-- [ ] **C-host-10** `parse_ipv6` with empty IPv4 octet → dead code (guard checks digit before loop)
+- [x] **C-host-10** `parse_ipv6` with empty IPv4 octet → ~~dead code~~ (guard checks digit before loop; verified unreachable)
 
 #### C-punycode: `src/idna/punycode.mbt` (6 lines)
 
@@ -74,17 +79,17 @@ data. Implementation is correct; tests just need input that exercises each pair.
 #### C-idna: `src/idna/idna.mbt` (5 lines)
 
 - [x] **C-idna-1** `domain_to_ascii("")` → `IdnaParseError("empty domain")`
-- [ ] **C-idna-2** Non-ASCII label with IDNA-disallowed code point (V7 path) → dead code (forbidden check fires first)
-- [ ] **C-idna-3** `xn--` label whose Punycode decodes to non-NFC form → dead code (NFC preserves length invariant)
-- [ ] **C-idna-4** `xn--` label with C0 control char in decoded output → dead code (status-4 check fires first)
-- [ ] **C-idna-5** Mapping returns `None` in `idna_mapping_lookup` → dead code (table is complete)
+- [x] **C-idna-2** Non-ASCII label with IDNA-disallowed code point (V7 path) → ~~dead code~~ (Phase 1 forbidden check fires before V7; verified unreachable)
+- [x] **C-idna-3** `xn--` label whose Punycode decodes to non-NFC form → ~~dead code~~ (NFC composition is idempotent; length invariant prevents this path; verified unreachable)
+- [x] **C-idna-4** `xn--` label with C0 control char in decoded output → ~~dead code~~ (status-4 disallowed check fires first; verified unreachable)
+- [x] **C-idna-5** Mapping returns `None` in `idna_mapping_lookup` → ~~dead code~~ (table is exhaustive for all mapped codepoints; verified unreachable)
 
 #### C-parser: `src/parser.mbt` (4 lines)
 
 - [x] **C-parser-1** `[::1]:` (IPv6 with empty port) → port `None`
 - [x] **C-parser-2** `[::1]x` (invalid char after IPv6) → `UrlParseError`
 - [x] **C-parser-3** `..` segment at `?`/`#` stop in opaque-path-free URL → trailing `/`
-- [ ] **C-parser-4** `copy_path_from` with opaque-path base → dead code (`Relative` state always has Segments base)
+- [x] **C-parser-4** `copy_path_from` with opaque-path base → ~~dead code~~ (`Relative` state is only entered with a Segments base; verified unreachable)
 
 #### C-pe: `src/percent_encoding/percent_encoding.mbt` (1 line)
 
@@ -635,6 +640,10 @@ fixture at `resources/IdnaTestV2.json` (Unicode 17.0.0).
 
 - [x] **`impl Show for UrlSearchParams`** (`src/search_params.mbt`) — delegates
   to `to_string()`; enables natural printing of search params.
+
+- [x] **`Url::join(String)`** (`src/uri.mbt`) — resolves a relative or absolute
+  URL string against `self`; thin wrapper around `parse_with_base(url, Some(self))`.
+  Mirrors rust-url's `Url::join` API.
 
 ---
 
