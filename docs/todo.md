@@ -41,12 +41,9 @@ extracting IDNA into a dedicated sub-package and splitting overloaded files.
 
 ### Step C — Move IPv4/IPv6 parsers into `src/host.mbt`
 
-Move from `src/parser.mbt` to `src/host.mbt` (same package — no import
-changes needed):
-
-- [ ] **C1** Move `parse_ipv6`
-- [ ] **C2** Move `parse_ipv4`, `parse_ipv4_number`
-- [ ] **C3** Move `parse_decimal_u64`, `parse_hex_u64`, `parse_octal_u64`
+- [x] **C1** Move `parse_ipv6`
+- [x] **C2** Move `parse_ipv4`, `parse_ipv4_number`
+- [x] **C3** Move `parse_decimal_u64`, `parse_hex_u64`, `parse_octal_u64`
 
 ### Step D — Reorganize test files
 
@@ -66,7 +63,7 @@ the duplication and enables the `host` sub-package split.
 
 ### Target package graph
 
-```
+```text
 connect0459/uri/idna              — IDNA (no deps)           [done]
 connect0459/uri/percent_encoding  — percent encode/decode (no deps)
 connect0459/uri/host              — Host type + parsing/serialization
@@ -116,12 +113,14 @@ Move all of `src/percent_encode.mbt` to a new sub-package. Zero external deps.
 ### Step H — Extract `src/host/` sub-package
 
 - [ ] **H1** Create `src/host/moon.pkg`:
+
   ```json
   import {
     "connect0459/uri/idna" @idna,
     "connect0459/uri/percent_encoding" @pe,
   }
   ```
+
 - [ ] **H2** Create `src/host/host.mbt` — move from `src/host.mbt` and
   `src/parser.mbt` (after Step C):
   - `Host` enum (move from `src/types.mbt`)
