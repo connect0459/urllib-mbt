@@ -2,6 +2,7 @@
 
 Current state: **611/611 WPT success cases pass (100%)**  
 Coverage: **314 unit tests pass. 9 uncovered lines in 4 files.**  
+
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
 - 4 defensive guards (parser/idna)  
