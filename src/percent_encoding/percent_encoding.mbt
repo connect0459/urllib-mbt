@@ -138,6 +138,11 @@ pub fn percent_encode_opaque_path(input : String) -> String {
 }
 
 ///|
+pub fn percent_encode_c0(input : String) -> String {
+  percent_encode(input, is_c0)
+}
+
+///|
 pub fn percent_encode_opaque_path_at_stop(input : String) -> String {
   let n = input.length()
   if n > 0 {

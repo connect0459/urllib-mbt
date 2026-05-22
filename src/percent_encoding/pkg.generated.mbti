@@ -10,6 +10,8 @@ pub fn percent_decode(String) -> String
 
 pub fn percent_encode_byte(Int) -> String
 
+pub fn percent_encode_c0(String) -> String
+
 pub fn percent_encode_fragment(String) -> String
 
 pub fn percent_encode_opaque_path(String) -> String
