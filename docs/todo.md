@@ -17,6 +17,93 @@ WPT IdnaTestV2: 2670/2670 (100%).
 
 ---
 
+## Refactor: Package & File Structure
+
+Goal: clarify file responsibilities and test-to-implementation correspondence by
+extracting IDNA into a dedicated sub-package and splitting overloaded files.
+
+### Resulting package graph
+
+```
+connect0459/uri/idna   — self-contained; no imports from uri
+connect0459/uri        — imports uri/idna (@idna alias)
+```
+
+### Resulting file-to-test correspondence
+
+| Implementation file | Test file(s) |
+| :--- | :--- |
+| `src/parser.mbt` | `src/parser_test.mbt` |
+| `src/host.mbt` | embedded in `src/parser_test.mbt` (integration) |
+| `src/idna/idna.mbt` | `src/idna/punycode_wbtest.mbt`, `src/toascii_wpt_test.mbt`, `src/idna_v2_wpt_test.mbt` |
+| `src/serializer.mbt` | `src/uri_getters_wpt_test.mbt` |
+| `src/setters.mbt` | `src/setters_test.mbt`, `src/uri_setters_wpt_test.mbt` |
+| `src/percent_encode.mbt` | `src/percent_encoding_wpt_test.mbt` |
+| `src/search_params.mbt` | `src/search_params_test.mbt`, `src/urlsearchparams_wpt_test.mbt` |
+| `src/uri.mbt` | `src/uri_test.mbt` |
+
+### Step A — Create `src/idna/` sub-package
+
+- [ ] **A1** Create `src/idna/moon.pkg` (empty `import {}` block — no external deps)
+- [ ] **A2** `git mv src/idna_status.mbt src/idna/idna_status.mbt`
+- [ ] **A3** `git mv src/idna_mapping.mbt src/idna/idna_mapping.mbt`
+- [ ] **A4** `git mv src/combining_mark.mbt src/idna/combining_mark.mbt`
+- [ ] **A5** `git mv src/punycode.mbt src/idna/punycode.mbt`
+- [ ] **A6** `git mv src/punycode_wbtest.mbt src/idna/punycode_wbtest.mbt`
+- [ ] **A7** Create `src/idna/idna.mbt` — move from `src/host.mbt`:
+  - `split_on_char` (helper used only by `domain_to_ascii`)
+  - `is_idna_forbidden_cp`
+  - `is_virama`, `is_arabic_script`, `is_arabic_right_joining`, `is_arabic_nonjoining`
+  - `validate_contextj`, `validate_bidi`
+  - `hangul_compose`, `try_nfc_compose`, `nfc_compose`
+  - `domain_to_ascii`
+
+### Step B — Wire `src/` to the new sub-package
+
+- [ ] **B1** Add `"connect0459/uri/idna" @idna` to `src/moon.pkg`
+- [ ] **B2** In `src/host.mbt`: remove the moved functions; change the one
+  call-site to `@idna.domain_to_ascii(domain)`
+- [ ] **B3** Update `tools/gen_idna_mapping.py` — change output paths
+  `src/idna_status.mbt` → `src/idna/idna_status.mbt` and
+  `src/idna_mapping.mbt` → `src/idna/idna_mapping.mbt`
+- [ ] **B4** Update `tools/gen_combining_mark.py` invocation — redirect output
+  to `src/idna/combining_mark.mbt`
+
+### Step C — Move IPv4/IPv6 parsers into `src/host.mbt`
+
+Move from `src/parser.mbt` to `src/host.mbt` (same package — no import
+changes needed; `hex_digit_value` stays in `percent_encode.mbt`):
+
+- [ ] **C1** Move `parse_ipv6`
+- [ ] **C2** Move `parse_ipv4`, `parse_ipv4_number`
+- [ ] **C3** Move `parse_decimal_u64`, `parse_hex_u64`, `parse_octal_u64`
+
+### Step D — Reorganize test files
+
+- [ ] **D1** Create `src/parser_test.mbt` — move URL-parsing tests from
+  `src/uri_test.mbt` (lines covering scheme, authority, path, relative URLs,
+  file URLs, opaque path, IDNA integration, IPv4/IPv6 overflow, non-special
+  scheme edge cases)
+- [ ] **D2** Create `src/setters_test.mbt` — move setter tests from
+  `src/uri_test.mbt` (`set_hash`, `set_search`, `set_pathname`,
+  `set_username`, `set_password`, `set_port`, `set_host`, `set_hostname`,
+  `set_protocol`, `set_href`)
+- [ ] **D3** Trim `src/uri_test.mbt` to: getter edge cases (`search`/`hash`
+  empty-string), static API (`can_parse`, `parse_maybe`, `to_json`),
+  `search_params` integration
+- [ ] **D4** `git mv src/url_search_params_test.mbt src/search_params_test.mbt`
+
+### Step E — Verify
+
+- [ ] **E1** `moon check` passes with no errors
+- [ ] **E2** `moon test` — all tests pass (same counts as current state)
+- [ ] **E3** `moon info && moon fmt` — `.mbti` diffs show only expected changes
+  (new `src/idna/pkg.generated.mbti`; `src/pkg.generated.mbti` loses IDNA
+  symbols)
+- [ ] **E4** Commit: `refactor: extract idna sub-package and reorganize files`
+
+---
+
 ## Phase 1 — Static utilities (completed)
 
 - [x] **`can_parse(url, base?)`** — `src/uri.mbt`
