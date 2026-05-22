@@ -1,7 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-Coverage: **314 unit tests pass. 9 uncovered lines in 4 files.**  
+Coverage: **318 unit tests pass. 9 uncovered lines in 4 files.**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -625,6 +625,16 @@ fixture at `resources/IdnaTestV2.json` (Unicode 17.0.0).
 
 - `tools/gen_idna_mapping.py` → `src/idna_status.mbt`, `src/idna_mapping.mbt`
 - `tools/gen_combining_mark.py` → `src/combining_mark.mbt`
+
+---
+
+## API ergonomics
+
+- [x] **`impl Show for Url`** (`src/serializer.mbt`) — delegates to `href()`;
+  enables `println(url)` and string interpolation without explicit getter call.
+
+- [x] **`impl Show for UrlSearchParams`** (`src/search_params.mbt`) — delegates
+  to `to_string()`; enables natural printing of search params.
 
 ---
 
