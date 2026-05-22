@@ -20,6 +20,7 @@ fn compile_component(
 pub fn UrlPattern::from_init(
   init : UrlPatternInit,
 ) -> UrlPattern raise UrlPatternError {
+  let init = apply_base_url(init, true)
   let proto_val = init.protocol.unwrap_or("*")
   let port_raw = init.port.unwrap_or("*")
   let port_val = match (proto_val, port_raw) {
@@ -89,75 +90,58 @@ pub fn UrlPattern::exec_init(
   self : UrlPattern,
   init : UrlPatternInit,
 ) -> UrlPatternResult? {
-  let mut protocol : UrlPatternComponentResult? = None
-  let mut username : UrlPatternComponentResult? = None
-  let mut password : UrlPatternComponentResult? = None
-  let mut hostname : UrlPatternComponentResult? = None
-  let mut port : UrlPatternComponentResult? = None
-  let mut pathname : UrlPatternComponentResult? = None
-  let mut search : UrlPatternComponentResult? = None
-  let mut hash : UrlPatternComponentResult? = None
-
+  let init = apply_base_url(init, false) catch { _ => return None }
   let proto_str = init.protocol.unwrap_or("")
-
-  if init.protocol is Some(v) {
-    match match_component(self.protocol, v) {
-      None => return None
-      Some(r) => protocol = Some(r)
-    }
+  let proto_input = init.protocol.unwrap_or("")
+  let protocol = match match_component(self.protocol, proto_input) {
+    None => return None
+    Some(r) => Some(r)
   }
-  if init.username is Some(v) {
-    match match_component(self.username, canonicalize_userinfo(v)) {
-      None => return None
-      Some(r) => username = Some(r)
-    }
+  let username_input = canonicalize_userinfo(init.username.unwrap_or(""))
+  let username = match match_component(self.username, username_input) {
+    None => return None
+    Some(r) => Some(r)
   }
-  if init.password is Some(v) {
-    match match_component(self.password, canonicalize_password(v)) {
-      None => return None
-      Some(r) => password = Some(r)
-    }
+  let password_input = canonicalize_password(init.password.unwrap_or(""))
+  let password = match match_component(self.password, password_input) {
+    None => return None
+    Some(r) => Some(r)
   }
-  if init.hostname is Some(v) {
-    match match_component(self.hostname, canonicalize_hostname(v)) {
-      None => return None
-      Some(r) => hostname = Some(r)
-    }
+  let hostname_input = canonicalize_hostname(init.hostname.unwrap_or(""))
+  let hostname = match match_component(self.hostname, hostname_input) {
+    None => return None
+    Some(r) => Some(r)
   }
-  if init.port is Some(v) {
-    match match_component(self.port, canonicalize_port(v, proto_str)) {
-      None => return None
-      Some(r) => port = Some(r)
-    }
+  let port_input = canonicalize_port(init.port.unwrap_or(""), proto_str)
+  let port = match match_component(self.port, port_input) {
+    None => return None
+    Some(r) => Some(r)
   }
-  if init.pathname is Some(v) {
-    let nv = if proto_str == "" ||
-      proto_str == "http" ||
-      proto_str == "https" ||
-      proto_str == "ws" ||
-      proto_str == "wss" ||
-      proto_str == "ftp" ||
-      proto_str == "file" {
-      canonicalize_pathname(v)
-    } else {
-      v
-    }
-    match match_component(self.pathname, nv) {
-      None => return None
-      Some(r) => pathname = Some(r)
-    }
+  let raw_pathname = init.pathname.unwrap_or("")
+  let pathname_input = if proto_str == "" ||
+    proto_str == "http" ||
+    proto_str == "https" ||
+    proto_str == "ws" ||
+    proto_str == "wss" ||
+    proto_str == "ftp" ||
+    proto_str == "file" {
+    canonicalize_pathname(raw_pathname)
+  } else {
+    raw_pathname
   }
-  if init.search is Some(v) {
-    match match_component(self.search, canonicalize_search(v)) {
-      None => return None
-      Some(r) => search = Some(r)
-    }
+  let pathname = match match_component(self.pathname, pathname_input) {
+    None => return None
+    Some(r) => Some(r)
   }
-  if init.hash is Some(v) {
-    match match_component(self.hash, canonicalize_hash(v)) {
-      None => return None
-      Some(r) => hash = Some(r)
-    }
+  let search_input = canonicalize_search(init.search.unwrap_or(""))
+  let search = match match_component(self.search, search_input) {
+    None => return None
+    Some(r) => Some(r)
+  }
+  let hash_input = canonicalize_hash(init.hash.unwrap_or(""))
+  let hash = match match_component(self.hash, hash_input) {
+    None => return None
+    Some(r) => Some(r)
   }
 
   Some({
@@ -325,6 +309,129 @@ fn canonicalize_port(port : String, protocol : String) -> String {
     "https" | "wss" => if normalized == "443" { "" } else { normalized }
     "ftp" => if normalized == "21" { "" } else { normalized }
     _ => normalized
+  }
+}
+
+///|
+fn get_base_dir(pathname : String) -> String {
+  let chars : Array[Char] = []
+  for c in pathname {
+    chars.push(c)
+  }
+  let mut last_slash = 0
+  for i = 0; i < chars.length(); i = i + 1 {
+    if chars[i] == '/' {
+      last_slash = i + 1
+    }
+  }
+  let buf = StringBuilder::new()
+  for i = 0; i < last_slash; i = i + 1 {
+    buf.write_char(chars[i])
+  }
+  buf.to_string()
+}
+
+///|
+fn apply_base_url(
+  init : UrlPatternInit,
+  for_pattern : Bool,
+) -> UrlPatternInit raise UrlPatternError {
+  let base_str = match init.base_url {
+    None => return init
+    Some(s) => s
+  }
+  let base = @url.parse(base_str) catch {
+    _ => raise UrlPatternError("invalid baseURL: \{base_str}")
+  }
+  let base_search = strip_leading_char(base.search(), '?')
+  let base_hash = strip_leading_char(base.hash(), '#')
+  let base_port = base.port_str()
+  let has_protocol = init.protocol is Some(_)
+  let has_username = init.username is Some(_)
+  let has_password = init.password is Some(_)
+  let has_hostname = init.hostname is Some(_)
+  let has_port = init.port is Some(_)
+  let has_pathname = init.pathname is Some(_)
+  let has_search = init.search is Some(_)
+  let protocol = if has_protocol { init.protocol } else { Some(base.scheme) }
+  let username = if !for_pattern &&
+    !has_protocol &&
+    !has_hostname &&
+    !has_port &&
+    !has_username {
+    Some(base.username)
+  } else {
+    init.username
+  }
+  let password = if !for_pattern &&
+    !has_protocol &&
+    !has_hostname &&
+    !has_port &&
+    !has_username &&
+    !has_password {
+    Some(base.password)
+  } else {
+    init.password
+  }
+  let hostname = if !has_protocol && !has_hostname {
+    Some(base.hostname())
+  } else {
+    init.hostname
+  }
+  let port = if !has_protocol && !has_hostname && !has_port {
+    Some(base_port)
+  } else {
+    init.port
+  }
+  let pathname = if !has_protocol && !has_hostname && !has_port && !has_pathname {
+    Some(base.pathname())
+  } else if !has_protocol &&
+    !has_hostname &&
+    !has_port &&
+    has_pathname &&
+    !for_pattern {
+    let pn = init.pathname.unwrap_or("")
+    let chars : Array[Char] = []
+    for c in pn {
+      chars.push(c)
+    }
+    if chars.length() > 0 && chars[0] == '/' {
+      init.pathname
+    } else {
+      Some(get_base_dir(base.pathname()) + pn)
+    }
+  } else {
+    init.pathname
+  }
+  let search = if !has_protocol &&
+    !has_hostname &&
+    !has_port &&
+    !has_pathname &&
+    !has_search {
+    Some(base_search)
+  } else {
+    init.search
+  }
+  let hash = if !has_protocol &&
+    !has_hostname &&
+    !has_port &&
+    !has_pathname &&
+    !has_search &&
+    init.hash is None {
+    Some(base_hash)
+  } else {
+    init.hash
+  }
+  {
+    protocol,
+    username,
+    password,
+    hostname,
+    port,
+    pathname,
+    search,
+    hash,
+    base_url: None,
   }
 }
 

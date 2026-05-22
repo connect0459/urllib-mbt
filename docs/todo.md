@@ -716,14 +716,41 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
   compile/match/canonicalize logic
 - `types.mbt` — public type definitions
 - `url_pattern_test.mbt` — 6 hand-written unit tests
-- `url_pattern_wpt_test.mbt` — WPT runner (144 pass / ~220 skipped)
+- `url_pattern_wpt_test.mbt` — WPT runner (173 pass / 191 skipped)
 
 ### WPT conformance
 
-- [x] **WPT URLPattern: 144/144 simple init-to-init cases** — all passing.
-  ~220 cases skipped: `expected_obj` (pattern normalization), `baseURL`,
-  `ignoreCase`, string-pattern inputs, unsupported regex features
-  (`[[a-z]--a]` char-class subtraction, `[\d&&[0-1]]` intersection).
+- [x] **WPT URLPattern: 173/173 passing** (+29 from T1/T2/T3 improvements).
+  191 cases skipped: `expected_obj` (pattern normalization), `ignoreCase`,
+  unsupported regex features (`[[a-z]--a]` char-class subtraction,
+  `[\d&&[0-1]]` intersection), multiple-element pattern/input arrays.
+
+### T1 — Compiler warnings (completed)
+
+- [x] Fixed 13 compiler warnings to 0:
+  - Removed unused `derive(Debug)` from `Part`, `Token`, `PartType`, `PartModifier`, `TokenType`
+  - Removed unused `Lenient` variant from `TokenizePolicy`
+  - Fixed 3 `match (try? expr)` anti-patterns in `url_pattern.mbt` (extract to `let`)
+  - Fixed `Str` constructor now used in `exec_url` (was unused)
+  - Fixed `assert_eq` with `Int?` → `assert_true(x == Some(n))` in percent_encoding tests
+  - Fixed `.is_none()` deprecated → `x is None` pattern
+
+### T2 — String URL inputs in WPT test runner (completed)
+
+- [x] Updated WPT test runner to handle `inputs[0]` as either `String` (calls
+  `exec_url`) or `Object` (calls `exec_init`). +12 additional cases pass.
+
+### T3 — baseURL support in `from_init` / `exec_init` (completed)
+
+- [x] **`apply_base_url(init, for_pattern)`** — WHATWG cascade algorithm:
+  resolves `init.base_url` and fills in missing components from the parsed base.
+  `for_pattern=true` skips username/password propagation (pattern mode).
+  Relative pathnames resolved against base directory via `get_base_dir`.
+- [x] **`from_init`** — calls `apply_base_url(init, true)` before compilation.
+- [x] **`exec_init`** — calls `apply_base_url(init, false)` and always matches
+  all components (None → "" instead of skip), so fixed-value patterns from
+  baseURL compilation correctly reject absent input components.
+- [x] +17 additional cases pass from baseURL support alone.
 
 ### Key implementation notes
 
@@ -735,6 +762,8 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
   protocols (http:80→"", https:443→"", ftp:21→"", ws:80→"", wss:443→"")
 - **Special-scheme check** for pathname canonicalization: only http, https,
   ws, wss, ftp, file (and empty proto treated as special for exec_url)
+- **None→"" in exec_init**: all components always matched; fixed-value
+  patterns must reject empty string, not skip the check entirely
 
 ---
 

@@ -27,6 +27,7 @@ fn build_init_from_obj(obj : Map[String, Json]) -> UrlPatternInit {
     pathname=extract_str_opt(obj, "pathname"),
     search=extract_str_opt(obj, "search"),
     hash=extract_str_opt(obj, "hash"),
+    base_url=extract_str_opt(obj, "baseURL"),
   )
 }
 
@@ -106,17 +107,6 @@ test "WPT URLPattern: simple init-to-init cases" {
         continue
       }
     }
-    let inp_obj = match inputs_arr[0] {
-      Object(o) => o
-      _ => {
-        skipped += 1
-        continue
-      }
-    }
-    if pat_obj.get("baseURL") is Some(_) || inp_obj.get("baseURL") is Some(_) {
-      skipped += 1
-      continue
-    }
     if pat_obj.get("ignoreCase") is Some(_) {
       skipped += 1
       continue
@@ -133,8 +123,14 @@ test "WPT URLPattern: simple init-to-init cases" {
         continue
       }
     }
-    let inp_init = build_init_from_obj(inp_obj)
-    let result = pattern.exec_init(inp_init)
+    let result = match inputs_arr[0] {
+      String(url_str) => pattern.exec_url(url_str)
+      Object(inp_obj) => pattern.exec_init(build_init_from_obj(inp_obj))
+      _ => {
+        skipped += 1
+        continue
+      }
+    }
     let expected = item.get("expected_match")
     match (result, expected) {
       (None, Some(Null)) | (None, None) => passed += 1
