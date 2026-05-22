@@ -227,7 +227,8 @@ fn canonicalize_pathname(input : String) -> String {
   } else {
     "https://x/-" + input
   }
-  match (try? @url.parse(full)) {
+  let parsed = try? @url.parse(full)
+  match parsed {
     Err(_) => input
     Ok(url) => {
       let p = url.pathname()
@@ -261,7 +262,8 @@ fn canonicalize_search(input : String) -> String {
   if stripped == "" {
     return ""
   }
-  match (try? @url.parse("https://x/?" + stripped)) {
+  let parsed = try? @url.parse("https://x/?" + stripped)
+  match parsed {
     Err(_) => stripped
     Ok(url) => strip_leading_char(url.search(), '?')
   }
@@ -276,7 +278,8 @@ fn canonicalize_hash(input : String) -> String {
   if stripped == "" {
     return ""
   }
-  match (try? @url.parse("https://x/#" + stripped)) {
+  let parsed = try? @url.parse("https://x/#" + stripped)
+  match parsed {
     Err(_) => stripped
     Ok(url) => strip_leading_char(url.hash(), '#')
   }
@@ -367,7 +370,21 @@ pub fn UrlPattern::exec_url(
         hash: Some(strip_leading_char(hash_raw, '#')),
         base_url: None,
       }
-      self.exec_init(init)
+      match self.exec_init(init) {
+        None => None
+        Some(r) =>
+          Some({
+            inputs: [Str(url_str)],
+            protocol: r.protocol,
+            username: r.username,
+            password: r.password,
+            hostname: r.hostname,
+            port: r.port,
+            pathname: r.pathname,
+            search: r.search,
+            hash: r.hash,
+          })
+      }
     }
   }
 }

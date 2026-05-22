@@ -10,18 +10,17 @@ priv enum TokenType {
   OtherModifier
   Asterisk
   End
-} derive(Eq, Debug)
+} derive(Eq)
 
 ///|
 priv struct Token {
   kind : TokenType
   value : String
-} derive(Debug)
+}
 
 ///|
 priv enum TokenizePolicy {
   Strict
-  Lenient
 } derive(Eq)
 
 ///|

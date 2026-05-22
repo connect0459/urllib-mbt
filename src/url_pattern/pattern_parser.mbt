@@ -4,7 +4,7 @@ priv enum PartType {
   Regexp
   SegmentWildcard
   FullWildcard
-} derive(Eq, Debug)
+}
 
 ///|
 priv enum PartModifier {
@@ -12,7 +12,7 @@ priv enum PartModifier {
   Optional
   ZeroOrMore
   OneOrMore
-} derive(Eq, Debug)
+} derive(Eq)
 
 ///|
 priv struct Part {
@@ -22,7 +22,7 @@ priv struct Part {
   name : String
   prefix : String
   suffix : String
-} derive(Debug)
+}
 
 ///|
 priv struct CompileOptions {

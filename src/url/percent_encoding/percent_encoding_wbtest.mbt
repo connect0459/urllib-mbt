@@ -144,26 +144,26 @@ test "percent_encode_userinfo: slash is encoded" {
 
 ///|
 test "hex_digit_value: decimal digits map to 0-9" {
-  assert_eq(hex_digit_value('0'), Some(0))
-  assert_eq(hex_digit_value('9'), Some(9))
+  assert_true(hex_digit_value('0') == Some(0))
+  assert_true(hex_digit_value('9') == Some(9))
 }
 
 ///|
 test "hex_digit_value: uppercase hex letters map to 10-15" {
-  assert_eq(hex_digit_value('A'), Some(10))
-  assert_eq(hex_digit_value('F'), Some(15))
+  assert_true(hex_digit_value('A') == Some(10))
+  assert_true(hex_digit_value('F') == Some(15))
 }
 
 ///|
 test "hex_digit_value: lowercase hex letters map to 10-15" {
-  assert_eq(hex_digit_value('a'), Some(10))
-  assert_eq(hex_digit_value('f'), Some(15))
+  assert_true(hex_digit_value('a') == Some(10))
+  assert_true(hex_digit_value('f') == Some(15))
 }
 
 ///|
 test "hex_digit_value: non-hex char returns None" {
-  assert_eq(hex_digit_value('G'), None)
-  assert_eq(hex_digit_value('z'), None)
+  assert_true(hex_digit_value('G') is None)
+  assert_true(hex_digit_value('z') is None)
 }
 
 // ===== percent_encode_byte =====

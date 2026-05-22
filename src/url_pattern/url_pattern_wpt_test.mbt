@@ -9,16 +9,15 @@ fn load_urlpattern_testdata() -> Array[Json] raise {
 }
 
 ///|
-fn extract_str_opt(obj : Map[String, Json], key : String) -> String? raise {
+fn extract_str_opt(obj : Map[String, Json], key : String) -> String? {
   match obj.get(key) {
     Some(String(s)) => Some(s)
-    None => None
-    _ => fail("unexpected type for '\{key}'")
+    _ => None
   }
 }
 
 ///|
-fn build_init_from_obj(obj : Map[String, Json]) -> UrlPatternInit raise {
+fn build_init_from_obj(obj : Map[String, Json]) -> UrlPatternInit {
   UrlPatternInit::new(
     protocol=extract_str_opt(obj, "protocol"),
     username=extract_str_opt(obj, "username"),
@@ -36,7 +35,7 @@ fn check_component_result(
   result : UrlPatternComponentResult,
   expected_comp : Map[String, Json],
   comp_name : String,
-) -> String? raise {
+) -> String? {
   let exp_input = match expected_comp.get("input") {
     Some(String(s)) => s
     _ => return Some("'\{comp_name}': missing input")
@@ -122,12 +121,7 @@ test "WPT URLPattern: simple init-to-init cases" {
       skipped += 1
       continue
     }
-    let pat_init = build_init_from_obj(pat_obj) catch {
-      err => {
-        failures.push("build pattern init failed: \{err}")
-        continue
-      }
-    }
+    let pat_init = build_init_from_obj(pat_obj)
     let pattern = UrlPattern::from_init(pat_init) catch {
       err => {
         let msg = "\{err}"
@@ -139,12 +133,7 @@ test "WPT URLPattern: simple init-to-init cases" {
         continue
       }
     }
-    let inp_init = build_init_from_obj(inp_obj) catch {
-      err => {
-        failures.push("build input init failed: \{err}")
-        continue
-      }
-    }
+    let inp_init = build_init_from_obj(inp_obj)
     let result = pattern.exec_init(inp_init)
     let expected = item.get("expected_match")
     match (result, expected) {
