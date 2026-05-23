@@ -140,6 +140,42 @@ test "lone surrogates in pathname pattern encode as U+FFFD" {
   assert_eq(p.get_pathname(), "%EF%BF%BD%20%EF%BF%BD")
 }
 
+// ===== constructor edge cases (urlpattern-constructor.any.js) =====
+
+///|
+test "from_init rejects pathname where percent-encoded percent yields unclosed paren" {
+  let result = try? UrlPattern::from_init(
+    UrlPatternInit::new(
+      protocol=Some("https"),
+      hostname=Some("example.org"),
+      pathname=Some("/%25("),
+    ),
+  )
+  assert_true(result is Err(_))
+}
+
+///|
+test "from_init rejects pathname with two consecutive unclosed parens after encoded percent" {
+  let result = try? UrlPattern::from_init(
+    UrlPatternInit::new(
+      protocol=Some("https"),
+      hostname=Some("example.org"),
+      pathname=Some("/%25(("),
+    ),
+  )
+  assert_true(result is Err(_))
+}
+
+///|
+test "from_string raises when pattern string has no protocol and no base URL" {
+  assert_true((try? UrlPattern::from_string("(\\", None)) is Err(_))
+}
+
+///|
+test "from_init with all fields absent succeeds with wildcard defaults" {
+  assert_true((try? UrlPattern::from_init(UrlPatternInit::new())) is Ok(_))
+}
+
 ///|
 test "optional FullWildcard tail group is None when input fully consumed" {
   let p = try! UrlPattern::from_init(
