@@ -82,7 +82,11 @@ test "WPT URLPattern: generate URL component from pattern and groups" {
       println(
         "FAIL: Pattern=\{Json::stringify(pattern_json)} Component=\{component}",
       )
-      println("  expected: \{expected}")
+      let expected_str = match expected {
+        None => "None"
+        Some(s) => "Some(\"\{s}\")"
+      }
+      println("  expected: \{expected_str}")
       let got_str = match result {
         None => "None"
         Some(s) => "Some(\"\{s}\")"
