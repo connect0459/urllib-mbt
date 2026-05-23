@@ -91,7 +91,7 @@ fn get_component_pattern(pattern : UrlPattern, name : String) -> String? {
 }
 
 ///|
-test "WPT URLPattern T-B: exactly_empty_components compile to empty pattern string" {
+test "WPT URLPattern: components listed in exactly_empty_components compile to empty pattern string" {
   let items = load_urlpattern_testdata()
   let mut passed = 0
   let failures : Array[String] = []
@@ -160,7 +160,9 @@ test "WPT URLPattern T-B: exactly_empty_components compile to empty pattern stri
   }
   if failures.length() > 0 {
     let msg = StringBuilder::new()
-    msg.write_string("WPT URLPattern T-B failures (\{failures.length()}):\n")
+    msg.write_string(
+      "WPT URLPattern exactly_empty_components failures (\{failures.length()}):\n",
+    )
     for f in failures {
       msg.write_string("  - \{f}\n")
     }
@@ -171,7 +173,7 @@ test "WPT URLPattern T-B: exactly_empty_components compile to empty pattern stri
 }
 
 ///|
-test "WPT URLPattern T-C: multiple inputs with base URL" {
+test "WPT URLPattern: URL string resolved against a base URL matches the compiled pattern" {
   let items = load_urlpattern_testdata()
   let mut passed = 0
   let failures : Array[String] = []
@@ -301,7 +303,9 @@ test "WPT URLPattern T-C: multiple inputs with base URL" {
   }
   if failures.length() > 0 {
     let msg = StringBuilder::new()
-    msg.write_string("WPT URLPattern T-C failures (\{failures.length()}):\n")
+    msg.write_string(
+      "WPT URLPattern base URL resolution failures (\{failures.length()}):\n",
+    )
     for f in failures {
       msg.write_string("  - \{f}\n")
     }
@@ -312,7 +316,7 @@ test "WPT URLPattern T-C: multiple inputs with base URL" {
 }
 
 ///|
-test "WPT URLPattern T-A: construction rejects invalid patterns" {
+test "WPT URLPattern: construction rejects invalid patterns" {
   let items = load_urlpattern_testdata()
   let mut passed = 0
   let failures : Array[String] = []
@@ -357,7 +361,9 @@ test "WPT URLPattern T-A: construction rejects invalid patterns" {
   }
   if failures.length() > 0 {
     let msg = StringBuilder::new()
-    msg.write_string("WPT URLPattern T-A failures (\{failures.length()}):\n")
+    msg.write_string(
+      "WPT URLPattern invalid pattern rejection failures (\{failures.length()}):\n",
+    )
     for f in failures {
       msg.write_string("  - \{f}\n")
     }

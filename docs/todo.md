@@ -701,7 +701,7 @@ equivalent in a MoonBit URL parsing library.
 
 ---
 
-## T8 — URL Pattern API (`src/urlpattern/`) (completed)
+## URL Pattern API (`src/urlpattern/`) (completed)
 
 WHATWG URL Pattern API. Implemented in `src/urlpattern/` as a standalone
 sub-package. WPT test runner against `resources/urlpatterntestdata.json`
@@ -720,36 +720,40 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
 
 ### WPT conformance
 
-- [x] **WPT URLPattern: 173/173 passing** (+29 from T1/T2/T3 improvements).
+- [x] **WPT URLPattern: 173/173 passing** (+29 from compiler-warning fixes,
+  string-URL input handling, and baseURL support).
   191 cases skipped: `expected_obj` (pattern normalization), `ignoreCase`,
   unsupported regex features (`[[a-z]--a]` char-class subtraction,
   `[\d&&[0-1]]` intersection), multiple-element pattern/input arrays.
 
-### T-C — Multiple inputs with base URL (completed)
+### Multiple inputs with base URL (completed)
 
-- [x] Added WPT test "WPT URLPattern T-C: multiple inputs with base URL".
-  Handles the 8 WPT cases where `inputs.length == 2` (second element is a
-  base URL string). Of the 4 cases with `pattern.length == 1`:
+- [x] Added WPT test "WPT URLPattern: URL string resolved against a base URL
+  matches the compiled pattern". Handles the 8 WPT cases where
+  `inputs.length == 2` (second element is a base URL string). Of the 4 cases
+  with `pattern.length == 1`:
   - 3 pass: resolve `inputs[0]` (String) relative to `inputs[1]` (base URL
     String) via `@url.parse_maybe`, then exec against the pattern.
     - Case 1: `"./foo/bar"` + `"https://example.com"` → match
     - Cases 7, 8: invalid/opaque base URL → resolution fails → null (no match)
   - 1 skipped: `inputs[0]` is Object + `inputs[1]` is String → spec says
     TypeError; no MoonBit equivalent without new API.
-  - 4 skipped: `pattern.length == 2` (string pattern + base URL) → T-D scope.
+  - 4 skipped: `pattern.length == 2` (string pattern + base URL) → requires
+    pattern normalization (`expected_obj: dict`) not yet implemented.
 
-### T-B — `exactly_empty_components` validation (completed)
+### `exactly_empty_components` validation (completed)
 
-- [x] Added WPT test "WPT URLPattern T-B: exactly_empty_components compile to
-  empty pattern string". Verifies that for the 12 WPT cases that carry
-  `exactly_empty_components`, each listed component's compiled pattern string
-  is `""` after `from_init`. All 12 cases pass; 58 skipped (those also have
-  `expected_obj: dict`, which is T-D scope).
+- [x] Added WPT test "WPT URLPattern: components listed in
+  exactly_empty_components compile to empty pattern string". Verifies that for
+  the 12 WPT cases that carry `exactly_empty_components`, each listed
+  component's compiled pattern string is `""` after `from_init`. All 12 cases
+  pass; 58 skipped (those also have `expected_obj: dict`, requiring pattern
+  normalization not yet implemented).
   - All 12 cases use `exactly_empty_components: ["port"]`
   - Port becomes `""` via: `baseURL` with no explicit port, explicit `port: ""`,
     or default-port stripping (`http`+`80` → `""`)
 
-### T1 — Compiler warnings (completed)
+### Compiler warnings (completed)
 
 - [x] Fixed 13 compiler warnings to 0:
   - Removed unused `derive(Debug)` from `Part`, `Token`, `PartType`, `PartModifier`, `TokenType`
@@ -759,12 +763,12 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
   - Fixed `assert_eq` with `Int?` → `assert_true(x == Some(n))` in percent_encoding tests
   - Fixed `.is_none()` deprecated → `x is None` pattern
 
-### T2 — String URL inputs in WPT test runner (completed)
+### String URL inputs in WPT test runner (completed)
 
 - [x] Updated WPT test runner to handle `inputs[0]` as either `String` (calls
   `exec_url`) or `Object` (calls `exec_init`). +12 additional cases pass.
 
-### T3 — baseURL support in `from_init` / `exec_init` (completed)
+### baseURL support in `from_init` / `exec_init` (completed)
 
 - [x] **`apply_base_url(init, for_pattern)`** — WHATWG cascade algorithm:
   resolves `init.base_url` and fills in missing components from the parsed base.
