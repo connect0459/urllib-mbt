@@ -53,12 +53,9 @@ pub fn Url::href(self : Url) -> String {
     None => ()
     _ => buf.write_string("//")
   }
-  if self.host != None {
+  if self.host is Some(h) {
     write_credentials(buf, self)
-    match self.host {
-      Some(h) => buf.write_string(@host.serialize_host(h))
-      None => ()
-    }
+    buf.write_string(@host.serialize_host(h))
     write_port(buf, self.port)
   }
   match self.path {
