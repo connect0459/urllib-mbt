@@ -9,4 +9,6 @@ import {
   "moonbitlang/x/fs",
   "moonbitlang/core/json",
   "moonbitlang/core/bench",
+  "moonbitlang/quickcheck",
+  "moonbitlang/quickcheck/modifiers" @qcmod,
 } for "test"
