@@ -325,6 +325,24 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
 }
 
 ///|
+fn Url::normalize_and_guard_host(
+  self : Url,
+  parsed : Host,
+  is_special : Bool,
+) -> Host? {
+  let h = if self.scheme == "file" {
+    normalize_file_host(parsed)
+  } else {
+    parsed
+  }
+  match h {
+    Host::Domain("") if !is_special &&
+      (self.username != "" || self.password != "" || self.port != None) => None
+    _ => Some(h)
+  }
+}
+
+///|
 /// Sets the host and optional port from a `"host"` or `"host:port"` string.
 /// No-op for opaque-path URLs or on parse failure.
 pub fn Url::set_host(self : Url, value : String) -> Url {
@@ -357,18 +375,9 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
     None => return self
     Some(h) => h
   }
-  let new_host = if self.scheme == "file" {
-    normalize_file_host(parsed)
-  } else {
-    parsed
-  }
-  match new_host {
-    Host::Domain("") =>
-      if !is_special &&
-        (self.username != "" || self.password != "" || self.port != None) {
-        return self
-      }
-    _ => ()
+  let new_host = match self.normalize_and_guard_host(parsed, is_special) {
+    None => return self
+    Some(h) => h
   }
   let url_with_host = { ..self, host: Some(new_host) }
   match port_opt {
@@ -412,18 +421,9 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
     None => return self
     Some(h) => h
   }
-  let new_host = if self.scheme == "file" {
-    normalize_file_host(parsed)
-  } else {
-    parsed
-  }
-  match new_host {
-    Host::Domain("") =>
-      if !is_special &&
-        (self.username != "" || self.password != "" || self.port != None) {
-        return self
-      }
-    _ => ()
+  let new_host = match self.normalize_and_guard_host(parsed, is_special) {
+    None => return self
+    Some(h) => h
   }
   { ..self, host: Some(new_host) }
 }
