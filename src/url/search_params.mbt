@@ -202,6 +202,44 @@ pub fn UrlSearchParams::iter(self : UrlSearchParams) -> Iter[(String, String)] {
 }
 
 ///|
+/// Returns an iterator over names (keys) in list order.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let sp = UrlSearchParams::from_string("a=1&b=2&a=3")
+///   let names : Array[String] = []
+///   for k in sp.keys() {
+///     names.push(k)
+///   }
+///   inspect(names == ["a", "b", "a"], content="true")
+/// }
+/// ```
+pub fn UrlSearchParams::keys(self : UrlSearchParams) -> Iter[String] {
+  self.list.iter().map(fn(pair) { pair.0 })
+}
+
+///|
+/// Returns an iterator over values in list order.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let sp = UrlSearchParams::from_string("a=1&b=2&c=3")
+///   let vals : Array[String] = []
+///   for v in sp.values() {
+///     vals.push(v)
+///   }
+///   inspect(vals == ["1", "2", "3"], content="true")
+/// }
+/// ```
+pub fn UrlSearchParams::values(self : UrlSearchParams) -> Iter[String] {
+  self.list.iter().map(fn(pair) { pair.1 })
+}
+
+///|
 /// Calls `f` with each name/value pair in list order.
 pub fn UrlSearchParams::for_each(
   self : UrlSearchParams,

@@ -93,11 +93,13 @@ pub fn UrlSearchParams::get_all(Self, String) -> Array[String]
 pub fn UrlSearchParams::has(Self, String) -> Bool
 pub fn UrlSearchParams::has_entry(Self, String, String) -> Bool
 pub fn UrlSearchParams::iter(Self) -> Iter[(String, String)]
+pub fn UrlSearchParams::keys(Self) -> Iter[String]
 pub fn UrlSearchParams::new() -> Self
 pub fn UrlSearchParams::set(Self, String, String) -> Unit
 pub fn UrlSearchParams::size(Self) -> Int
 pub fn UrlSearchParams::sort(Self) -> Unit
 pub fn UrlSearchParams::to_string(Self) -> String
+pub fn UrlSearchParams::values(Self) -> Iter[String]
 pub impl Show for UrlSearchParams
 
 // Type aliases

@@ -340,3 +340,65 @@ test "Show for UrlSearchParams outputs empty string for empty params" {
   let p = @url.UrlSearchParams::new()
   assert_eq("\{p}", "")
 }
+
+// ===== keys / values =====
+
+///|
+test "keys returns names in list order" {
+  let p = @url.UrlSearchParams::from_string("a=1&b=2&c=3")
+  let names : Array[String] = []
+  for k in p.keys() {
+    names.push(k)
+  }
+  @debug.assert_eq(names, ["a", "b", "c"])
+}
+
+///|
+test "keys yields duplicate names for duplicate entries" {
+  let p = @url.UrlSearchParams::from_string("a=1&b=2&a=3")
+  let names : Array[String] = []
+  for k in p.keys() {
+    names.push(k)
+  }
+  @debug.assert_eq(names, ["a", "b", "a"])
+}
+
+///|
+test "keys returns empty iterator for empty params" {
+  let p = @url.UrlSearchParams::new()
+  let names : Array[String] = []
+  for k in p.keys() {
+    names.push(k)
+  }
+  @debug.assert_eq(names, [])
+}
+
+///|
+test "values returns values in list order" {
+  let p = @url.UrlSearchParams::from_string("a=1&b=2&c=3")
+  let vals : Array[String] = []
+  for v in p.values() {
+    vals.push(v)
+  }
+  @debug.assert_eq(vals, ["1", "2", "3"])
+}
+
+///|
+test "values yields all values including duplicates" {
+  let p = @url.UrlSearchParams::from_string("a=1&b=2&a=3")
+  let vals : Array[String] = []
+  for v in p.values() {
+    vals.push(v)
+  }
+  @debug.assert_eq(vals, ["1", "2", "3"])
+}
+
+///|
+test "values returns empty iterator for empty params" {
+  let p = @url.UrlSearchParams::new()
+  let vals : Array[String] = []
+  for v in p.values() {
+    vals.push(v)
+  }
+  @debug.assert_eq(vals, [])
+}
