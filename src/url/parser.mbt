@@ -221,7 +221,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                 state = State::PathOrAuthority
                 pointer = pointer + 1
               } else {
-                url.has_opaque_path = true
+                url.path = UrlPath::Opaque("")
                 state = State::OpaquePath
               }
             }
@@ -297,7 +297,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
               _ => {
                 url.copy_authority_from(b)
                 url.copy_path_from(b)
-                shorten_path_segs(url.path_segments, url.scheme)
+                shorten_path_segs(url.path_segs(), url.scheme)
                 state = State::Path
                 advance = false
               }
@@ -417,9 +417,9 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                   _ => {
                     url.query = None
                     if chars_start_with_wdl(chars, pointer, n) {
-                      url.path_segments = []
+                      url.path = UrlPath::Segments([])
                     } else {
-                      shorten_path_segs(url.path_segments, url.scheme)
+                      shorten_path_segs(url.path_segs(), url.scheme)
                     }
                     state = State::Path
                     advance = false
@@ -446,7 +446,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                     _ => ""
                   }
                   if is_windows_drive_letter(first_seg) {
-                    url.path_segments.push(first_seg)
+                    url.path_segs().push(first_seg)
                   }
                 }
               }
@@ -493,16 +493,16 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
           let seg = buf.to_string()
           buf.reset()
           if is_dot_segment(seg) {
-            shorten_path_segs(url.path_segments, url.scheme)
+            shorten_path_segs(url.path_segs(), url.scheme)
             if c == None || is_query || is_frag {
-              url.path_segments.push("")
+              url.path_segs().push("")
             }
           } else if is_single_dot(seg) {
             if c == None || is_query || is_frag {
-              url.path_segments.push("")
+              url.path_segs().push("")
             }
           } else {
-            push_normalized_segment(url.path_segments, seg, url.scheme)
+            push_normalized_segment(url.path_segs(), seg, url.scheme)
           }
           if is_query {
             url.query = Some("")
@@ -518,22 +518,23 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
       OpaquePath =>
         match c {
           Some('?') => {
-            url.opaque_path = @pe.percent_encode_opaque_path_at_stop(
-              buf.to_string(),
+            url.path = UrlPath::Opaque(
+              @pe.percent_encode_opaque_path_at_stop(buf.to_string()),
             )
             buf.reset()
             url.query = Some("")
             state = State::Query
           }
           Some('#') => {
-            url.opaque_path = @pe.percent_encode_opaque_path_at_stop(
-              buf.to_string(),
+            url.path = UrlPath::Opaque(
+              @pe.percent_encode_opaque_path_at_stop(buf.to_string()),
             )
             buf.reset()
             url.fragment = Some("")
             state = State::Fragment
           }
-          None => url.opaque_path = @pe.percent_encode_c0(buf.to_string())
+          None =>
+            url.path = UrlPath::Opaque(@pe.percent_encode_c0(buf.to_string()))
           Some(ch) => buf.write_char(ch)
         }
       Query =>

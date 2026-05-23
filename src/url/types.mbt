@@ -52,9 +52,7 @@ priv struct UrlRecord {
   mut password : String
   mut host : Host?
   mut port : Int?
-  mut path_segments : Array[String]
-  mut opaque_path : String
-  mut has_opaque_path : Bool
+  mut path : UrlPath
   mut query : String?
   mut fragment : String?
 }
@@ -67,9 +65,7 @@ fn UrlRecord::new() -> UrlRecord {
     password: "",
     host: None,
     port: None,
-    path_segments: [],
-    opaque_path: "",
-    has_opaque_path: false,
+    path: UrlPath::Segments([]),
     query: None,
     fragment: None,
   }
@@ -77,15 +73,17 @@ fn UrlRecord::new() -> UrlRecord {
 
 ///|
 fn UrlRecord::copy_path_from(self : UrlRecord, other : Url) -> Unit {
-  match other.path {
-    Segments(segs) => {
-      self.has_opaque_path = false
-      self.path_segments = segs.copy()
-    }
-    Opaque(s) => {
-      self.has_opaque_path = true
-      self.opaque_path = s
-    }
+  self.path = match other.path {
+    Segments(segs) => UrlPath::Segments(segs.copy())
+    Opaque(s) => UrlPath::Opaque(s)
+  }
+}
+
+///|
+fn UrlRecord::path_segs(self : UrlRecord) -> Array[String] {
+  match self.path {
+    Segments(s) => s
+    _ => panic()
   }
 }
 
@@ -108,10 +106,9 @@ fn UrlRecord::copy_from(self : UrlRecord, other : Url) -> Unit {
 
 ///|
 fn UrlRecord::to_url(self : UrlRecord) -> Url {
-  let path = if self.has_opaque_path {
-    UrlPath::Opaque(self.opaque_path)
-  } else {
-    UrlPath::Segments(self.path_segments.copy())
+  let path = match self.path {
+    Segments(s) => UrlPath::Segments(s.copy())
+    Opaque(s) => UrlPath::Opaque(s)
   }
   {
     scheme: self.scheme,
