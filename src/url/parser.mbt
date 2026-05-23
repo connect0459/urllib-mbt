@@ -635,6 +635,14 @@ fn parse_port_number(s : String) -> Int raise UrlParseError {
 }
 
 ///|
+fn normalize_file_host(h : Host) -> Host {
+  match h {
+    Host::Domain("localhost") => @host.Host::empty_domain()
+    _ => h
+  }
+}
+
+///|
 fn host_parse(input : String, is_special : Bool) -> Host raise UrlParseError {
   @host.parse_host(input, is_special) catch {
     @host.HostParseError(msg) => raise UrlParseError(msg)

@@ -29,14 +29,6 @@ fn shorten_path_segs(segs : Array[String], scheme : String) -> Unit {
 }
 
 ///|
-fn normalize_file_host(h : Host) -> Host {
-  match h {
-    Host::Domain("localhost") => @host.Host::empty_domain()
-    _ => h
-  }
-}
-
-///|
 fn safe_parse_host(input : String, is_special : Bool) -> Host? {
   Some(@host.parse_host(input, is_special)) catch {
     _ => None
