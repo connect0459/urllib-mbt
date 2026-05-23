@@ -195,3 +195,39 @@ test "optional FullWildcard tail group is None when input fully consumed" {
     None => fail("expected group 1 key to be present")
   }
 }
+
+// ===== tokenizer and pattern parser error paths =====
+
+///|
+test "from_init raises for pattern with trailing backslash" {
+  assert_true(
+    (try? UrlPattern::from_init(UrlPatternInit::new(pathname=Some("foo\\"))))
+    is Err(_),
+  )
+}
+
+///|
+test "from_init raises for pattern with bare colon" {
+  assert_true(
+    (try? UrlPattern::from_init(UrlPatternInit::new(pathname=Some(":"))))
+    is Err(_),
+  )
+}
+
+///|
+test "from_init raises for named group with hyphen in name" {
+  assert_true(
+    (try? UrlPattern::from_init(UrlPatternInit::new(pathname=Some("/:foo-bar"))))
+    is Err(_),
+  )
+}
+
+///|
+test "from_init raises for duplicate named group" {
+  assert_true(
+    (try? UrlPattern::from_init(
+      UrlPatternInit::new(pathname=Some("/:name/:name")),
+    ))
+    is Err(_),
+  )
+}
