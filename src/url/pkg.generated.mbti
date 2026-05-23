@@ -36,6 +36,9 @@ pub struct Url {
   query : String?
   fragment : String?
 } derive(Eq, @debug.Debug)
+pub fn Url::authority(Self) -> String
+pub fn Url::domain(Self) -> String?
+pub fn Url::has_authority(Self) -> Bool
 pub fn Url::has_credentials(Self) -> Bool
 pub fn Url::has_opaque_path(Self) -> Bool
 pub fn Url::hash(Self) -> String
@@ -44,6 +47,7 @@ pub fn Url::hostname(Self) -> String
 pub fn Url::href(Self) -> String
 pub fn Url::is_special(Self) -> Bool
 pub fn Url::join(Self, String) -> Self raise UrlParseError
+pub fn Url::make_relative(Self, Self) -> String?
 pub fn Url::origin(Self) -> String
 pub fn Url::password(Self) -> String
 pub fn Url::path_segments(Self) -> Iter[String]?

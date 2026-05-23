@@ -158,3 +158,185 @@ pub fn domain_to_unicode(domain : String) -> String {
     _ => ""
   }
 }
+
+///|
+/// Returns `true` when this URL has an authority component (i.e. a `://`
+/// separator is present and a host is stored).
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(@url.parse("https://example.com/").has_authority(), content="true")
+///   inspect(@url.parse("data:text/plain,Hello").has_authority(), content="false")
+/// }
+/// ```
+pub fn Url::has_authority(self : Url) -> Bool {
+  self.host != None
+}
+
+///|
+/// Returns the authority component (`[user[:pass]@]host[:port]`), or `""`
+/// when no authority is present.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(
+///     @url.parse("https://user:pass@example.com:8080/").authority(),
+///     content="user:pass@example.com:8080",
+///   )
+///   inspect(@url.parse("data:text/plain,Hello").authority(), content="")
+/// }
+/// ```
+pub fn Url::authority(self : Url) -> String {
+  match self.host {
+    None => ""
+    Some(h) => {
+      let buf = StringBuilder::new()
+      if self.username != "" || self.password != "" {
+        buf.write_string(self.username)
+        if self.password != "" {
+          buf.write_char(':')
+          buf.write_string(self.password)
+        }
+        buf.write_char('@')
+      }
+      buf.write_string(@host.serialize_host(h))
+      match self.port {
+        Some(p) => {
+          buf.write_char(':')
+          buf.write_string(p.to_string())
+        }
+        None => ()
+      }
+      buf.to_string()
+    }
+  }
+}
+
+///|
+/// Returns the domain string when the host is a domain name, or `None` for
+/// IP addresses and URLs without a host.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(
+///     @url.parse("https://example.com/").domain() == Some("example.com"),
+///     content="true",
+///   )
+///   inspect(@url.parse("https://127.0.0.1/").domain() is None, content="true")
+/// }
+/// ```
+pub fn Url::domain(self : Url) -> String? {
+  match self.host {
+    Some(Host::Domain(s)) => Some(s)
+    _ => None
+  }
+}
+
+///|
+/// Returns a relative URL string that, when resolved against `self`, yields
+/// `other`. Returns `None` when a relative URL cannot be computed (different
+/// scheme, host, or port; or when `self` has an opaque path).
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let base = @url.parse("https://example.net/a/b/")
+///   let url = @url.parse("https://example.net/a/d/c.png")
+///   inspect(base.make_relative(url) == Some("../d/c.png"), content="true")
+/// }
+/// ```
+pub fn Url::make_relative(self : Url, other : Url) -> String? {
+  if self.scheme != other.scheme ||
+    self.host != other.host ||
+    self.port != other.port {
+    return None
+  }
+  let base_segs = match self.path {
+    UrlPath::Opaque(_) => return None
+    UrlPath::Segments(s) => s
+  }
+  let url_segs = match other.path {
+    UrlPath::Opaque(_) => return None
+    UrlPath::Segments(s) => s
+  }
+  let (base_dir, base_filename) = dir_and_filename(base_segs)
+  let (url_dir, url_filename) = dir_and_filename(url_segs)
+  let mut common_len = 0
+  while common_len < base_dir.length() &&
+        common_len < url_dir.length() &&
+        base_dir[common_len] == url_dir[common_len] {
+    common_len += 1
+  }
+  let path_parts : Array[String] = []
+  for i = common_len; i < base_dir.length(); i = i + 1 {
+    if base_dir[i] != "" {
+      path_parts.push("..")
+    }
+  }
+  for i = common_len; i < url_dir.length(); i = i + 1 {
+    path_parts.push(url_dir[i])
+  }
+  let buf = StringBuilder::new()
+  if path_parts.length() > 0 || base_filename != url_filename {
+    if url_filename == "" {
+      if path_parts.length() > 0 {
+        for i = 0; i < path_parts.length(); i = i + 1 {
+          if i > 0 {
+            buf.write_char('/')
+          }
+          buf.write_string(path_parts[i])
+        }
+        buf.write_char('/')
+      } else {
+        buf.write_string("./")
+      }
+    } else {
+      for i = 0; i < path_parts.length(); i = i + 1 {
+        if i > 0 {
+          buf.write_char('/')
+        }
+        buf.write_string(path_parts[i])
+      }
+      if path_parts.length() > 0 {
+        buf.write_char('/')
+      }
+      buf.write_string(url_filename)
+    }
+  }
+  match other.query {
+    Some(q) => {
+      buf.write_char('?')
+      buf.write_string(q)
+    }
+    None => ()
+  }
+  match other.fragment {
+    Some(f) => {
+      buf.write_char('#')
+      buf.write_string(f)
+    }
+    None => ()
+  }
+  Some(buf.to_string())
+}
+
+///|
+fn dir_and_filename(segs : Array[String]) -> (Array[String], String) {
+  let n = segs.length()
+  if n == 0 {
+    ([], "")
+  } else {
+    let dir : Array[String] = []
+    for i = 0; i < n - 1; i = i + 1 {
+      dir.push(segs[i])
+    }
+    (dir, segs[n - 1])
+  }
+}

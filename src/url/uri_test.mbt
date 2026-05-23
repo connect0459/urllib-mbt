@@ -441,3 +441,211 @@ test "domain_to_unicode: roundtrip from Unicode input" {
 test "domain_to_unicode: empty input returns empty string" {
   assert_eq(@url.domain_to_unicode(""), "")
 }
+
+// ===== Url::has_authority =====
+
+///|
+test "has_authority returns true for hierarchical URL with host" {
+  assert_eq(@url.parse("https://example.com/").has_authority(), true)
+}
+
+///|
+test "has_authority returns true for ftp URL" {
+  assert_eq(@url.parse("ftp://rms@example.com").has_authority(), true)
+}
+
+///|
+test "has_authority returns true for file URL with empty host" {
+  assert_eq(@url.parse("file:///tmp/foo").has_authority(), true)
+}
+
+///|
+test "has_authority returns false for non-special URL without authority" {
+  assert_eq(@url.parse("unix:/run/foo.socket").has_authority(), false)
+}
+
+///|
+test "has_authority returns false for opaque-path URL" {
+  assert_eq(@url.parse("data:text/plain,Stuff").has_authority(), false)
+}
+
+///|
+test "has_authority returns false for mailto URL" {
+  assert_eq(@url.parse("mailto:user@example.com").has_authority(), false)
+}
+
+// ===== Url::authority =====
+
+///|
+test "authority returns host string for simple URL" {
+  assert_eq(@url.parse("https://example.com/").authority(), "example.com")
+}
+
+///|
+test "authority includes username" {
+  assert_eq(@url.parse("ftp://rms@example.com").authority(), "rms@example.com")
+}
+
+///|
+test "authority includes username and password" {
+  assert_eq(
+    @url.parse("https://user:pass@example.com/").authority(),
+    "user:pass@example.com",
+  )
+}
+
+///|
+test "authority includes port" {
+  assert_eq(
+    @url.parse("https://example.com:8080/").authority(),
+    "example.com:8080",
+  )
+}
+
+///|
+test "authority includes all parts" {
+  assert_eq(
+    @url.parse("https://user@example.com:8080/").authority(),
+    "user@example.com:8080",
+  )
+}
+
+///|
+test "authority returns empty string for file URL with empty host" {
+  assert_eq(@url.parse("file:///tmp/foo").authority(), "")
+}
+
+///|
+test "authority returns empty string for URL without authority" {
+  assert_eq(@url.parse("unix:/run/foo.socket").authority(), "")
+}
+
+///|
+test "authority returns empty string for opaque-path URL" {
+  assert_eq(@url.parse("data:text/plain,Hello").authority(), "")
+}
+
+// ===== Url::domain =====
+
+///|
+test "domain returns Some for domain host" {
+  @debug.assert_eq(
+    @url.parse("https://example.com/").domain(),
+    Some("example.com"),
+  )
+}
+
+///|
+test "domain returns None for IPv4 host" {
+  assert_true(@url.parse("https://127.0.0.1/").domain() is None)
+}
+
+///|
+test "domain returns None for IPv6 host" {
+  assert_true(@url.parse("https://[::1]/").domain() is None)
+}
+
+///|
+test "domain returns None when no host" {
+  assert_true(@url.parse("unix:/run/foo.socket").domain() is None)
+}
+
+///|
+test "domain returns Some empty string for file URL with empty host" {
+  @debug.assert_eq(@url.parse("file:///tmp/").domain(), Some(""))
+}
+
+///|
+test "domain returns None for non-special URL (opaque host, not Domain)" {
+  assert_true(@url.parse("sc://foo.bar/path").domain() is None)
+}
+
+// ===== Url::make_relative =====
+
+///|
+test "make_relative: same URL returns empty string" {
+  let base = @url.parse("https://example.net/a/b.html")
+  let url = @url.parse("https://example.net/a/b.html")
+  @debug.assert_eq(base.make_relative(url), Some(""))
+}
+
+///|
+test "make_relative: different filename same directory" {
+  let base = @url.parse("https://example.net/a/b/")
+  let url = @url.parse("https://example.net/a/b/c.png")
+  @debug.assert_eq(base.make_relative(url), Some("c.png"))
+}
+
+///|
+test "make_relative: file in sibling directory" {
+  let base = @url.parse("https://example.net/a/b/")
+  let url = @url.parse("https://example.net/a/d/c.png")
+  @debug.assert_eq(base.make_relative(url), Some("../d/c.png"))
+}
+
+///|
+test "make_relative: different query only" {
+  let base = @url.parse("https://example.net/a/b.html?c=d")
+  let url = @url.parse("https://example.net/a/b.html?e=f")
+  @debug.assert_eq(base.make_relative(url), Some("?e=f"))
+}
+
+///|
+test "make_relative: different fragment only" {
+  let base = @url.parse("https://example.com/path#old")
+  let url = @url.parse("https://example.com/path#new")
+  @debug.assert_eq(base.make_relative(url), Some("#new"))
+}
+
+///|
+test "make_relative: different scheme returns None" {
+  let base = @url.parse("https://example.com/path")
+  let url = @url.parse("http://example.com/path")
+  assert_true(base.make_relative(url) is None)
+}
+
+///|
+test "make_relative: different host returns None" {
+  let base = @url.parse("https://example.com/path")
+  let url = @url.parse("https://other.com/path")
+  assert_true(base.make_relative(url) is None)
+}
+
+///|
+test "make_relative: different port returns None" {
+  let base = @url.parse("https://example.com:8080/path")
+  let url = @url.parse("https://example.com:9090/path")
+  assert_true(base.make_relative(url) is None)
+}
+
+///|
+test "make_relative: opaque-path base returns None" {
+  let base = @url.parse("data:text/html,Hello")
+  let url = @url.parse("data:text/html,World")
+  assert_true(base.make_relative(url) is None)
+}
+
+///|
+test "make_relative: opaque-path other returns None" {
+  let base = @url.parse("https://example.com/path")
+  let url = @url.parse("data:text/html,Hello")
+  assert_true(base.make_relative(url) is None)
+}
+
+///|
+test "make_relative: navigate to parent directory" {
+  let base = @url.parse("https://example.net/a/b.html")
+  let url = @url.parse("https://example.net/a/")
+  @debug.assert_eq(base.make_relative(url), Some("./"))
+}
+
+///|
+test "make_relative: result round-trips via join" {
+  let base = @url.parse("https://example.net/a/b/")
+  let url = @url.parse("https://example.net/a/d/c.png")
+  let rel = base.make_relative(url)
+  match rel {
+    Some(r) => assert_eq(base.join(r).href(), url.href())
+    None => fail("expected Some but got None")
+  }
+}
