@@ -74,22 +74,22 @@ fn uint_to_lower_hex(n : UInt) -> String {
 fn find_ipv6_compress(pieces : Array[UInt]) -> Int? {
   let mut best_start : Int? = None
   let mut best_len = 1
-  let mut cur_start = -1
+  let mut cur_start : Int? = None
   let mut cur_len = 0
   for i = 0; i < 8; i = i + 1 {
     if pieces[i] == 0U {
-      if cur_start == -1 {
-        cur_start = i
+      if cur_start is None {
+        cur_start = Some(i)
         cur_len = 1
       } else {
         cur_len = cur_len + 1
       }
       if cur_len > best_len {
         best_len = cur_len
-        best_start = Some(cur_start)
+        best_start = cur_start
       }
     } else {
-      cur_start = -1
+      cur_start = None
       cur_len = 0
     }
   }
@@ -221,6 +221,26 @@ fn domain_has_forbidden_char(domain : String) -> Bool {
 }
 
 ///|
+fn all_decimal_digits(chars : Array[Char]) -> Bool {
+  for c in chars {
+    if c < '0' || c > '9' {
+      return false
+    }
+  }
+  true
+}
+
+///|
+fn all_hex_digits_from(chars : Array[Char], from : Int) -> Bool {
+  for i = from; i < chars.length(); i = i + 1 {
+    if @pe.hex_digit_value(chars[i]) == None {
+      return false
+    }
+  }
+  true
+}
+
+///|
 fn ends_in_number(input : String) -> Bool {
   let effective = if input.has_suffix(".") {
     input[0:input.length() - 1].to_owned()
@@ -239,25 +259,13 @@ fn ends_in_number(input : String) -> Bool {
     label_chars.push(c)
   }
   let n = label_chars.length()
-  let mut all_decimal = true
-  for c in label_chars {
-    if c < '0' || c > '9' {
-      all_decimal = false
-    }
-  }
-  if all_decimal {
+  if all_decimal_digits(label_chars) {
     return true
   }
   if n >= 2 &&
     label_chars[0] == '0' &&
     (label_chars[1] == 'x' || label_chars[1] == 'X') {
-    let mut all_hex = true
-    for i = 2; i < n; i = i + 1 {
-      if @pe.hex_digit_value(label_chars[i]) == None {
-        all_hex = false
-      }
-    }
-    return all_hex
+    return all_hex_digits_from(label_chars, 2)
   }
   false
 }
