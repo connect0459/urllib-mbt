@@ -845,23 +845,12 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
       _ => passed += 1
     }
   }
-  let real_failures = failures.filter(fn(f) {
-    // lone surrogate: filter by distinctive percent-encoded form
-    if f.contains("%ED%A0%BD") || f.contains("%ED%BA%B2") {
-      return false
-    }
-    // optional FullWildcard null vs "": pattern "*{}**?"
-    if f.contains("*{}**?") {
-      return false
-    }
-    true
-  })
-  if real_failures.length() > 0 {
+  if failures.length() > 0 {
     let msg = StringBuilder::new()
     msg.write_string(
-      "WPT URLPattern expected_obj dict failures (\{real_failures.length()}):\n",
+      "WPT URLPattern expected_obj dict failures (\{failures.length()}):\n",
     )
-    for f in real_failures {
+    for f in failures {
       msg.write_string("  - \{f}\n")
     }
     msg.write_string("passed=\{passed} skipped=\{skipped}")

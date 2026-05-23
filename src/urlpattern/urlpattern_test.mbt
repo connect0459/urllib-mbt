@@ -128,3 +128,34 @@ test "custom regexp group (.*) captures greedily" {
     _ => fail("expected group 0 = 'bar/baz'")
   }
 }
+
+///|
+test "lone surrogates in pathname pattern encode as U+FFFD" {
+  let s = String::from_array([
+    Int::unsafe_to_char(0xD83D),
+    Int::unsafe_to_char(0x20),
+    Int::unsafe_to_char(0xDEB2),
+  ])
+  let p = try! UrlPattern::from_init(UrlPatternInit::new(pathname=Some(s)))
+  assert_eq(p.get_pathname(), "%EF%BF%BD%20%EF%BF%BD")
+}
+
+///|
+test "optional FullWildcard tail group is None when input fully consumed" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(pathname=Some("*{}**?")),
+  )
+  assert_eq(p.get_pathname(), "*(.*)?")
+  let result = p.exec_init(UrlPatternInit::new(pathname=Some("foobar")))
+  guard result is Some(r) else { fail("expected match") }
+  guard r.pathname is Some(pr) else { fail("expected pathname result") }
+  match pr.groups.get("0") {
+    Some(Some(v)) => assert_eq(v, "foobar")
+    _ => fail("expected group 0 = 'foobar'")
+  }
+  match pr.groups.get("1") {
+    Some(None) => ()
+    Some(Some(v)) => fail("expected group 1 = None, got Some('\{v}')")
+    None => fail("expected group 1 key to be present")
+  }
+}

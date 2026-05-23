@@ -646,8 +646,14 @@ fn generate_regexp(
         if part.prefix.length() == 0 && part.suffix.length() == 0 {
           strips.push(("", ""))
           if part.modifier == NoMod || part.modifier == Optional {
+            let emit_value = if part.modifier == Optional &&
+              part.kind == FullWildcard {
+              ".+"
+            } else {
+              regexp_value
+            }
             buf.write_string("(")
-            buf.write_string(regexp_value)
+            buf.write_string(emit_value)
             buf.write_string(")")
             buf.write_string(modifier_to_string(part.modifier))
           } else {
