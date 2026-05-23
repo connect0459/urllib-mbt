@@ -293,29 +293,20 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
               Some('/') => state = State::RelativeSlash
               Some('\\') if url.is_special() => state = State::RelativeSlash
               Some('?') => {
-                url.username = b.username
-                url.password = b.password
-                url.host = b.host
-                url.port = b.port
+                url.copy_authority_from(b)
                 url.copy_path_from(b)
                 url.query = Some("")
                 state = State::Query
               }
               Some('#') => {
-                url.username = b.username
-                url.password = b.password
-                url.host = b.host
-                url.port = b.port
+                url.copy_authority_from(b)
                 url.copy_path_from(b)
                 url.query = b.query
                 url.fragment = Some("")
                 state = State::Fragment
               }
               _ => {
-                url.username = b.username
-                url.password = b.password
-                url.host = b.host
-                url.port = b.port
+                url.copy_authority_from(b)
                 url.copy_path_from(b)
                 shorten_path_segs(url.path_segments, url.scheme)
                 state = State::Path
@@ -332,10 +323,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
           state = State::Authority
         } else {
           if base is Some(b) {
-            url.username = b.username
-            url.password = b.password
-            url.host = b.host
-            url.port = b.port
+            url.copy_authority_from(b)
           }
           state = State::Path
           advance = false
@@ -491,9 +479,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                 url.host = Some(@host.Host::empty_domain())
                 state = State::PathStart
               } else {
-                let h = @host.parse_host(host_str, true) catch {
-                  @host.HostParseError(msg) => raise UrlParseError(msg)
-                }
+                let h = host_parse(host_str, true)
                 url.host = Some(normalize_file_host(h))
                 state = State::PathStart
               }
@@ -603,9 +589,7 @@ fn parse_host_and_port(
       Some(bracket_pos) => {
         let host_part = input[0:bracket_pos + 1].to_owned()
         let after = input[bracket_pos + 1:].to_owned()
-        let h = @host.parse_host(host_part, is_special) catch {
-          @host.HostParseError(msg) => raise UrlParseError(msg)
-        }
+        let h = host_parse(host_part, is_special)
         let p = if after.has_prefix(":") {
           let port_str = after[1:].to_owned()
           if port_str.is_empty() {
@@ -630,9 +614,7 @@ fn parse_host_and_port(
         if !is_special && host_part.is_empty() {
           raise UrlParseError("empty host with port for non-special URL")
         }
-        let h = @host.parse_host(host_part, is_special) catch {
-          @host.HostParseError(msg) => raise UrlParseError(msg)
-        }
+        let h = host_parse(host_part, is_special)
         let p = if port_str.is_empty() {
           None
         } else {
@@ -641,9 +623,7 @@ fn parse_host_and_port(
         (h, p)
       }
       None => {
-        let h = @host.parse_host(input, is_special) catch {
-          @host.HostParseError(msg) => raise UrlParseError(msg)
-        }
+        let h = host_parse(input, is_special)
         (h, None)
       }
     }
@@ -676,5 +656,20 @@ fn UrlRecord::copy_path_from(self : UrlRecord, other : Url) -> Unit {
       self.has_opaque_path = true
       self.opaque_path = s
     }
+  }
+}
+
+///|
+fn UrlRecord::copy_authority_from(self : UrlRecord, other : Url) -> Unit {
+  self.username = other.username
+  self.password = other.password
+  self.host = other.host
+  self.port = other.port
+}
+
+///|
+fn host_parse(input : String, is_special : Bool) -> Host raise UrlParseError {
+  @host.parse_host(input, is_special) catch {
+    @host.HostParseError(msg) => raise UrlParseError(msg)
   }
 }
