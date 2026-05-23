@@ -195,14 +195,7 @@ pub fn Url::authority(self : Url) -> String {
     None => ""
     Some(h) => {
       let buf = StringBuilder::new()
-      if self.username != "" || self.password != "" {
-        buf.write_string(self.username)
-        if self.password != "" {
-          buf.write_char(':')
-          buf.write_string(self.password)
-        }
-        buf.write_char('@')
-      }
+      write_credentials(buf, self)
       buf.write_string(@host.serialize_host(h))
       write_port(buf, self.port)
       buf.to_string()

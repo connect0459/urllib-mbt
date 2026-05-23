@@ -1,4 +1,16 @@
 ///|
+fn write_credentials(buf : StringBuilder, url : Url) -> Unit {
+  if url.username != "" || url.password != "" {
+    buf.write_string(url.username)
+    if url.password != "" {
+      buf.write_char(':')
+      buf.write_string(url.password)
+    }
+    buf.write_char('@')
+  }
+}
+
+///|
 fn write_query(buf : StringBuilder, query : String?) -> Unit {
   match query {
     Some(q) => {
@@ -42,14 +54,7 @@ pub fn Url::href(self : Url) -> String {
     _ => buf.write_string("//")
   }
   if self.host != None || self.scheme == "file" {
-    if self.username != "" || self.password != "" {
-      buf.write_string(self.username)
-      if self.password != "" {
-        buf.write_char(':')
-        buf.write_string(self.password)
-      }
-      buf.write_char('@')
-    }
+    write_credentials(buf, self)
     match self.host {
       Some(h) => buf.write_string(@host.serialize_host(h))
       None => ()
