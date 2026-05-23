@@ -304,6 +304,16 @@ fn compile_component(
 ) -> UrlPatternComponent raise UrlPatternError {
   let raw_parts = parse_pattern_to_parts(pattern, options, policy)
   let parts = encode_parts(raw_parts, kind)
+  let has_regexp_groups = {
+    let mut hrg = false
+    for p in parts {
+      if p.kind == Regexp {
+        hrg = true
+        break
+      }
+    }
+    hrg
+  }
   let pat_str = generate_pattern_string(parts, options)
   let (regexp_str, group_names, group_strips) = generate_regexp(parts, options)
   let final_regexp_str = if ignore_case {
@@ -317,7 +327,15 @@ fn compile_component(
         "compile_component: invalid regex '\{final_regexp_str}': \{err}",
       )
   }
-  { pattern: pat_str, regex, group_names, group_strips }
+  {
+    pattern: pat_str,
+    regex,
+    group_names,
+    group_strips,
+    parts,
+    has_regexp_groups,
+    kind,
+  }
 }
 
 ///|
@@ -1040,4 +1058,106 @@ pub fn UrlPattern::get_search(self : UrlPattern) -> String {
 ///|
 pub fn UrlPattern::get_hash(self : UrlPattern) -> String {
   self.hash.pattern
+}
+
+///|
+pub fn UrlPattern::has_regexp_groups(self : UrlPattern) -> Bool {
+  self.protocol.has_regexp_groups ||
+  self.username.has_regexp_groups ||
+  self.password.has_regexp_groups ||
+  self.hostname.has_regexp_groups ||
+  self.port.has_regexp_groups ||
+  self.pathname.has_regexp_groups ||
+  self.search.has_regexp_groups ||
+  self.hash.has_regexp_groups
+}
+
+///|
+fn delimiter_for_kind(kind : ComponentKind) -> Char? {
+  match kind {
+    Pathname => Some('/')
+    Hostname => Some('.')
+    _ => None
+  }
+}
+
+///|
+fn encode_value_for_generate(v : String, kind : ComponentKind) -> String {
+  match kind {
+    Pathname => @pe.percent_encode_path_seg(v)
+    OpaquePathname => v
+    Hostname => canonicalize_hostname_for_pattern(v) catch { _ => v }
+    Username => @pe.percent_encode_userinfo(v)
+    Password => @pe.percent_encode_userinfo(v)
+    Search => @pe.percent_encode_query(v, false)
+    Hash => @pe.percent_encode_fragment(v)
+    Protocol => canonicalize_protocol_for_pattern(v) catch { _ => v }
+    Port => canonicalize_port(v, "")
+  }
+}
+
+///|
+fn generate_component_string(
+  parts : Array[Part],
+  kind : ComponentKind,
+  groups : Map[String, String],
+) -> String? {
+  let buf = StringBuilder::new()
+  let delim = delimiter_for_kind(kind)
+  for part in parts {
+    match part.kind {
+      FixedText => {
+        if part.modifier != NoMod {
+          return None
+        }
+        buf.write_string(part.value)
+      }
+      _ =>
+        match groups.get(part.name) {
+          None =>
+            match part.modifier {
+              Optional | ZeroOrMore => ()
+              _ => return None
+            }
+          Some(v) => {
+            if part.kind == SegmentWildcard {
+              match delim {
+                Some(d) =>
+                  for c in v {
+                    if c == d {
+                      return None
+                    }
+                  }
+                None => ()
+              }
+            }
+            let encoded = encode_value_for_generate(v, kind)
+            buf.write_string(part.prefix)
+            buf.write_string(encoded)
+            buf.write_string(part.suffix)
+          }
+        }
+    }
+  }
+  Some(buf.to_string())
+}
+
+///|
+pub fn UrlPattern::generate(
+  self : UrlPattern,
+  component : String,
+  groups : Map[String, String],
+) -> String? {
+  let comp = match component {
+    "protocol" => self.protocol
+    "username" => self.username
+    "password" => self.password
+    "hostname" => self.hostname
+    "port" => self.port
+    "pathname" => self.pathname
+    "search" => self.search
+    "hash" => self.hash
+    _ => return None
+  }
+  generate_component_string(comp.parts, comp.kind, groups)
 }

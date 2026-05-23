@@ -79,6 +79,9 @@ priv struct UrlPatternComponent {
   regex : @string.Regex
   group_names : Array[String]
   group_strips : Array[(String, String)]
+  parts : Array[Part]
+  has_regexp_groups : Bool
+  kind : ComponentKind
 }
 
 ///|

@@ -2,6 +2,7 @@ import {
   "moonbitlang/core/string",
   "connect0459/urllib/url",
   "connect0459/urllib/url/host",
+  "connect0459/urllib/url/percent_encoding" @pe,
 }
 
 import {

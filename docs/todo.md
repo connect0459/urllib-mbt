@@ -2,6 +2,8 @@
 
 Current state: **611/611 WPT success cases pass (100%)**  
 URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern constructor cases pass.**  
+WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
+WPT URLPattern generate: **19/19 cases pass.**  
 Coverage: **377 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
@@ -902,6 +904,46 @@ string pattern cases. 65/65 string-pattern-constructor WPT cases pass
   ws, wss, ftp, file (and empty proto treated as special for exec_url)
 - **None→"" in exec_init**: all components always matched; fixed-value
   patterns must reject empty string, not skip the check entirely
+
+---
+
+## Phase 12 — URLPattern hasRegExpGroups and generate (completed)
+
+WPT URLPattern additional APIs: `hasRegExpGroups` property and `generate`
+instance method. Implemented in `src/urlpattern/urlpattern.mbt`.
+
+### New methods
+
+- `UrlPattern::has_regexp_groups() -> Bool` — `true` if any component's
+  compiled pattern contains a regexp group (anonymous `(...)` or named
+  `:name(regexp)`). `SegmentWildcard` (`*`) and `FullWildcard` (`*`)
+  are not regexp groups.
+
+- `UrlPattern::generate(component: String, groups: Map[String, String]) -> String?`
+  — given a component name and a groups map, reconstructs the URL component
+  string by substituting named group values. Returns `None` when:
+  - Component name is invalid
+  - A required named group is absent from `groups`
+  - A `SegmentWildcard` value contains the component delimiter (`/` for
+    pathname, `.` for hostname)
+  - A `FixedText` part with a non-`NoMod` modifier is present (no name
+    to resolve from `groups`)
+
+### Implementation details
+
+- `UrlPatternComponent` extended with `parts: Array[Part]`,
+  `has_regexp_groups: Bool`, and `kind: ComponentKind` fields.
+- `encode_value_for_generate` helper uses direct percent-encoding
+  (`@pe.percent_encode_path_seg` etc.) instead of routing through
+  `canonicalize_pathname`, which strips C0+space from URL parser input.
+- `delimiter_for_kind`: Pathname→`/`, Hostname→`.`, others→None.
+
+### WPT test coverage
+
+| Suite | Cases | File |
+| :--- | ---: | :--- |
+| `urlpattern-hasregexpgroups.any.js` | 10 assertions | `urlpattern_hasregexpgroups_wpt_test.mbt` |
+| `urlpattern-generate.tentative.any.js` | 19/19 | `urlpattern_generate_wpt_test.mbt` |
 
 ---
 

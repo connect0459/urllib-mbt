@@ -21,6 +21,7 @@ pub fn UrlPattern::exec_init(Self, UrlPatternInit) -> UrlPatternResult?
 pub fn UrlPattern::exec_url(Self, String) -> UrlPatternResult?
 pub fn UrlPattern::from_init(UrlPatternInit, ignore_case? : Bool) -> Self raise UrlPatternError
 pub fn UrlPattern::from_string(String, String?, ignore_case? : Bool) -> Self raise UrlPatternError
+pub fn UrlPattern::generate(Self, String, Map[String, String]) -> String?
 pub fn UrlPattern::get_hash(Self) -> String
 pub fn UrlPattern::get_hostname(Self) -> String
 pub fn UrlPattern::get_password(Self) -> String
@@ -29,6 +30,7 @@ pub fn UrlPattern::get_port(Self) -> String
 pub fn UrlPattern::get_protocol(Self) -> String
 pub fn UrlPattern::get_search(Self) -> String
 pub fn UrlPattern::get_username(Self) -> String
+pub fn UrlPattern::has_regexp_groups(Self) -> Bool
 pub fn UrlPattern::test_init(Self, UrlPatternInit) -> Bool
 pub fn UrlPattern::test_url(Self, String) -> Bool
 
