@@ -246,7 +246,7 @@ fn ends_in_number(input : String) -> Bool {
   }
   let label_chars = @pe.string_to_chars(last_label)
   let n = label_chars.length()
-  if !label_chars.any(fn(c) { c < '0' || c > '9' }) {
+  if label_chars.all(fn(c) { c >= '0' && c <= '9' }) {
     return true
   }
   if n >= 2 &&
