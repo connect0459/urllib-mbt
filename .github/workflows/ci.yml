@@ -21,7 +21,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
-      - uses: hustcer/setup-moonbit@1e551191814a94ba0ce769885e2b32d42ab2c890 # v1.9.0
+      - name: Setup Moonbit
+        uses: hustcer/setup-moonbit@1e551191814a94ba0ce769885e2b32d42ab2c890 # v1.9.0
         with:
           version: latest
 
@@ -52,9 +53,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
-      - uses: hustcer/setup-moonbit@1e551191814a94ba0ce769885e2b32d42ab2c890 # v1.9.0
+      - name: Setup Moonbit
+        uses: hustcer/setup-moonbit@1e551191814a94ba0ce769885e2b32d42ab2c890 # v1.9.0
         with:
           version: latest
+
+      - name: Bundle core for native target
+        run: moon bundle --target native --source-dir $HOME/.moon/lib/core
 
       - name: Update package registry
         run: moon update
