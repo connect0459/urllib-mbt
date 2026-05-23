@@ -5,7 +5,7 @@ URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **504 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **526 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1102,6 +1102,42 @@ pub fn parse_with_params(
 | Empty params, existing query | `"https://example.com/?a=1"` + `[]` | `?a=1` (unchanged) |
 | Empty params, no query | `"https://example.com/"` + `[]` | no query (unchanged) |
 | Invalid URL | `"https://test:test"` | raises `UrlParseError` |
+
+---
+
+## Raw getters and existence predicates (completed)
+
+Added convenience accessor methods to `Url` that mirror rust-url and ada
+URL APIs. These provide direct raw-value access and boolean existence checks
+without the WHATWG serializer prefix characters (`?` / `#`).
+
+```moonbit
+pub fn Url::query(self : Url) -> String?
+pub fn Url::fragment(self : Url) -> String?
+pub fn Url::has_host(self : Url) -> Bool
+pub fn Url::has_port(self : Url) -> Bool
+pub fn Url::has_query(self : Url) -> Bool
+pub fn Url::has_fragment(self : Url) -> Bool
+```
+
+### Semantics
+
+| Method | Returns |
+| :--- | :--- |
+| `query()` | Raw query without leading `?`, or `None` |
+| `fragment()` | Raw fragment without leading `#`, or `None` |
+| `has_host()` | `true` when `host` field is `Some(_)` |
+| `has_port()` | `true` when `port` field is `Some(_)` |
+| `has_query()` | `true` when `query` field is `Some(_)` (even empty string) |
+| `has_fragment()` | `true` when `fragment` field is `Some(_)` (even empty string) |
+
+### Reference
+
+- `query()` / `fragment()` — mirror rust-url's `Url::query()` and `Url::fragment()`
+- `has_host()` / `has_port()` / `has_query()` / `has_fragment()` — mirror
+  ada's `ada_has_hostname`, `ada_has_port`, `ada_has_search`, `ada_has_hash`
+
+17 unit tests added.
 
 ---
 
