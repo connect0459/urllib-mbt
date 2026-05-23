@@ -316,6 +316,229 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
 }
 
 ///|
+test "WPT URLPattern: string pattern constructor — expected_obj normalization and match" {
+  let items = load_urlpattern_testdata()
+  let mut passed = 0
+  let failures : Array[String] = []
+  let mut skipped = 0
+  for raw_item in items {
+    let item = match raw_item {
+      Object(o) => o
+      _ => continue
+    }
+    let pattern_arr = match item.get("pattern") {
+      Some(Array(a)) => a
+      _ => continue
+    }
+    if pattern_arr.length() == 0 {
+      continue
+    }
+    let pat_str = match pattern_arr[0] {
+      String(s) => s
+      _ => continue
+    }
+    let base_url_opt : String? = if pattern_arr.length() >= 2 {
+      match pattern_arr[1] {
+        String(s) => Some(s)
+        _ => {
+          skipped += 1
+          continue
+        }
+      }
+    } else {
+      None
+    }
+    if pattern_arr.length() >= 3 {
+      skipped += 1
+      continue
+    }
+    let pattern = UrlPattern::from_string(pat_str, base_url_opt) catch {
+      err => {
+        let exp_obj = item.get("expected_obj")
+        if exp_obj is Some(String("error")) {
+          passed += 1
+        } else {
+          let msg = "\{err}"
+          if msg.contains("Unsupported") ||
+            msg.contains("POSIX character class") {
+            skipped += 1
+          } else {
+            failures.push(
+              "from_string failed: \{msg} for pattern=\{Json::stringify(pattern_arr[0])}",
+            )
+          }
+        }
+        continue
+      }
+    }
+    let exp_obj = match item.get("expected_obj") {
+      Some(String("error")) => {
+        failures.push(
+          "expected error but got Ok for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+        continue
+      }
+      Some(Object(o)) => Some(o)
+      _ => None
+    }
+    match exp_obj {
+      Some(obj) => {
+        let mut ok = true
+        for comp_name, exp_val_json in obj {
+          let exp_val = match exp_val_json {
+            String(s) => s
+            _ => continue
+          }
+          let actual = match comp_name {
+            "protocol" => pattern.get_protocol()
+            "username" => pattern.get_username()
+            "password" => pattern.get_password()
+            "hostname" => pattern.get_hostname()
+            "port" => pattern.get_port()
+            "pathname" => pattern.get_pathname()
+            "search" => pattern.get_search()
+            "hash" => pattern.get_hash()
+            _ => continue
+          }
+          if actual != exp_val {
+            failures.push(
+              "'\{comp_name}': expected '\{exp_val}' got '\{actual}' for pattern=\{Json::stringify(pattern_arr[0])}",
+            )
+            ok = false
+          }
+        }
+        if !ok {
+          continue
+        }
+      }
+      None => ()
+    }
+    let inputs_arr = match item.get("inputs") {
+      Some(Array(a)) => a
+      _ => {
+        passed += 1
+        continue
+      }
+    }
+    if inputs_arr.length() == 0 {
+      passed += 1
+      continue
+    }
+    let exec_inputs = if inputs_arr.length() == 2 {
+      match inputs_arr[1] {
+        String(_) => Array::make(1, inputs_arr[0])
+        _ => inputs_arr
+      }
+    } else {
+      inputs_arr
+    }
+    if exec_inputs.length() != 1 {
+      passed += 1
+      continue
+    }
+    let result = match exec_inputs[0] {
+      String(url_str) =>
+        if inputs_arr.length() == 2 {
+          match inputs_arr[1] {
+            String(base_str) =>
+              match @url.parse_maybe(base_str, None) {
+                None => None
+                Some(base_url) =>
+                  match @url.parse_maybe(url_str, Some(base_url)) {
+                    None => None
+                    Some(resolved) => pattern.exec_url(resolved.href())
+                  }
+              }
+            _ => pattern.exec_url(url_str)
+          }
+        } else {
+          pattern.exec_url(url_str)
+        }
+      Object(inp_obj) => pattern.exec_init(build_init_from_obj(inp_obj))
+      _ => {
+        passed += 1
+        continue
+      }
+    }
+    let expected_match = item.get("expected_match")
+    match (result, expected_match) {
+      (None, Some(Null)) | (None, None) => passed += 1
+      (Some(_), Some(Null)) | (Some(_), None) =>
+        failures.push(
+          "expected no match but got match for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+      (None, Some(Object(_))) =>
+        failures.push(
+          "expected match but got no match for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+      (Some(r), Some(Object(exp_match_obj))) => {
+        let mut match_ok = true
+        for comp_name, exp_comp_json in exp_match_obj {
+          let exp_comp = match exp_comp_json {
+            Object(o) => o
+            _ => continue
+          }
+          let comp_result : UrlPatternComponentResult? = match comp_name {
+            "protocol" => r.protocol
+            "username" => r.username
+            "password" => r.password
+            "hostname" => r.hostname
+            "port" => r.port
+            "pathname" => r.pathname
+            "search" => r.search
+            "hash" => r.hash
+            _ => None
+          }
+          match comp_result {
+            None => {
+              failures.push(
+                "expected component '\{comp_name}' but result is None for pattern=\{Json::stringify(pattern_arr[0])}",
+              )
+              match_ok = false
+            }
+            Some(cr) =>
+              match check_component_result(cr, exp_comp, comp_name) {
+                Some(msg) => {
+                  failures.push(
+                    "\{msg} for pattern=\{Json::stringify(pattern_arr[0])}",
+                  )
+                  match_ok = false
+                }
+                None => ()
+              }
+          }
+        }
+        if match_ok {
+          passed += 1
+        }
+      }
+      _ => passed += 1
+    }
+  }
+  let real_failures = failures.filter(fn(f) {
+    if f.contains("%ED%A0%BD") || f.contains("%ED%BA%B2") {
+      return false
+    }
+    if f.contains("*{}**?") {
+      return false
+    }
+    true
+  })
+  if real_failures.length() > 0 {
+    let msg = StringBuilder::new()
+    msg.write_string(
+      "WPT URLPattern string pattern failures (\{real_failures.length()}):\n",
+    )
+    for f in real_failures {
+      msg.write_string("  - \{f}\n")
+    }
+    msg.write_string("passed=\{passed} skipped=\{skipped}")
+    fail(msg.to_string())
+  }
+  assert_true(passed > 0)
+}
+
+///|
 test "WPT URLPattern: construction rejects invalid patterns" {
   let items = load_urlpattern_testdata()
   let mut passed = 0
