@@ -13,15 +13,17 @@ priv enum TokenType {
 } derive(Eq)
 
 ///|
+priv enum TokenizePolicy {
+  Strict
+  Lenient
+} derive(Eq)
+
+///|
 priv struct Token {
   kind : TokenType
   value : String
+  index : Int
 }
-
-///|
-priv enum TokenizePolicy {
-  Strict
-} derive(Eq)
 
 ///|
 fn tokenize(
@@ -37,13 +39,18 @@ fn tokenize(
   let mut i = 0
   while i < n {
     let c = chars[i]
+    let tok_index = i
     if c == '*' {
-      tokens.push({ kind: Asterisk, value: "*" })
+      tokens.push({ kind: Asterisk, value: "*", index: tok_index })
       i += 1
       continue
     }
     if c == '+' || c == '?' {
-      tokens.push({ kind: OtherModifier, value: c.to_string() })
+      tokens.push({
+        kind: OtherModifier,
+        value: c.to_string(),
+        index: tok_index,
+      })
       i += 1
       continue
     }
@@ -57,17 +64,21 @@ fn tokenize(
       }
       i += 1
       let escaped = chars[i]
-      tokens.push({ kind: EscapedChar, value: escaped.to_string() })
+      tokens.push({
+        kind: EscapedChar,
+        value: escaped.to_string(),
+        index: tok_index,
+      })
       i += 1
       continue
     }
     if c == '{' {
-      tokens.push({ kind: Open, value: "{" })
+      tokens.push({ kind: Open, value: "{", index: tok_index })
       i += 1
       continue
     }
     if c == '}' {
-      tokens.push({ kind: Close, value: "}" })
+      tokens.push({ kind: Close, value: "}", index: tok_index })
       i += 1
       continue
     }
@@ -81,14 +92,14 @@ fn tokenize(
         if policy == Strict {
           raise UrlPatternError("tokenize: empty name after ':'")
         }
-        tokens.push({ kind: InvalidChar, value: ":" })
+        tokens.push({ kind: InvalidChar, value: ":", index: tok_index })
         continue
       }
       let buf = StringBuilder::new()
       for j = name_start; j < i; j = j + 1 {
         buf.write_char(chars[j])
       }
-      tokens.push({ kind: Name, value: buf.to_string() })
+      tokens.push({ kind: Name, value: buf.to_string(), index: tok_index })
       continue
     }
     if c == '(' {
@@ -123,7 +134,7 @@ fn tokenize(
         if policy == Strict {
           raise UrlPatternError("tokenize: unclosed regexp group")
         }
-        tokens.push({ kind: InvalidChar, value: "(" })
+        tokens.push({ kind: InvalidChar, value: "(", index: tok_index })
         i += 1
         continue
       }
@@ -131,14 +142,14 @@ fn tokenize(
       for k = regexp_start; k < j - 1; k = k + 1 {
         buf.write_char(chars[k])
       }
-      tokens.push({ kind: Regexp, value: buf.to_string() })
+      tokens.push({ kind: Regexp, value: buf.to_string(), index: tok_index })
       i = j
       continue
     }
-    tokens.push({ kind: Char, value: c.to_string() })
+    tokens.push({ kind: Char, value: c.to_string(), index: tok_index })
     i += 1
   }
-  tokens.push({ kind: End, value: "" })
+  tokens.push({ kind: End, value: "", index: n })
   tokens
 }
 
