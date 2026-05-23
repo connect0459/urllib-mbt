@@ -18,10 +18,7 @@ fn canonicalize_protocol_for_pattern(
   if input == "" {
     return ""
   }
-  let chars : Array[Char] = []
-  for c in input {
-    chars.push(c)
-  }
+  let chars = string_to_chars(input)
   let stripped = if chars.length() > 0 && chars[chars.length() - 1] == ':' {
     let buf = StringBuilder::new()
     for j = 0; j < chars.length() - 1; j = j + 1 {
@@ -71,17 +68,13 @@ fn is_literal_port_out_of_range(s : String) -> Bool {
   if s == "" {
     return false
   }
-  let chars : Array[Char] = []
   for c in s {
-    chars.push(c)
-  }
-  for c in chars {
     if !(c >= '0' && c <= '9') {
       return false
     }
   }
   let mut n = 0
-  for c in chars {
+  for c in s {
     n = n * 10 + (c.to_int() - '0'.to_int())
     if n > 65535 {
       return true
@@ -502,10 +495,7 @@ fn match_component(
             let raw = sv.to_owned()
             let (pre, suf) = component.group_strips[idx]
             let stripped = if pre.length() > 0 || suf.length() > 0 {
-              let chars : Array[Char] = []
-              for c in raw {
-                chars.push(c)
-              }
+              let chars = string_to_chars(raw)
               let start = pre.length()
               let end = chars.length() - suf.length()
               if start <= end {
@@ -670,14 +660,7 @@ fn canonicalize_pathname(input : String) -> String {
   if input == "" {
     return ""
   }
-  let leading_slash = input.length() > 0 &&
-    ({
-      let chars : Array[Char] = []
-      for c in input {
-        chars.push(c)
-      }
-      chars[0] == '/'
-    })
+  let leading_slash = input.get_char(0) == Some('/')
   let full = if leading_slash {
     "https://x" + input
   } else {
@@ -691,10 +674,7 @@ fn canonicalize_pathname(input : String) -> String {
       if leading_slash {
         p
       } else {
-        let chars : Array[Char] = []
-        for c in p {
-          chars.push(c)
-        }
+        let chars = string_to_chars(p)
         if chars.length() < 2 {
           input
         } else {
@@ -787,10 +767,7 @@ fn canonicalize_port(port : String, protocol : String) -> String {
 ///|
 fn normalize_path_dots(path : String) -> String {
   let segments : Array[String] = []
-  let chars : Array[Char] = []
-  for c in path {
-    chars.push(c)
-  }
+  let chars = string_to_chars(path)
   let mut i = 0
   let n = chars.length()
   while i < n {
@@ -830,10 +807,7 @@ fn normalize_path_dots(path : String) -> String {
 
 ///|
 fn get_base_dir(pathname : String) -> String {
-  let chars : Array[Char] = []
-  for c in pathname {
-    chars.push(c)
-  }
+  let chars = string_to_chars(pathname)
   let mut last_slash = 0
   for i = 0; i < chars.length(); i = i + 1 {
     if chars[i] == '/' {
@@ -912,18 +886,10 @@ fn apply_base_url(
     Some(esc(base.pathname()))
   } else if !has_protocol && !has_hostname && !has_port && has_pathname {
     let pn = init.pathname.unwrap_or("")
-    let first_slash : Bool = {
-      let chars : Array[Char] = []
-      for c in pn {
-        chars.push(c)
-      }
-      if chars.is_empty() {
-        false
-      } else {
-        let c0 = chars[0]
-        c0 == '/' ||
-        (chars.length() > 1 && (c0 == '{' || c0 == '\\') && chars[1] == '/')
-      }
+    let first_slash : Bool = match pn.get_char(0) {
+      Some('/') => true
+      Some('{') | Some('\\') => pn.get_char(1) == Some('/')
+      _ => false
     }
     if first_slash {
       init.pathname
@@ -972,21 +938,10 @@ fn apply_base_url(
 
 ///|
 fn strip_leading_char(s : String, c : Char) -> String {
-  if s.length() == 0 {
-    return s
+  match s.get_char(0) {
+    Some(head) if head == c => s[1:s.length()].to_owned()
+    _ => s
   }
-  let chars : Array[Char] = []
-  for ch in s {
-    chars.push(ch)
-  }
-  if chars[0] != c {
-    return s
-  }
-  let buf = StringBuilder::new()
-  for i = 1; i < chars.length(); i = i + 1 {
-    buf.write_char(chars[i])
-  }
-  buf.to_string()
 }
 
 ///|

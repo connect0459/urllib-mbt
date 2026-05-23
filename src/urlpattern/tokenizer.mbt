@@ -26,15 +26,21 @@ priv struct Token {
 }
 
 ///|
+fn string_to_chars(s : String) -> Array[Char] {
+  let chars : Array[Char] = []
+  for c in s {
+    chars.push(c)
+  }
+  chars
+}
+
+///|
 fn tokenize(
   input : String,
   policy : TokenizePolicy,
 ) -> Array[Token] raise UrlPatternError {
   let tokens : Array[Token] = []
-  let chars : Array[Char] = []
-  for c in input {
-    chars.push(c)
-  }
+  let chars = string_to_chars(input)
   let n = chars.length()
   let mut i = 0
   while i < n {

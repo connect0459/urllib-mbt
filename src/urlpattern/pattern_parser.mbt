@@ -162,10 +162,7 @@ fn ParserCtx::extract_prefix_from_pending(self : ParserCtx) -> String {
       }
       let pf = self.pending_fixed
       if pf.length() > 0 {
-        let chars : Array[Char] = []
-        for c in pf {
-          chars.push(c)
-        }
+        let chars = string_to_chars(pf)
         if chars[chars.length() - 1] == pc {
           let buf = StringBuilder::new()
           for j = 0; j < chars.length() - 1; j = j + 1 {
@@ -219,10 +216,7 @@ fn is_valid_id_continue(c : Char) -> Bool {
 
 ///|
 fn is_valid_identifier(name : String) -> Bool {
-  let chars : Array[Char] = []
-  for c in name {
-    chars.push(c)
-  }
+  let chars = string_to_chars(name)
   if chars.is_empty() {
     return false
   }
