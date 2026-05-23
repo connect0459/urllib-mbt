@@ -1,0 +1,67 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.0] - 2026-05-23
+
+### Added
+
+#### URL parsing (`connect0459/urllib/url`)
+
+- `parse(String)` — parses a URL string; raises `UrlParseError` on failure
+- `parse_maybe(String, Url?)` — infallible variant; returns `None` on failure
+- `parse_with_base(String, Url?)` — parses with an explicit base URL
+- `can_parse(String, Url?)` — validity check without allocating a `Url`
+- Full WHATWG URL Standard compliance with 100 % WPT pass rate
+
+**Getters**: `href`, `protocol`, `scheme`, `username`, `password`, `hostname`,
+`host_str`, `port`, `port_str`, `pathname`, `search`, `hash`, `origin`, `to_json`
+
+**Predicates**: `is_special`, `has_credentials`, `has_opaque_path`, `has_host`,
+`has_port`, `has_query`, `has_fragment`, `has_authority`
+
+**Setters** (immutable — each returns a new `Url`): `set_href` (raises),
+`set_protocol`, `set_username`, `set_password`, `set_host`, `set_hostname`,
+`set_port`, `set_pathname`, `set_search`, `set_hash`
+
+**Path utilities**: `path_segments` iterator; `join` for relative URL resolution
+
+**File URL helpers**: `from_file_path`, `from_directory_path`, `to_file_path`
+
+**Query helpers**: `search_params`, `query_pairs`, `parse_with_params`
+
+**Authority helpers**: `authority`, `domain`, `make_relative`,
+`port_or_known_default`
+
+#### URLSearchParams (`connect0459/urllib/url`)
+
+- `UrlSearchParams::from_string(String)` — parses `application/x-www-form-urlencoded` data
+- Operations: `get`, `get_all`, `has`, `size`, `append`, `delete`, `set`, `sort`
+- Iterators: `iter` (name-value pairs), `keys`, `values`, `entries`
+
+#### IDNA utilities (`connect0459/urllib/url`)
+
+- `domain_to_ascii(String)` — UTS#46 Unicode-to-ACE conversion
+- `domain_to_unicode(String)` — ACE-to-Unicode conversion
+- Full WPT IdnaTestV2 coverage (2670 / 2670)
+
+#### URLPattern (`connect0459/urllib/urlpattern`)
+
+- `UrlPattern::from_string` — constructs a pattern from a URL pattern string
+- `UrlPattern::from_init` — constructs from a `UrlPatternInit` object
+- `ignore_case` option for case-insensitive matching
+- `test_url` / `test_init` — boolean URL matching
+- `exec_url` / `exec_init` — match with captured group extraction
+- Compiled pattern accessors: `get_protocol`, `get_username`, `get_password`,
+  `get_hostname`, `get_port`, `get_pathname`, `get_search`, `get_hash`
+- `has_regexp_groups` — reports whether any component contains a custom regexp group
+- `generate` — reconstructs a URL string from a pattern and captured group values
+- `compare_component` — specificity ordering for route-priority comparisons
+
+[Unreleased]: https://github.com/connect0459/urllib.mbt/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/connect0459/urllib.mbt/releases/tag/v0.1.0
