@@ -48,4 +48,4 @@ jobs:
           moon publish
           rm ~/.moon/credentials.json
         env:
-          SECRET: ${{ secrets.MOONCAKES_TOKEN }}
+          SECRET: ${{ secrets.MOONCAKES_CREDENTIALS }}
