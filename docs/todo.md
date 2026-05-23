@@ -1,6 +1,7 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
+URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern constructor cases pass.**  
 Coverage: **377 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
@@ -710,19 +711,60 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
 ### Package files
 
 - `tokenizer.mbt` — pattern tokenizer (PartType, Token, tokenize)
+- `constructor_string_parser.mbt` — parse URL pattern string → `UrlPatternInit`
 - `pattern_parser.mbt` — parse pattern string → `Array[Part]`, generate
   regexp and normalized pattern string
 - `urlpattern.mbt` — `UrlPattern`, `UrlPatternInit`, `UrlPatternResult`,
   compile/match/canonicalize logic
 - `types.mbt` — public type definitions
 - `urlpattern_test.mbt` — 6 hand-written unit tests
-- `urlpattern_wpt_test.mbt` — WPT runner (173 pass / 191 skipped)
+- `urlpattern_wpt_test.mbt` — WPT runner (382 pass / 0 failed / 3 skipped)
 
 ### WPT conformance
 
-- [x] **WPT URLPattern: 380/381 tests pass** (1 test with 2 failures; see below).
-  Previously 173/173; expanded to cover `expected_obj` dict normalization (+79
-  WPT cases from Task D).
+- [x] **WPT URLPattern: 382/382 tests pass** (0 failures; 3 skipped).
+  Previously 380/381 (Task D); +2 from Task E string pattern constructor fixes.
+
+### Task E — String URL pattern parsing (completed)
+
+Implemented WHATWG URL Pattern constructor string parser and fixed all WPT
+string pattern cases. 65/65 string-pattern-constructor WPT cases pass
+(3 skipped: require JSON object input or unsupported MoonBit features).
+
+#### Fixes applied
+
+1. **Token index field** — Added `index : Int` to `Token` struct so
+   `make_component_string()` can extract raw input substrings by character
+   position. Required by the WHATWG constructor string parser algorithm.
+
+2. **Regex backtracking for Optional with prefix/suffix** — MoonBit's regex
+   engine does not backtrack inside `(?:prefix(.*)suffix)?` when `.*` consumes
+   the whole string. Fixed by switching to outer capturing group
+   `(prefix value suffix)?` and stripping prefix/suffix from captured values
+   in `match_component` using `group_strips : Array[(String, String)]` in
+   `UrlPatternComponent`. Case: `{*.}?example.com`.
+
+3. **Unclosed group error** — `try_consume(Close)` silently returned `None`
+   when no `}` was found; changed to raise
+   `UrlPatternError("unclosed group '{' in pattern")`. Case: `{sub{.}}example.com`.
+
+4. **Path normalization without URL parsing** — `apply_base_url` previously
+   used `@url.parse("https://dummy.test" + resolved)` to normalize `.`/`..`
+   segments, but HTTPS special scheme treats `\` as a path separator, mangling
+   pattern characters like `{\:}`. Replaced with `normalize_path_dots` that
+   handles only `.` and `..` segments via string manipulation.
+   Case: `data{\\:}channel.html` with base URL.
+
+5. **OpaquePathname compile options** — `compile_component` for `OpaquePathname`
+   was using `pathname_options` (delimiter=`/`, prefix_char=`/`), causing `/`
+   in opaque paths to be extracted as a group prefix and producing a regex that
+   couldn't match. Fixed to use `default_options` (no delimiter, no prefix_char).
+   Case: `data\\:text/javascript,...`.
+
+6. **Protocol presence validation** — `from_string` now raises
+   `UrlPatternError` when both `init.protocol` and `base_url` are `None`,
+   matching the WHATWG spec requirement. Cases: `/foo`, `example.com/foo`,
+   `(https://)example.com/foo`, `data:foobar`.
 
 #### Remaining known failures (2, in expected_obj dict test)
 
