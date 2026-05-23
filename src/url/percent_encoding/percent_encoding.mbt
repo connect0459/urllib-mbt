@@ -60,6 +60,8 @@ fn to_hex_upper(n : Int) -> Char {
 }
 
 ///|
+/// Returns the percent-encoded representation of a single byte
+/// (e.g. `0x20` → `"%20"`).
 pub fn percent_encode_byte(byte : Int) -> String {
   let hi = (byte >> 4) & 0xF
   let lo = byte & 0xF
@@ -71,6 +73,7 @@ pub fn percent_encode_byte(byte : Int) -> String {
 }
 
 ///|
+/// Encodes a Unicode character to its UTF-8 byte sequence as an array of integers.
 pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
   let cp = c.to_int()
   let result : Array[Int] = []
@@ -109,11 +112,14 @@ fn percent_encode(input : String, in_encode_set : (Int) -> Bool) -> String {
 }
 
 ///|
+/// Encodes `input` using the WHATWG fragment percent-encode set.
 pub fn percent_encode_fragment(input : String) -> String {
   percent_encode(input, in_fragment_set)
 }
 
 ///|
+/// Encodes `input` using the WHATWG query percent-encode set; uses the
+/// special-query set (which also encodes `'`) when `is_special` is `true`.
 pub fn percent_encode_query(input : String, is_special : Bool) -> String {
   if is_special {
     percent_encode(input, in_special_query_set)
@@ -123,26 +129,41 @@ pub fn percent_encode_query(input : String, is_special : Bool) -> String {
 }
 
 ///|
+/// Encodes `input` using the WHATWG path percent-encode set.
 pub fn percent_encode_path_seg(input : String) -> String {
   percent_encode(input, in_path_set)
 }
 
 ///|
+/// Encodes `input` using the WHATWG userinfo percent-encode set.
 pub fn percent_encode_userinfo(input : String) -> String {
   percent_encode(input, in_userinfo_set)
 }
 
 ///|
+/// Encodes `input` using the C0 percent-encode set (intended for opaque paths).
 pub fn percent_encode_opaque_path(input : String) -> String {
   percent_encode(input, is_c0)
 }
 
 ///|
+/// Encodes `input` using the C0 percent-encode set (control chars ≤ U+001F
+/// and non-ASCII > U+007E).
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(percent_encode_c0("hello\nworld"), content="hello%0Aworld")
+/// }
+/// ```
 pub fn percent_encode_c0(input : String) -> String {
   percent_encode(input, is_c0)
 }
 
 ///|
+/// Encodes `input` using the C0 set, additionally encoding a trailing space
+/// as `"%20"` (used at query/fragment stop boundaries in opaque paths).
 pub fn percent_encode_opaque_path_at_stop(input : String) -> String {
   let n = input.length()
   if n > 0 {
@@ -159,6 +180,8 @@ pub fn percent_encode_opaque_path_at_stop(input : String) -> String {
 }
 
 ///|
+/// Returns the numeric value of an ASCII hex digit (`0`–`9`, `a`–`f`, `A`–`F`),
+/// or `None` for any other character.
 pub fn hex_digit_value(c : Char) -> Int? {
   let cp = c.to_int()
   if cp >= '0'.to_int() && cp <= '9'.to_int() {
@@ -173,6 +196,17 @@ pub fn hex_digit_value(c : Char) -> Int? {
 }
 
 ///|
+/// Decodes percent-encoded sequences in `input`; invalid sequences are passed
+/// through as-is.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(percent_decode("hello%20world"), content="hello world")
+///   inspect(percent_decode("%E4%B8%AD%E6%96%87"), content="中文")
+/// }
+/// ```
 pub fn percent_decode(input : String) -> String {
   let bytes : Array[Int] = []
   let chars : Array[Char] = []
@@ -207,6 +241,8 @@ fn is_continuation(b : Int) -> Bool {
 }
 
 ///|
+/// Decodes a UTF-8 byte sequence to a `String`, replacing any invalid byte
+/// sequences with U+FFFD (replacement character).
 pub fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
   let buf = StringBuilder::new()
   let n = bytes.length()

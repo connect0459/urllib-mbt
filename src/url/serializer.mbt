@@ -1,4 +1,5 @@
 ///|
+/// Returns the full serialized URL string.
 pub fn Url::href(self : Url) -> String {
   let buf = StringBuilder::new()
   buf.write_string(self.scheme)
@@ -63,6 +64,7 @@ pub fn Url::href(self : Url) -> String {
 }
 
 ///|
+/// Returns the serialized origin of this URL, or `"null"` for opaque origins.
 pub fn Url::origin(self : Url) -> String {
   if is_special_scheme(self.scheme) && self.scheme != "file" {
     let buf = StringBuilder::new()
@@ -107,11 +109,13 @@ pub fn Url::origin(self : Url) -> String {
 }
 
 ///|
+/// Returns the scheme followed by a colon (e.g. `"https:"`).
 pub fn Url::protocol(self : Url) -> String {
   self.scheme + ":"
 }
 
 ///|
+/// Returns the serialized host without port; IPv6 addresses are bracketed.
 pub fn Url::hostname(self : Url) -> String {
   match self.host {
     Some(h) => @host.serialize_host(h)
@@ -120,6 +124,7 @@ pub fn Url::hostname(self : Url) -> String {
 }
 
 ///|
+/// Returns the serialized host with port if present (e.g. `"example.com:8080"`).
 pub fn Url::host_str(self : Url) -> String {
   match self.host {
     None => ""
@@ -134,6 +139,7 @@ pub fn Url::host_str(self : Url) -> String {
 }
 
 ///|
+/// Returns the port as a decimal string, or `""` when absent.
 pub fn Url::port_str(self : Url) -> String {
   match self.port {
     None => ""
@@ -142,6 +148,7 @@ pub fn Url::port_str(self : Url) -> String {
 }
 
 ///|
+/// Returns the serialized path (e.g. `"/path/to/resource"`).
 pub fn Url::pathname(self : Url) -> String {
   match self.path {
     Opaque(s) => s
@@ -164,6 +171,7 @@ pub fn Url::pathname(self : Url) -> String {
 }
 
 ///|
+/// Returns the query string prefixed with `"?"`, or `""` when absent or empty.
 pub fn Url::search(self : Url) -> String {
   match self.query {
     None | Some("") => ""
@@ -172,6 +180,7 @@ pub fn Url::search(self : Url) -> String {
 }
 
 ///|
+/// Returns the fragment prefixed with `"#"`, or `""` when absent or empty.
 pub fn Url::hash(self : Url) -> String {
   match self.fragment {
     None | Some("") => ""

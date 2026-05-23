@@ -1,9 +1,12 @@
 ///|
+/// A mutable list of name/value string pairs used to encode
+/// `application/x-www-form-urlencoded` data.
 pub struct UrlSearchParams {
   mut list : Array[(String, String)]
 }
 
 ///|
+/// Creates an empty `UrlSearchParams` with no pairs.
 pub fn UrlSearchParams::new() -> UrlSearchParams {
   { list: [] }
 }
@@ -29,6 +32,18 @@ fn parse_urlencoded(s : String) -> UrlSearchParams {
 }
 
 ///|
+/// Parses an `application/x-www-form-urlencoded` string into `UrlSearchParams`;
+/// strips a leading `"?"` if present.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let sp = UrlSearchParams::from_string("a=1&b=2")
+///   inspect(sp.get("a") == Some("1"), content="true")
+///   inspect(sp.get("b") == Some("2"), content="true")
+/// }
+/// ```
 pub fn UrlSearchParams::from_string(s : String) -> UrlSearchParams {
   let input = if s.length() > 0 && s.get_char(0) == Some('?') {
     s[1:].to_owned()
@@ -39,6 +54,7 @@ pub fn UrlSearchParams::from_string(s : String) -> UrlSearchParams {
 }
 
 ///|
+/// Appends a new name/value pair at the end of the list.
 pub fn UrlSearchParams::append(
   self : UrlSearchParams,
   name : String,
@@ -48,11 +64,13 @@ pub fn UrlSearchParams::append(
 }
 
 ///|
+/// Removes all pairs whose name equals `name`.
 pub fn UrlSearchParams::delete(self : UrlSearchParams, name : String) -> Unit {
   self.list = self.list.filter(fn(pair) { pair.0 != name })
 }
 
 ///|
+/// Removes all pairs matching both `name` and `value` exactly.
 pub fn UrlSearchParams::delete_entry(
   self : UrlSearchParams,
   name : String,
@@ -62,6 +80,7 @@ pub fn UrlSearchParams::delete_entry(
 }
 
 ///|
+/// Returns the first value whose name equals `name`, or `None` if not found.
 pub fn UrlSearchParams::get(self : UrlSearchParams, name : String) -> String? {
   for pair in self.list {
     if pair.0 == name {
@@ -72,6 +91,7 @@ pub fn UrlSearchParams::get(self : UrlSearchParams, name : String) -> String? {
 }
 
 ///|
+/// Returns all values whose name equals `name` in list order.
 pub fn UrlSearchParams::get_all(
   self : UrlSearchParams,
   name : String,
@@ -86,11 +106,13 @@ pub fn UrlSearchParams::get_all(
 }
 
 ///|
+/// Returns `true` if any pair has the given `name`.
 pub fn UrlSearchParams::has(self : UrlSearchParams, name : String) -> Bool {
   self.list.any(fn(pair) { pair.0 == name })
 }
 
 ///|
+/// Returns `true` if any pair matches both `name` and `value` exactly.
 pub fn UrlSearchParams::has_entry(
   self : UrlSearchParams,
   name : String,
@@ -100,6 +122,8 @@ pub fn UrlSearchParams::has_entry(
 }
 
 ///|
+/// Sets the first pair with `name` to `value`, removing all other pairs with
+/// the same name; appends a new pair if none exists.
 pub fn UrlSearchParams::set(
   self : UrlSearchParams,
   name : String,
@@ -124,16 +148,38 @@ pub fn UrlSearchParams::set(
 }
 
 ///|
+/// Sorts pairs in place by name using UTF-16 code-unit order (stable sort).
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let sp = UrlSearchParams::from_string("b=2&a=1")
+///   sp.sort()
+///   inspect(sp.to_string(), content="a=1&b=2")
+/// }
+/// ```
 pub fn UrlSearchParams::sort(self : UrlSearchParams) -> Unit {
   self.list.sort_by(fn(a, b) { compare_utf16(a.0, b.0) })
 }
 
 ///|
+/// Returns the number of name/value pairs.
 pub fn UrlSearchParams::size(self : UrlSearchParams) -> Int {
   self.list.length()
 }
 
 ///|
+/// Serializes pairs to an `application/x-www-form-urlencoded` string.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let sp = UrlSearchParams::from_string("a=hello world&b=ok")
+///   inspect(sp.to_string(), content="a=hello+world&b=ok")
+/// }
+/// ```
 pub fn UrlSearchParams::to_string(self : UrlSearchParams) -> String {
   let parts : Array[String] = []
   for pair in self.list {
@@ -150,11 +196,13 @@ pub impl Show for UrlSearchParams with fn output(self, logger) {
 }
 
 ///|
+/// Returns an iterator over name/value pairs in list order.
 pub fn UrlSearchParams::iter(self : UrlSearchParams) -> Iter[(String, String)] {
   self.list.iter()
 }
 
 ///|
+/// Calls `f` with each name/value pair in list order.
 pub fn UrlSearchParams::for_each(
   self : UrlSearchParams,
   f : (String, String) -> Unit,

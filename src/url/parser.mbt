@@ -146,11 +146,36 @@ fn is_single_dot(s : String) -> Bool {
 }
 
 ///|
+/// Parses `input` as an absolute URL string; raises `UrlParseError` if invalid.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(
+///     (try! parse("https://example.com/path")).href(),
+///     content="https://example.com/path",
+///   )
+/// }
+/// ```
 pub fn parse(input : String) -> Url raise UrlParseError {
   parse_with_base(input, None)
 }
 
 ///|
+/// Parses `input` resolved against `base`; raises `UrlParseError` on failure.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let base = try! parse("https://example.com/a/b")
+///   inspect(
+///     (try! parse_with_base("../c", Some(base))).href(),
+///     content="https://example.com/c",
+///   )
+/// }
+/// ```
 pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
   let stripped = strip_tabs_and_newlines(input)
   let url = UrlRecord::new()

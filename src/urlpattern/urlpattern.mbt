@@ -339,6 +339,21 @@ fn compile_component(
 }
 
 ///|
+/// Compiles a `UrlPattern` from a URL pattern string with an optional base URL.
+///
+/// - `pattern` : The URL pattern string (e.g. `"https://example.com/:path*"`).
+/// - `base_url` : Optional base URL used to resolve relative patterns.
+/// - `ignore_case` : When `true`, all component regexes match case-insensitively.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let p = try! UrlPattern::from_string("https://example.com/api/:id", None)
+///   inspect(p.test_url("https://example.com/api/42"), content="true")
+///   inspect(p.test_url("https://other.com/api/42"), content="false")
+/// }
+/// ```
 pub fn UrlPattern::from_string(
   pattern : String,
   base_url : String?,
@@ -358,6 +373,10 @@ pub fn UrlPattern::from_string(
 }
 
 ///|
+/// Compiles a `UrlPattern` from per-component pattern strings in `init`.
+///
+/// - `init` : Per-component pattern strings; `None` fields match any value.
+/// - `ignore_case` : When `true`, all component regexes match case-insensitively.
 pub fn UrlPattern::from_init(
   init : UrlPatternInit,
   ignore_case? : Bool = false,
@@ -512,6 +531,8 @@ fn match_component(
 }
 
 ///|
+/// Tests a `UrlPatternInit` against this pattern and returns match details,
+/// or `None` when the input does not match.
 pub fn UrlPattern::exec_init(
   self : UrlPattern,
   init : UrlPatternInit,
@@ -969,6 +990,21 @@ fn strip_leading_char(s : String, c : Char) -> String {
 }
 
 ///|
+/// Tests a URL string against this pattern and returns match details,
+/// or `None` when the URL does not parse or does not match.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let p = try! UrlPattern::from_string("https://example.com/users/:id", None)
+///   let result = p.exec_url("https://example.com/users/42")
+///   inspect(result is Some(_), content="true")
+///   guard result is Some(r) else { fail("no match") }
+///   guard r.pathname is Some(pr) else { fail("no pathname") }
+///   inspect(pr.groups["id"] == Some("42"), content="true")
+/// }
+/// ```
 pub fn UrlPattern::exec_url(
   self : UrlPattern,
   url_str : String,
@@ -1011,56 +1047,81 @@ pub fn UrlPattern::exec_url(
 }
 
 ///|
+/// Returns `true` if the given `UrlPatternInit` matches this pattern.
 pub fn UrlPattern::test_init(self : UrlPattern, init : UrlPatternInit) -> Bool {
   self.exec_init(init) is Some(_)
 }
 
 ///|
+/// Returns `true` if the URL string matches this pattern.
 pub fn UrlPattern::test_url(self : UrlPattern, url : String) -> Bool {
   self.exec_url(url) is Some(_)
 }
 
 ///|
+/// Returns the compiled pattern string for the `protocol` component.
 pub fn UrlPattern::get_protocol(self : UrlPattern) -> String {
   self.protocol.pattern
 }
 
 ///|
+/// Returns the compiled pattern string for the `username` component.
 pub fn UrlPattern::get_username(self : UrlPattern) -> String {
   self.username.pattern
 }
 
 ///|
+/// Returns the compiled pattern string for the `password` component.
 pub fn UrlPattern::get_password(self : UrlPattern) -> String {
   self.password.pattern
 }
 
 ///|
+/// Returns the compiled pattern string for the `hostname` component.
 pub fn UrlPattern::get_hostname(self : UrlPattern) -> String {
   self.hostname.pattern
 }
 
 ///|
+/// Returns the compiled pattern string for the `port` component.
 pub fn UrlPattern::get_port(self : UrlPattern) -> String {
   self.port.pattern
 }
 
 ///|
+/// Returns the compiled pattern string for the `pathname` component.
 pub fn UrlPattern::get_pathname(self : UrlPattern) -> String {
   self.pathname.pattern
 }
 
 ///|
+/// Returns the compiled pattern string for the `search` component.
 pub fn UrlPattern::get_search(self : UrlPattern) -> String {
   self.search.pattern
 }
 
 ///|
+/// Returns the compiled pattern string for the `hash` component.
 pub fn UrlPattern::get_hash(self : UrlPattern) -> String {
   self.hash.pattern
 }
 
 ///|
+/// Returns `true` if any component contains at least one regexp capturing group.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let with_group = try! UrlPattern::from_string(
+///     "https://example.com/(hi)",
+///     None,
+///   )
+///   inspect(with_group.has_regexp_groups(), content="true")
+///   let wildcard = try! UrlPattern::from_string("https://example.com/*", None)
+///   inspect(wildcard.has_regexp_groups(), content="false")
+/// }
+/// ```
 pub fn UrlPattern::has_regexp_groups(self : UrlPattern) -> Bool {
   self.protocol.has_regexp_groups ||
   self.username.has_regexp_groups ||
@@ -1143,6 +1204,22 @@ fn generate_component_string(
 }
 
 ///|
+/// Reconstructs a URL component string by substituting named group values from
+/// `groups` into the compiled pattern; returns `None` when a required group is
+/// absent or a wildcard value contains a delimiter character.
+///
+/// - `component` : One of `"protocol"`, `"hostname"`, `"pathname"`, etc.
+/// - `groups` : Map of named group names to their string values.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let p = try! UrlPattern::from_string("https://example.com/users/:id", None)
+///   let groups : Map[String, String] = { "id": "42" }
+///   inspect(p.generate("pathname", groups) == Some("/users/42"), content="true")
+/// }
+/// ```
 pub fn UrlPattern::generate(
   self : UrlPattern,
   component : String,
@@ -1327,6 +1404,11 @@ fn get_urlpattern_component(
 }
 
 ///|
+/// Compares the specificity of two patterns for a given `component`.
+/// Returns `1` if `left` is more specific, `-1` if `right` is more specific,
+/// and `0` if they are equally specific.
+///
+/// - `component` : One of `"protocol"`, `"hostname"`, `"pathname"`, etc.
 pub fn UrlPattern::compare_component(
   component : String,
   left : UrlPattern,

@@ -137,11 +137,14 @@ fn split_host_port(s : String) -> (String, String?) {
 }
 
 ///|
+/// Re-parses `value` as an absolute URL; raises `UrlParseError` if invalid.
 pub fn Url::set_href(_ : Url, value : String) -> Url raise UrlParseError {
   parse(value)
 }
 
 ///|
+/// Changes the URL scheme if the new scheme is valid and compatible with the
+/// current scheme type; no-op otherwise.
 pub fn Url::set_protocol(self : Url, value : String) -> Url {
   let stripped = strip_ascii_tabs_newlines(value)
   if stripped.is_empty() {
@@ -193,6 +196,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the percent-encoded username; no-op when credentials are not allowed.
 pub fn Url::set_username(self : Url, value : String) -> Url {
   if !url_can_have_credentials(self) {
     return self
@@ -201,6 +205,7 @@ pub fn Url::set_username(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the percent-encoded password; no-op when credentials are not allowed.
 pub fn Url::set_password(self : Url, value : String) -> Url {
   if !url_can_have_credentials(self) {
     return self
@@ -209,6 +214,8 @@ pub fn Url::set_password(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the port; clears it when `value` is empty or matches the scheme default.
+/// No-op for `file:` URLs and opaque-path URLs.
 pub fn Url::set_port(self : Url, value : String) -> Url {
   if self.scheme == "file" {
     return self
@@ -235,6 +242,8 @@ pub fn Url::set_port(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the fragment from `value`, stripping a leading `"#"`; clears the
+/// fragment when `value` is empty.
 pub fn Url::set_hash(self : Url, value : String) -> Url {
   let stripped = strip_ascii_tabs_newlines(value)
   if stripped.is_empty() {
@@ -249,6 +258,8 @@ pub fn Url::set_hash(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the query from `value`, stripping a leading `"?"`; clears the query
+/// when `value` is empty.
 pub fn Url::set_search(self : Url, value : String) -> Url {
   let stripped = strip_ascii_tabs_newlines(value)
   if stripped.is_empty() {
@@ -264,6 +275,7 @@ pub fn Url::set_search(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the URL path from `value`; no-op for opaque-path URLs.
 pub fn Url::set_pathname(self : Url, value : String) -> Url {
   match self.path {
     Opaque(_) => return self
@@ -332,6 +344,8 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the host and optional port from a `"host"` or `"host:port"` string.
+/// No-op for opaque-path URLs or on parse failure.
 pub fn Url::set_host(self : Url, value : String) -> Url {
   match self.path {
     Opaque(_) => return self
@@ -390,6 +404,8 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
 }
 
 ///|
+/// Sets the host from `value` without modifying the port.
+/// No-op for opaque-path URLs or on parse failure.
 pub fn Url::set_hostname(self : Url, value : String) -> Url {
   match self.path {
     Opaque(_) => return self

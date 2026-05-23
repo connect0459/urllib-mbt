@@ -2,6 +2,8 @@
 pub type Host = @host.Host
 
 ///|
+/// The path of a parsed URL: either an ordered list of decoded path segments
+/// or an opaque string for cannot-be-a-base URLs.
 pub enum UrlPath {
   Segments(Array[String])
   Opaque(String)
@@ -17,6 +19,7 @@ impl Eq for UrlPath with fn equal(self : UrlPath, other : UrlPath) -> Bool {
 }
 
 ///|
+/// Error raised when a URL string fails to parse.
 pub suberror UrlParseError {
   UrlParseError(String)
 }
@@ -29,6 +32,8 @@ pub impl Show for UrlParseError with fn output(self, logger) {
 }
 
 ///|
+/// An immutable parsed URL. All setter methods return a new `Url` value
+/// rather than modifying this one.
 pub struct Url {
   scheme : String
   username : String

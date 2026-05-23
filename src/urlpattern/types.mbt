@@ -1,4 +1,7 @@
 ///|
+/// Per-component pattern strings used to construct a `UrlPattern`.
+/// Each field is a pattern string for the corresponding URL component;
+/// `None` means "use the wildcard default".
 pub struct UrlPatternInit {
   protocol : String?
   username : String?
@@ -12,6 +15,8 @@ pub struct UrlPatternInit {
 } derive(Debug)
 
 ///|
+/// Creates a `UrlPatternInit` with per-component pattern strings; all fields
+/// default to `None` (wildcard) when omitted.
 pub fn UrlPatternInit::new(
   protocol? : String? = None,
   username? : String? = None,
@@ -37,18 +42,24 @@ pub fn UrlPatternInit::new(
 }
 
 ///|
+/// Input accepted by `exec` and `test` methods: either a URL string or a
+/// per-component `UrlPatternInit`.
 pub enum UrlPatternInput {
   Str(String)
   Init(UrlPatternInit)
 } derive(Debug)
 
 ///|
+/// Match result for a single URL component: the matched input string and a
+/// map of named capture group names to their matched values.
 pub struct UrlPatternComponentResult {
   input : String
   groups : Map[String, String?]
 } derive(Debug)
 
 ///|
+/// Aggregate match result returned by `exec_url` and `exec_init`, containing
+/// per-component results for every URL component.
 pub struct UrlPatternResult {
   inputs : Array[UrlPatternInput]
   protocol : UrlPatternComponentResult?
@@ -62,6 +73,7 @@ pub struct UrlPatternResult {
 } derive(Debug)
 
 ///|
+/// Error raised when a `UrlPattern` cannot be constructed due to an invalid pattern.
 pub suberror UrlPatternError {
   UrlPatternError(String)
 }
@@ -85,6 +97,7 @@ priv struct UrlPatternComponent {
 }
 
 ///|
+/// A compiled WHATWG URL pattern that matches and extracts named groups from URLs.
 pub struct UrlPattern {
   priv protocol : UrlPatternComponent
   priv username : UrlPatternComponent
