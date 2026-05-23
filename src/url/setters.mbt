@@ -19,6 +19,27 @@ fn strip_ascii_tabs_newlines(s : String) -> String {
 }
 
 ///|
+fn apply_path_seg(
+  segs : Array[String],
+  seg : String,
+  scheme : String,
+  is_terminal : Bool,
+) -> Unit {
+  if is_dot_segment(seg) {
+    shorten_path_segs(segs, scheme)
+    if is_terminal {
+      segs.push("")
+    }
+  } else if is_single_dot(seg) {
+    if is_terminal {
+      segs.push("")
+    }
+  } else {
+    push_normalized_segment(segs, seg, scheme)
+  }
+}
+
+///|
 fn shorten_path_segs(segs : Array[String], scheme : String) -> Unit {
   if scheme == "file" && segs.length() == 1 && is_windows_drive_letter(segs[0]) {
     return
@@ -262,18 +283,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     if is_sep {
       let seg = buf.to_string()
       buf.reset()
-      if is_dot_segment(seg) {
-        shorten_path_segs(segs, self.scheme)
-        if c == None {
-          segs.push("")
-        }
-      } else if is_single_dot(seg) {
-        if c == None {
-          segs.push("")
-        }
-      } else {
-        push_normalized_segment(segs, seg, self.scheme)
-      }
+      apply_path_seg(segs, seg, self.scheme, c == None)
       if c == None {
         break
       }

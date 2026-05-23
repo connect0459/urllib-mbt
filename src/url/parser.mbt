@@ -492,18 +492,12 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
         if is_sep || is_query || is_frag {
           let seg = buf.to_string()
           buf.reset()
-          if is_dot_segment(seg) {
-            shorten_path_segs(url.path_segs(), url.scheme)
-            if c == None || is_query || is_frag {
-              url.path_segs().push("")
-            }
-          } else if is_single_dot(seg) {
-            if c == None || is_query || is_frag {
-              url.path_segs().push("")
-            }
-          } else {
-            push_normalized_segment(url.path_segs(), seg, url.scheme)
-          }
+          apply_path_seg(
+            url.path_segs(),
+            seg,
+            url.scheme,
+            c == None || is_query || is_frag,
+          )
           if is_query {
             url.query = Some("")
             state = State::Query
