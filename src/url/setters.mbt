@@ -1,4 +1,13 @@
 ///|
+fn strip_leading_char(s : String, c : Char) -> String {
+  if s.has_prefix(c.to_string()) {
+    s[1:s.length()].to_owned()
+  } else {
+    s
+  }
+}
+
+///|
 fn strip_ascii_tabs_newlines(s : String) -> String {
   let buf = StringBuilder::new()
   for c in s {
@@ -38,7 +47,7 @@ fn safe_parse_host(input : String, is_special : Bool) -> Host? {
 ///|
 fn url_can_have_credentials(url : Url) -> Bool {
   url.scheme != "file" &&
-  !(url.path is Opaque(_)) &&
+  !url.has_opaque_path() &&
   !(url.host is (None | Some(Host::Domain(""))))
 }
 
@@ -162,7 +171,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
     i = i + 1
   }
   let new_scheme = buf.to_string()
-  let old_special = is_special_scheme(self.scheme)
+  let old_special = self.is_special()
   let new_special = is_special_scheme(new_scheme)
   if old_special != new_special {
     return self
@@ -229,11 +238,7 @@ pub fn Url::set_hash(self : Url, value : String) -> Url {
   if stripped.is_empty() {
     return { ..self, fragment: None }
   }
-  let input = if stripped.has_prefix("#") {
-    stripped[1:stripped.length()].to_owned()
-  } else {
-    stripped
-  }
+  let input = strip_leading_char(stripped, '#')
   { ..self, fragment: Some(@pe.percent_encode_fragment(input)) }
 }
 
@@ -245,12 +250,8 @@ pub fn Url::set_search(self : Url, value : String) -> Url {
   if stripped.is_empty() {
     return { ..self, query: None }
   }
-  let input = if stripped.has_prefix("?") {
-    stripped[1:stripped.length()].to_owned()
-  } else {
-    stripped
-  }
-  let encoded = @pe.percent_encode_query(input, is_special_scheme(self.scheme))
+  let input = strip_leading_char(stripped, '?')
+  let encoded = @pe.percent_encode_query(input, self.is_special())
   { ..self, query: Some(encoded) }
 }
 
@@ -260,7 +261,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
   if self.has_opaque_path() {
     return self
   }
-  let is_special = is_special_scheme(self.scheme)
+  let is_special = self.is_special()
   let stripped = strip_ascii_tabs_newlines(value)
   if stripped.is_empty() {
     let new_path = if self.host != None {
@@ -338,7 +339,7 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
   if self.has_opaque_path() {
     return self
   }
-  let is_special = is_special_scheme(self.scheme)
+  let is_special = self.is_special()
   let stripped = strip_ascii_tabs_newlines(value)
   let truncated = truncate_host_value(stripped, is_special)
   let (host_str, port_opt) = split_host_port(truncated)
@@ -383,7 +384,7 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
   if self.has_opaque_path() {
     return self
   }
-  let is_special = is_special_scheme(self.scheme)
+  let is_special = self.is_special()
   let stripped = strip_ascii_tabs_newlines(value)
   let truncated = truncate_host_value(stripped, is_special)
   if truncated.has_prefix("[") {
