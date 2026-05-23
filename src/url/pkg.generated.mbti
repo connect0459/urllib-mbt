@@ -13,6 +13,8 @@ pub fn domain_to_ascii(String) -> String
 
 pub fn domain_to_unicode(String) -> String
 
+pub fn from_file_path(String) -> Url raise UrlParseError
+
 pub fn parse(String) -> Url raise UrlParseError
 
 pub fn parse_maybe(String, Url?) -> Url?
@@ -77,6 +79,7 @@ pub fn Url::set_port(Self, String) -> Self
 pub fn Url::set_protocol(Self, String) -> Self
 pub fn Url::set_search(Self, String) -> Self
 pub fn Url::set_username(Self, String) -> Self
+pub fn Url::to_file_path(Self) -> String raise UrlParseError
 pub fn Url::to_json(Self) -> String
 pub fn Url::username(Self) -> String
 pub impl Show for Url

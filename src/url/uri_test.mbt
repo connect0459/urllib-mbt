@@ -872,3 +872,101 @@ test "has_fragment returns true for empty fragment" {
 test "has_fragment returns true when fragment has content" {
   assert_eq(@url.parse("https://example.com/#section").has_fragment(), true)
 }
+
+// ===== from_file_path =====
+
+///|
+test "from_file_path produces file URL for absolute Unix path" {
+  let url = @url.from_file_path("/usr/local/bin")
+  assert_eq(url.href(), "file:///usr/local/bin")
+}
+
+///|
+test "from_file_path encodes space in path segments" {
+  let url = @url.from_file_path("/path with spaces/file.txt")
+  assert_eq(url.href(), "file:///path%20with%20spaces/file.txt")
+}
+
+///|
+test "from_file_path preserves trailing slash" {
+  let url = @url.from_file_path("/path/to/dir/")
+  assert_eq(url.href(), "file:///path/to/dir/")
+}
+
+///|
+test "from_file_path produces file URL for root path" {
+  let url = @url.from_file_path("/")
+  assert_eq(url.href(), "file:///")
+}
+
+///|
+test "from_file_path raises for relative path" {
+  assert_true((try? @url.from_file_path("relative/path")) is Err(_))
+}
+
+///|
+test "from_file_path raises for empty path" {
+  assert_true((try? @url.from_file_path("")) is Err(_))
+}
+
+///|
+test "from_file_path handles Windows path with backslashes" {
+  let url = @url.from_file_path("C:\\Windows\\System32")
+  assert_eq(url.href(), "file:///C:/Windows/System32")
+}
+
+///|
+test "from_file_path handles Windows path with forward slashes and encodes spaces" {
+  let url = @url.from_file_path("C:/Program Files/App")
+  assert_eq(url.href(), "file:///C:/Program%20Files/App")
+}
+
+// ===== Url::to_file_path =====
+
+///|
+test "to_file_path returns Unix path for simple file URL" {
+  let url = @url.parse("file:///etc/passwd")
+  assert_eq(url.to_file_path(), "/etc/passwd")
+}
+
+///|
+test "to_file_path raises for non-file scheme" {
+  let url = @url.parse("https://example.com/path")
+  assert_true((try? url.to_file_path()) is Err(_))
+}
+
+///|
+test "to_file_path raises for file URL with non-local host" {
+  let url = @url.parse("file://example.com/path")
+  assert_true((try? url.to_file_path()) is Err(_))
+}
+
+///|
+test "to_file_path returns root slash for root file URL" {
+  let url = @url.parse("file:///")
+  assert_eq(url.to_file_path(), "/")
+}
+
+///|
+test "to_file_path decodes percent-encoded spaces" {
+  let url = @url.parse("file:///path%20with%20spaces/file.txt")
+  assert_eq(url.to_file_path(), "/path with spaces/file.txt")
+}
+
+///|
+test "to_file_path returns Windows-style path for drive letter URL" {
+  let url = @url.parse("file:///C:/Windows/System32")
+  assert_eq(url.to_file_path(), "C:/Windows/System32")
+}
+
+///|
+test "to_file_path preserves trailing slash" {
+  let url = @url.parse("file:///path/to/dir/")
+  assert_eq(url.to_file_path(), "/path/to/dir/")
+}
+
+///|
+test "from_file_path and to_file_path round-trip for Unix path" {
+  let path = "/usr/local/bin/app"
+  assert_eq(@url.from_file_path(path).to_file_path(), path)
+}

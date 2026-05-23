@@ -454,6 +454,106 @@ pub fn parse_with_params(
 }
 
 ///|
+/// Converts an absolute filesystem path to a `file://` URL.
+/// Raises `UrlParseError` when the path is empty or not absolute.
+///
+/// On Windows, paths starting with a drive letter (`C:\` or `C:/`) are
+/// accepted; backslashes are treated as path separators.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let url = try! from_file_path("/usr/local/bin")
+///   inspect(url.href(), content="file:///usr/local/bin")
+/// }
+/// ```
+pub fn from_file_path(path : String) -> Url raise UrlParseError {
+  if path.is_empty() {
+    raise UrlParseError("path is empty")
+  }
+  let is_win = is_windows_drive_letter(path)
+  if !is_win && path.get_char(0).unwrap_or(' ') != '/' {
+    raise UrlParseError("path is not absolute")
+  }
+  let raw_segs : Array[String] = []
+  let seg_buf = StringBuilder::new()
+  for c in path {
+    if c == '/' || c == '\\' {
+      raw_segs.push(seg_buf.to_string())
+      seg_buf.reset()
+    } else {
+      seg_buf.write_char(c)
+    }
+  }
+  raw_segs.push(seg_buf.to_string())
+  let url_buf = StringBuilder::new()
+  url_buf.write_string("file:///")
+  let start = if is_win { 0 } else { 1 }
+  for i = start; i < raw_segs.length(); i = i + 1 {
+    if i > start {
+      url_buf.write_char('/')
+    }
+    let seg = raw_segs[i]
+    if is_win && i == 0 {
+      url_buf.write_string(seg)
+    } else {
+      url_buf.write_string(@pe.percent_encode_path_seg(seg))
+    }
+  }
+  parse(url_buf.to_string())
+}
+
+///|
+/// Returns the filesystem path for a `file://` URL, decoding any
+/// percent-encoded characters.
+/// Raises `UrlParseError` when the URL is not a `file:` URL, has a
+/// non-local host, or has an opaque path.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let url = try! parse("file:///usr/local/bin")
+///   inspect(try! url.to_file_path(), content="/usr/local/bin")
+/// }
+/// ```
+pub fn Url::to_file_path(self : Url) -> String raise UrlParseError {
+  if self.scheme != "file" {
+    raise UrlParseError("URL scheme is not file")
+  }
+  match self.host {
+    None | Some(Host::Domain("")) => ()
+    Some(_) => raise UrlParseError("file URL has non-local host")
+  }
+  match self.path {
+    UrlPath::Opaque(_) => raise UrlParseError("file URL has opaque path")
+    UrlPath::Segments(segs) => {
+      if segs.is_empty() {
+        return "/"
+      }
+      let first_decoded = @pe.percent_decode(segs[0])
+      let c0 = first_decoded.get_char(0).unwrap_or(' ')
+      let c1 = first_decoded.get_char(1).unwrap_or(' ')
+      let is_win_drive = first_decoded.length() == 2 &&
+        is_ascii_alpha(c0) &&
+        c1 == ':'
+      let buf = StringBuilder::new()
+      if !is_win_drive {
+        buf.write_char('/')
+      }
+      for i = 0; i < segs.length(); i = i + 1 {
+        if i > 0 {
+          buf.write_char('/')
+        }
+        buf.write_string(@pe.percent_decode(segs[i]))
+      }
+      buf.to_string()
+    }
+  }
+}
+
+///|
 fn dir_and_filename(segs : Array[String]) -> (Array[String], String) {
   let n = segs.length()
   if n == 0 {
