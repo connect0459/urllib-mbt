@@ -344,7 +344,6 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
   let stripped = strip_ascii_tabs_newlines(value)
   let truncated = truncate_host_value(stripped, is_special)
   let (host_str, port_opt) = split_host_port(truncated)
-  // File URLs: port is forbidden; empty host clears to ""
   if self.scheme == "file" {
     match port_opt {
       Some(ps) if ps != "" => return self
@@ -354,7 +353,6 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
       return { ..self, host: Some(@host.Host::empty_domain()) }
     }
   }
-  // Empty host + non-empty port is invalid
   if host_str == "" {
     match port_opt {
       Some(ps) if ps != "" => return self
@@ -403,7 +401,6 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
       }
     }
   }
-  // File URL + empty input: explicitly clear host to ""
   if self.scheme == "file" && truncated == "" {
     return { ..self, host: Some(@host.Host::empty_domain()) }
   }
