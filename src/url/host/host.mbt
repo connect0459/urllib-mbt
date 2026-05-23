@@ -242,12 +242,17 @@ fn all_hex_digits_from(chars : Array[Char], from : Int) -> Bool {
 }
 
 ///|
-fn ends_in_number(input : String) -> Bool {
-  let effective = if input.has_suffix(".") {
-    input[0:input.length() - 1].to_owned()
+fn strip_trailing_dot(s : String) -> String {
+  if s.has_suffix(".") {
+    s[0:s.length() - 1].to_owned()
   } else {
-    input
+    s
   }
+}
+
+///|
+fn ends_in_number(input : String) -> Bool {
+  let effective = strip_trailing_dot(input)
   let last_label = match effective.rev_find(".") {
     Some(pos) => effective[pos + 1:].to_owned()
     None => effective
@@ -289,11 +294,7 @@ fn split_on_char(s : String, sep : Char) -> Array[String] {
 
 ///|
 fn parse_ipv4(input : String) -> UInt raise HostParseError {
-  let effective = if input.has_suffix(".") {
-    input[0:input.length() - 1].to_owned()
-  } else {
-    input
-  }
+  let effective = strip_trailing_dot(input)
   let parts = split_on_char(effective, '.')
   let n_parts = parts.length()
   if n_parts == 0 || n_parts > 4 {
