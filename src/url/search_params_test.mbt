@@ -402,3 +402,49 @@ test "values returns empty iterator for empty params" {
   }
   @debug.assert_eq(vals, [])
 }
+
+// ===== entries =====
+
+///|
+test "entries yields all name-value pairs in list order" {
+  let p = @url.UrlSearchParams::from_string("a=1&b=2&c=3")
+  let pairs : Array[(String, String)] = []
+  for pair in p.entries() {
+    pairs.push(pair)
+  }
+  @debug.assert_eq(pairs, [("a", "1"), ("b", "2"), ("c", "3")])
+}
+
+///|
+test "entries yields duplicate entries" {
+  let p = @url.UrlSearchParams::from_string("a=1&b=2&a=3")
+  let pairs : Array[(String, String)] = []
+  for pair in p.entries() {
+    pairs.push(pair)
+  }
+  @debug.assert_eq(pairs, [("a", "1"), ("b", "2"), ("a", "3")])
+}
+
+///|
+test "entries returns empty iterator for empty params" {
+  let p = @url.UrlSearchParams::new()
+  let pairs : Array[(String, String)] = []
+  for pair in p.entries() {
+    pairs.push(pair)
+  }
+  @debug.assert_eq(pairs, [])
+}
+
+///|
+test "entries and iter produce identical results" {
+  let p = @url.UrlSearchParams::from_string("x=1&y=2&x=3")
+  let from_entries : Array[(String, String)] = []
+  for pair in p.entries() {
+    from_entries.push(pair)
+  }
+  let from_iter : Array[(String, String)] = []
+  for pair in p.iter() {
+    from_iter.push(pair)
+  }
+  @debug.assert_eq(from_entries, from_iter)
+}

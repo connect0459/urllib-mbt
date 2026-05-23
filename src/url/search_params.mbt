@@ -202,6 +202,28 @@ pub fn UrlSearchParams::iter(self : UrlSearchParams) -> Iter[(String, String)] {
 }
 
 ///|
+/// Returns an iterator over name/value pairs in list order.
+/// Equivalent to `iter()`; provided as the WHATWG `URLSearchParams.entries()` alias.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let sp = UrlSearchParams::from_string("a=1&b=2")
+///   let pairs : Array[(String, String)] = []
+///   for pair in sp.entries() {
+///     pairs.push(pair)
+///   }
+///   inspect(pairs == [("a", "1"), ("b", "2")], content="true")
+/// }
+/// ```
+pub fn UrlSearchParams::entries(
+  self : UrlSearchParams,
+) -> Iter[(String, String)] {
+  self.list.iter()
+}
+
+///|
 /// Returns an iterator over names (keys) in list order.
 ///
 /// ### Example
