@@ -982,6 +982,32 @@ instance method. Implemented in `src/urlpattern/urlpattern.mbt`.
 
 ---
 
+## Doc comments for all public APIs (completed: `5abb343`)
+
+Added `///` doc comments with `### Example` / `mbt check` blocks to every
+exported function, method, and type across the `url` and `urlpattern` packages.
+
+### Files updated
+
+| File | Items documented |
+| :--- | :--- |
+| `src/url/types.mbt` | `UrlPath`, `UrlParseError`, `Url` |
+| `src/url/parser.mbt` | `parse`, `parse_with_base` |
+| `src/url/uri.mbt` | 15 functions (`can_parse`, `parse_maybe`, `join`, `search_params`, getters, IDNA helpers) |
+| `src/url/serializer.mbt` | 9 getters (`href`, `origin`, `protocol`, `host`, `hostname`, `port_str`, `pathname`, `search`, `hash`) |
+| `src/url/setters.mbt` | 10 setters (`set_href` … `set_hash`) |
+| `src/url/search_params.mbt` | `UrlSearchParams` struct + 15 public methods |
+| `src/url/percent_encoding/percent_encoding.mbt` | 11 public functions |
+| `src/urlpattern/types.mbt` | 6 public types |
+| `src/urlpattern/urlpattern.mbt` | 16 public methods |
+
+All 445 tests pass after adding the doc comments and fixing two doctests:
+
+- `exec_url` example: split combined `guard … && …` into two separate `guard` statements
+- `has_regexp_groups` example: replaced `(\\d+)` with `(hi)` (pattern that parses correctly)
+
+---
+
 ## Done
 
 - [x] **`src/` layout migration** — Added `"source": "src"` to `moon.mod.json`
