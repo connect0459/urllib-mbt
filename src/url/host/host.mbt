@@ -202,19 +202,14 @@ fn is_unicode_nonchar(cp : Int) -> Bool {
 fn domain_has_forbidden_char(domain : String) -> Bool {
   for c in domain {
     let cp = c.to_int()
-    if cp <= 0x1F || cp == 0x7F {
-      return true
-    }
-    if is_forbidden_host_cp(cp) {
-      return true
-    }
-    if cp == 0x25 {
-      return true
-    }
-    if cp == 0xFFFD || is_unicode_nonchar(cp) {
-      return true
-    }
-    if cp == 0x00A0 || cp == 0x3000 {
+    if cp <= 0x1F ||
+      cp == 0x7F ||
+      is_forbidden_host_cp(cp) ||
+      cp == 0x25 ||
+      cp == 0xFFFD ||
+      is_unicode_nonchar(cp) ||
+      cp == 0x00A0 ||
+      cp == 0x3000 {
       return true
     }
   }
