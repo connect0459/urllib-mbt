@@ -231,3 +231,48 @@ test "from_init raises for duplicate named group" {
     is Err(_),
   )
 }
+
+// ===== port normalization and exec_init edge cases =====
+
+///|
+test "wss port 443 is normalized to empty pattern in constructor" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(protocol=Some("wss"), port=Some("443")),
+  )
+  assert_eq(p.get_port(), "")
+}
+
+///|
+test "exec_init with port above 65535 passes through without normalization" {
+  let p = try! UrlPattern::from_init(UrlPatternInit::new())
+  assert_true(p.exec_init(UrlPatternInit::new(port=Some("65536"))) is Some(_))
+}
+
+///|
+test "from_init resolves dotdot in relative pathname against base URL" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(
+      base_url=Some("https://example.com/a/b/c"),
+      pathname=Some("../d"),
+    ),
+  )
+  assert_eq(p.get_pathname(), "/a/d")
+}
+
+///|
+test "test_init returns true for matching UrlPatternInit" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(pathname=Some("/foo/:bar")),
+  )
+  assert_true(p.test_init(UrlPatternInit::new(pathname=Some("/foo/hello"))))
+}
+
+///|
+test "test_init returns false for non-matching UrlPatternInit" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(pathname=Some("/foo/:bar")),
+  )
+  assert_true(
+    p.test_init(UrlPatternInit::new(pathname=Some("/other"))) == false,
+  )
+}
