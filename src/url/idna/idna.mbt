@@ -4,22 +4,6 @@ pub suberror IdnaParseError {
 }
 
 ///|
-fn split_on_char(s : String, sep : Char) -> Array[String] {
-  let result : Array[String] = []
-  let buf = StringBuilder::new()
-  for c in s {
-    if c == sep {
-      result.push(buf.to_string())
-      buf.reset()
-    } else {
-      buf.write_char(c)
-    }
-  }
-  result.push(buf.to_string())
-  result
-}
-
-///|
 fn is_virama(cp : Int) -> Bool {
   cp == 0x094D ||
   cp == 0x09CD ||
@@ -373,7 +357,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
   if mapped.is_empty() {
     raise IdnaParseError("empty domain")
   }
-  let labels = split_on_char(mapped, '.')
+  let labels = @pe.split_on_char(mapped, '.')
   let out = StringBuilder::new()
   for i = 0; i < labels.length(); i = i + 1 {
     if i > 0 {
@@ -479,7 +463,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
 ///|
 pub fn domain_to_unicode(domain : String) -> String raise IdnaParseError {
   let ascii = domain_to_ascii(domain)
-  let labels = split_on_char(ascii, '.')
+  let labels = @pe.split_on_char(ascii, '.')
   let out = StringBuilder::new()
   for i = 0; i < labels.length(); i = i + 1 {
     if i > 0 {

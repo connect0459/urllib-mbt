@@ -269,25 +269,9 @@ fn ends_in_number(input : String) -> Bool {
 }
 
 ///|
-fn split_on_char(s : String, sep : Char) -> Array[String] {
-  let result : Array[String] = []
-  let buf = StringBuilder::new()
-  for c in s {
-    if c == sep {
-      result.push(buf.to_string())
-      buf.reset()
-    } else {
-      buf.write_char(c)
-    }
-  }
-  result.push(buf.to_string())
-  result
-}
-
-///|
 fn parse_ipv4(input : String) -> UInt raise HostParseError {
   let effective = strip_trailing_dot(input)
-  let parts = split_on_char(effective, '.')
+  let parts = @pe.split_on_char(effective, '.')
   let n_parts = parts.length()
   if n_parts == 0 || n_parts > 4 {
     raise HostParseError("invalid IPv4: bad number of parts")

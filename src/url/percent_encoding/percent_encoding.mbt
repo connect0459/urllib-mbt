@@ -8,6 +8,22 @@ pub fn string_to_chars(s : String) -> Array[Char] {
 }
 
 ///|
+pub fn split_on_char(s : String, sep : Char) -> Array[String] {
+  let result : Array[String] = []
+  let buf = StringBuilder::new()
+  for c in s {
+    if c == sep {
+      result.push(buf.to_string())
+      buf.reset()
+    } else {
+      buf.write_char(c)
+    }
+  }
+  result.push(buf.to_string())
+  result
+}
+
+///|
 fn is_c0(cp : Int) -> Bool {
   cp <= 0x1F || cp > 0x7E
 }
