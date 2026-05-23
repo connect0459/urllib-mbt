@@ -171,6 +171,147 @@ test "WPT URLPattern T-B: exactly_empty_components compile to empty pattern stri
 }
 
 ///|
+test "WPT URLPattern T-C: multiple inputs with base URL" {
+  let items = load_urlpattern_testdata()
+  let mut passed = 0
+  let failures : Array[String] = []
+  let mut skipped = 0
+  for raw_item in items {
+    let item = match raw_item {
+      Object(o) => o
+      _ => continue
+    }
+    let inputs_arr = match item.get("inputs") {
+      Some(Array(a)) => a
+      _ => continue
+    }
+    if inputs_arr.length() != 2 {
+      continue
+    }
+    let pattern_arr = match item.get("pattern") {
+      Some(Array(a)) => a
+      _ => continue
+    }
+    if pattern_arr.length() != 1 {
+      skipped += 1
+      continue
+    }
+    let pat_obj = match pattern_arr[0] {
+      Object(o) => o
+      _ => {
+        skipped += 1
+        continue
+      }
+    }
+    if pat_obj.get("ignoreCase") is Some(_) {
+      skipped += 1
+      continue
+    }
+    let base_str = match inputs_arr[1] {
+      String(s) => s
+      _ => {
+        skipped += 1
+        continue
+      }
+    }
+    match inputs_arr[0] {
+      Object(_) => {
+        skipped += 1
+        continue
+      }
+      String(input_str) => {
+        let pat_init = build_init_from_obj(pat_obj)
+        let pattern = UrlPattern::from_init(pat_init) catch {
+          err => {
+            failures.push(
+              "from_init failed: \{err} for pattern=\{Json::stringify(pattern_arr[0])}",
+            )
+            continue
+          }
+        }
+        let result : UrlPatternResult? = match
+          @url.parse_maybe(base_str, None) {
+          None => None
+          Some(base_url) =>
+            match @url.parse_maybe(input_str, Some(base_url)) {
+              None => None
+              Some(resolved) => pattern.exec_url(resolved.href())
+            }
+        }
+        let expected = item.get("expected_match")
+        match (result, expected) {
+          (None, Some(Null)) | (None, None) => passed += 1
+          (Some(_), Some(Null)) | (Some(_), None) =>
+            failures.push(
+              "expected no match but got match for input='\{input_str}' base='\{base_str}'",
+            )
+          (None, Some(Object(_))) =>
+            failures.push(
+              "expected match but got no match for input='\{input_str}' base='\{base_str}'",
+            )
+          (Some(r), Some(Object(exp_obj))) => {
+            let mut ok = true
+            for comp_name, exp_comp_json in exp_obj {
+              let exp_comp = match exp_comp_json {
+                Object(o) => o
+                _ => continue
+              }
+              let comp_result : UrlPatternComponentResult? = match comp_name {
+                "protocol" => r.protocol
+                "username" => r.username
+                "password" => r.password
+                "hostname" => r.hostname
+                "port" => r.port
+                "pathname" => r.pathname
+                "search" => r.search
+                "hash" => r.hash
+                _ => None
+              }
+              match comp_result {
+                None => {
+                  failures.push(
+                    "expected component '\{comp_name}' but result is None for input='\{input_str}' base='\{base_str}'",
+                  )
+                  ok = false
+                }
+                Some(cr) =>
+                  match check_component_result(cr, exp_comp, comp_name) {
+                    Some(msg) => {
+                      failures.push(
+                        "\{msg} for input='\{input_str}' base='\{base_str}'",
+                      )
+                      ok = false
+                    }
+                    None => ()
+                  }
+              }
+            }
+            if ok {
+              passed += 1
+            }
+          }
+          _ => skipped += 1
+        }
+      }
+      _ => {
+        skipped += 1
+        continue
+      }
+    }
+  }
+  if failures.length() > 0 {
+    let msg = StringBuilder::new()
+    msg.write_string("WPT URLPattern T-C failures (\{failures.length()}):\n")
+    for f in failures {
+      msg.write_string("  - \{f}\n")
+    }
+    msg.write_string("passed=\{passed} skipped=\{skipped}")
+    fail(msg.to_string())
+  }
+  assert_true(passed > 0)
+}
+
+///|
 test "WPT URLPattern T-A: construction rejects invalid patterns" {
   let items = load_urlpattern_testdata()
   let mut passed = 0

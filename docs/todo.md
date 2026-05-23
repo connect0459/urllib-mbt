@@ -725,6 +725,19 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
   unsupported regex features (`[[a-z]--a]` char-class subtraction,
   `[\d&&[0-1]]` intersection), multiple-element pattern/input arrays.
 
+### T-C — Multiple inputs with base URL (completed)
+
+- [x] Added WPT test "WPT URLPattern T-C: multiple inputs with base URL".
+  Handles the 8 WPT cases where `inputs.length == 2` (second element is a
+  base URL string). Of the 4 cases with `pattern.length == 1`:
+  - 3 pass: resolve `inputs[0]` (String) relative to `inputs[1]` (base URL
+    String) via `@url.parse_maybe`, then exec against the pattern.
+    - Case 1: `"./foo/bar"` + `"https://example.com"` → match
+    - Cases 7, 8: invalid/opaque base URL → resolution fails → null (no match)
+  - 1 skipped: `inputs[0]` is Object + `inputs[1]` is String → spec says
+    TypeError; no MoonBit equivalent without new API.
+  - 4 skipped: `pattern.length == 2` (string pattern + base URL) → T-D scope.
+
 ### T-B — `exactly_empty_components` validation (completed)
 
 - [x] Added WPT test "WPT URLPattern T-B: exactly_empty_components compile to
