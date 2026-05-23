@@ -13,6 +13,8 @@ pub fn domain_to_ascii(String) -> String
 
 pub fn domain_to_unicode(String) -> String
 
+pub fn from_directory_path(String) -> Url raise UrlParseError
+
 pub fn from_file_path(String) -> Url raise UrlParseError
 
 pub fn parse(String) -> Url raise UrlParseError
@@ -66,6 +68,7 @@ pub fn Url::port_or_known_default(Self) -> Int?
 pub fn Url::port_str(Self) -> String
 pub fn Url::protocol(Self) -> String
 pub fn Url::query(Self) -> String?
+pub fn Url::query_pairs(Self) -> Iter[(String, String)]
 pub fn Url::scheme(Self) -> String
 pub fn Url::search(Self) -> String
 pub fn Url::search_params(Self) -> UrlSearchParams

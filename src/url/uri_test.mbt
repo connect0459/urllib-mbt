@@ -970,3 +970,92 @@ test "from_file_path and to_file_path round-trip for Unix path" {
   let path = "/usr/local/bin/app"
   assert_eq(@url.from_file_path(path).to_file_path(), path)
 }
+
+// ===== from_directory_path =====
+
+///|
+test "from_directory_path adds trailing slash for path without slash" {
+  assert_eq(@url.from_directory_path("/var/www").href(), "file:///var/www/")
+}
+
+///|
+test "from_directory_path preserves existing trailing slash" {
+  assert_eq(@url.from_directory_path("/var/www/").href(), "file:///var/www/")
+}
+
+///|
+test "from_directory_path root path produces file:///" {
+  assert_eq(@url.from_directory_path("/").href(), "file:///")
+}
+
+///|
+test "from_directory_path raises for relative path" {
+  assert_true((try? @url.from_directory_path("relative")) is Err(_))
+}
+
+///|
+test "from_directory_path raises for empty path" {
+  assert_true((try? @url.from_directory_path("")) is Err(_))
+}
+
+///|
+test "from_directory_path handles Windows path with backslashes" {
+  assert_eq(@url.from_directory_path("C:\\Users").href(), "file:///C:/Users/")
+}
+
+///|
+test "from_directory_path result serves as base for relative URL resolution" {
+  let dir = @url.from_directory_path("/var/www")
+  let url = @url.parse_with_base("index.html", Some(dir))
+  assert_eq(url.href(), "file:///var/www/index.html")
+}
+
+// ===== Url::query_pairs =====
+
+///|
+test "query_pairs returns empty iterator for URL with no query" {
+  let url = @url.parse("https://example.com/")
+  assert_true(url.query_pairs().to_array().is_empty())
+}
+
+///|
+test "query_pairs returns key-value pairs from query string" {
+  let url = @url.parse("https://example.com/?a=1&b=2")
+  @debug.assert_eq(
+    url.query_pairs().to_array(),
+    ([("a", "1"), ("b", "2")] : Array[(String, String)]),
+  )
+}
+
+///|
+test "query_pairs decodes percent-encoded key and value" {
+  let url = @url.parse("https://example.com/?hello%20world=foo%20bar")
+  @debug.assert_eq(
+    url.query_pairs().to_array(),
+    ([("hello world", "foo bar")] : Array[(String, String)]),
+  )
+}
+
+///|
+test "query_pairs decodes plus sign as space" {
+  let url = @url.parse("https://example.com/?a=hello+world")
+  @debug.assert_eq(
+    url.query_pairs().to_array(),
+    ([("a", "hello world")] : Array[(String, String)]),
+  )
+}
+
+///|
+test "query_pairs returns empty for empty query string" {
+  let url = @url.parse("https://example.com/?")
+  assert_true(url.query_pairs().to_array().is_empty())
+}
+
+///|
+test "query_pairs returns pair with empty value for key-only param" {
+  let url = @url.parse("https://example.com/?key")
+  @debug.assert_eq(
+    url.query_pairs().to_array(),
+    ([("key", "")] : Array[(String, String)]),
+  )
+}

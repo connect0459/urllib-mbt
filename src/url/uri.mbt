@@ -554,6 +554,53 @@ pub fn Url::to_file_path(self : Url) -> String raise UrlParseError {
 }
 
 ///|
+/// Converts an absolute filesystem directory path to a `file://` URL,
+/// ensuring the URL ends with a `/` so it can serve as a base URL for
+/// resolving relative references.
+///
+/// Behaves like `from_file_path` but guarantees the trailing `/`.
+/// Raises `UrlParseError` when the path is empty or not absolute.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let dir = try! from_directory_path("/var/www")
+///   inspect(dir.href(), content="file:///var/www/")
+///   let page = try! dir.join("index.html")
+///   inspect(page.href(), content="file:///var/www/index.html")
+/// }
+/// ```
+pub fn from_directory_path(path : String) -> Url raise UrlParseError {
+  let url = from_file_path(path)
+  if url.pathname().has_suffix("/") {
+    url
+  } else {
+    url.set_pathname(url.pathname() + "/")
+  }
+}
+
+///|
+/// Returns an iterator over the URL query string parsed as
+/// `application/x-www-form-urlencoded` key-value pairs.
+///
+/// Equivalent to `search_params().iter()`. Returns an empty iterator
+/// when the URL has no query component.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let url = try! parse("https://example.com/?a=1&b=2")
+///   let pairs = url.query_pairs().to_array()
+///   inspect(pairs.length(), content="2")
+/// }
+/// ```
+pub fn Url::query_pairs(self : Url) -> Iter[(String, String)] {
+  self.search_params().iter()
+}
+
+///|
 fn dir_and_filename(segs : Array[String]) -> (Array[String], String) {
   let n = segs.length()
   if n == 0 {
