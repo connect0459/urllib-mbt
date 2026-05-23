@@ -5,7 +5,7 @@ URLPattern: **384/384 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **574 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**
+Coverage: **589 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**
 
 ---
 
