@@ -83,19 +83,6 @@ fn chars_start_with_wdl(chars : Array[Char], from : Int, n : Int) -> Bool {
 }
 
 ///|
-fn shorten_url_path(url : UrlRecord) -> Unit {
-  let is_file_drive = url.scheme == "file" &&
-    url.path_segments.length() == 1 &&
-    is_windows_drive_letter(url.path_segments[0])
-  if is_file_drive {
-    return
-  }
-  if url.path_segments.length() > 0 {
-    let _ = url.path_segments.pop()
-  }
-}
-
-///|
 fn strip_tabs_and_newlines(input : String) -> String {
   let chars : Array[Char] = []
   for c in input {
@@ -315,7 +302,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                 url.host = b.host
                 url.port = b.port
                 url.copy_path_from(b)
-                shorten_url_path(url)
+                shorten_path_segs(url.path_segments, url.scheme)
                 state = State::Path
                 advance = false
               }
@@ -447,7 +434,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                   if chars_start_with_wdl(chars, pointer, n) {
                     url.path_segments = []
                   } else {
-                    shorten_url_path(url)
+                    shorten_path_segs(url.path_segments, url.scheme)
                   }
                   state = State::Path
                   advance = false
@@ -526,7 +513,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
           let seg = buf.to_string()
           buf.reset()
           if is_dot_segment(seg) {
-            shorten_url_path(url)
+            shorten_path_segs(url.path_segments, url.scheme)
             if c == None || is_query || is_frag {
               url.path_segments.push("")
             }
