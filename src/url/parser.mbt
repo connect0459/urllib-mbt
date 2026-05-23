@@ -245,12 +245,8 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
       NoScheme =>
         match base {
           None => raise UrlParseError("no scheme and no base URL")
-          Some(b) => {
-            let base_has_opaque = match b.path {
-              Opaque(_) => true
-              _ => false
-            }
-            if base_has_opaque {
+          Some(b) =>
+            if b.path is Opaque(_) {
               match c {
                 Some('#') => {
                   url.scheme = b.scheme
@@ -267,7 +263,6 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
               state = State::File
               advance = false
             }
-          }
         }
       SpecialRelativeOrAuthority => {
         let next_is_slash = pointer + 1 < n && chars[pointer + 1] == '/'
@@ -516,11 +511,8 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
           Some(ch) => buf.write_char(ch)
         }
       PathStart => {
-        let is_special_backslash = c == Some('\\') && url.is_special()
-        if c == Some('/') || is_special_backslash {
-          state = State::Path
-        } else {
-          state = State::Path
+        state = State::Path
+        if c != Some('/') && !(c == Some('\\') && url.is_special()) {
           advance = false
         }
       }
@@ -535,11 +527,11 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
           buf.reset()
           if is_dot_segment(seg) {
             shorten_url_path(url)
-            if c != Some('/') && !(c == Some('\\') && url.is_special()) {
+            if c == None || is_query || is_frag {
               url.path_segments.push("")
             }
           } else if is_single_dot(seg) {
-            if c != Some('/') && !(c == Some('\\') && url.is_special()) {
+            if c == None || is_query || is_frag {
               url.path_segments.push("")
             }
           } else {
