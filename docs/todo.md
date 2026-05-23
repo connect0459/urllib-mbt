@@ -5,7 +5,7 @@ URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **481 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **487 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1023,6 +1023,41 @@ Added utility methods equivalent to rust-url to `src/url/uri.mbt`.
 - `make_relative` is implemented based on the method of the same name in rust-url.
 
 The `./` issue (incorrectly outputting `/` when there is an empty path_parts + an empty filename) has been fixed.
+
+---
+
+## `parse_with_params` (completed)
+
+`parse_with_params(url, params)` — parses a URL string and appends query
+parameters, preserving any existing query. Equivalent to rust-url's
+`Url::parse_with_params`.
+
+### Signature
+
+```moonbit
+pub fn parse_with_params(
+  url : String,
+  params : Array[(String, String)],
+) -> Url raise UrlParseError
+```
+
+### Behavior
+
+- Parses `url` via `parse`; raises `UrlParseError` on failure.
+- If `params` is empty, returns the parsed URL unchanged.
+- Otherwise, serializes `params` as `application/x-www-form-urlencoded`
+  (via `UrlSearchParams`) and appends them to any existing query with `&`.
+- Calls `set_search` to apply the final query string.
+
+### Tests added (5)
+
+| Test | Input | Expected |
+| :--- | :--- | :--- |
+| Adds params to URL with no query | `"https://example.com/"` + `[("lang","rust")]` | `?lang=rust` |
+| Appends without clobbering | `"https://example.net?dont=clobberme"` + 2 params | `?dont=clobberme&lang=rust&browser=servo` |
+| Empty params, existing query | `"https://example.com/?a=1"` + `[]` | `?a=1` (unchanged) |
+| Empty params, no query | `"https://example.com/"` + `[]` | no query (unchanged) |
+| Invalid URL | `"https://test:test"` | raises `UrlParseError` |
 
 ---
 
