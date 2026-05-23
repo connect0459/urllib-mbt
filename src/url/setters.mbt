@@ -272,11 +272,11 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
       buf.reset()
       if is_dot_segment(seg) {
         shorten_path_segs(segs, self.scheme)
-        if !(c == Some('/') || (is_special && c == Some('\\'))) {
+        if c == None {
           segs.push("")
         }
       } else if is_single_dot(seg) {
-        if !(c == Some('/') || (is_special && c == Some('\\'))) {
+        if c == None {
           segs.push("")
         }
       } else {
