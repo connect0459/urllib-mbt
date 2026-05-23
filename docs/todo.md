@@ -725,6 +725,17 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
   unsupported regex features (`[[a-z]--a]` char-class subtraction,
   `[\d&&[0-1]]` intersection), multiple-element pattern/input arrays.
 
+### T-B — `exactly_empty_components` validation (completed)
+
+- [x] Added WPT test "WPT URLPattern T-B: exactly_empty_components compile to
+  empty pattern string". Verifies that for the 12 WPT cases that carry
+  `exactly_empty_components`, each listed component's compiled pattern string
+  is `""` after `from_init`. All 12 cases pass; 58 skipped (those also have
+  `expected_obj: dict`, which is T-D scope).
+  - All 12 cases use `exactly_empty_components: ["port"]`
+  - Port becomes `""` via: `baseURL` with no explicit port, explicit `port: ""`,
+    or default-port stripping (`http`+`80` → `""`)
+
 ### T1 — Compiler warnings (completed)
 
 - [x] Fixed 13 compiler warnings to 0:

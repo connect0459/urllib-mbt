@@ -76,6 +76,101 @@ fn check_component_result(
 }
 
 ///|
+fn get_component_pattern(pattern : UrlPattern, name : String) -> String? {
+  match name {
+    "protocol" => Some(pattern.get_protocol())
+    "username" => Some(pattern.get_username())
+    "password" => Some(pattern.get_password())
+    "hostname" => Some(pattern.get_hostname())
+    "port" => Some(pattern.get_port())
+    "pathname" => Some(pattern.get_pathname())
+    "search" => Some(pattern.get_search())
+    "hash" => Some(pattern.get_hash())
+    _ => None
+  }
+}
+
+///|
+test "WPT URLPattern T-B: exactly_empty_components compile to empty pattern string" {
+  let items = load_urlpattern_testdata()
+  let mut passed = 0
+  let failures : Array[String] = []
+  let mut skipped = 0
+  for raw_item in items {
+    let item = match raw_item {
+      Object(o) => o
+      _ => continue
+    }
+    let eec = match item.get("exactly_empty_components") {
+      Some(Array(a)) => a
+      _ => continue
+    }
+    if item.get("expected_obj") is Some(_) {
+      skipped += 1
+      continue
+    }
+    let pattern_arr = match item.get("pattern") {
+      Some(Array(a)) => a
+      _ => continue
+    }
+    if pattern_arr.length() != 1 {
+      skipped += 1
+      continue
+    }
+    let pat_obj = match pattern_arr[0] {
+      Object(o) => o
+      _ => {
+        skipped += 1
+        continue
+      }
+    }
+    if pat_obj.get("ignoreCase") is Some(_) {
+      skipped += 1
+      continue
+    }
+    let pat_init = build_init_from_obj(pat_obj)
+    let pattern = UrlPattern::from_init(pat_init) catch {
+      err => {
+        failures.push(
+          "from_init failed: \{err} for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+        continue
+      }
+    }
+    let mut ok = true
+    for comp_json in eec {
+      let comp_name = match comp_json {
+        String(s) => s
+        _ => continue
+      }
+      match get_component_pattern(pattern, comp_name) {
+        None => ()
+        Some(actual) =>
+          if actual != "" {
+            failures.push(
+              "exactly_empty_components '\{comp_name}': expected \"\" got \"\{actual}\" for pattern=\{Json::stringify(pattern_arr[0])}",
+            )
+            ok = false
+          }
+      }
+    }
+    if ok {
+      passed += 1
+    }
+  }
+  if failures.length() > 0 {
+    let msg = StringBuilder::new()
+    msg.write_string("WPT URLPattern T-B failures (\{failures.length()}):\n")
+    for f in failures {
+      msg.write_string("  - \{f}\n")
+    }
+    msg.write_string("passed=\{passed} skipped=\{skipped}")
+    fail(msg.to_string())
+  }
+  assert_true(passed > 0)
+}
+
+///|
 test "WPT URLPattern T-A: construction rejects invalid patterns" {
   let items = load_urlpattern_testdata()
   let mut passed = 0
