@@ -216,19 +216,9 @@ fn domain_has_forbidden_char(domain : String) -> Bool {
 }
 
 ///|
-fn all_decimal_digits(chars : Array[Char]) -> Bool {
-  for c in chars {
-    if c < '0' || c > '9' {
-      return false
-    }
-  }
-  true
-}
-
-///|
 fn all_hex_digits_from(chars : Array[Char], from : Int) -> Bool {
   for i = from; i < chars.length(); i = i + 1 {
-    if @pe.hex_digit_value(chars[i]) == None {
+    if @pe.hex_digit_value(chars[i]) is None {
       return false
     }
   }
@@ -256,7 +246,7 @@ fn ends_in_number(input : String) -> Bool {
   }
   let label_chars = @pe.string_to_chars(last_label)
   let n = label_chars.length()
-  if all_decimal_digits(label_chars) {
+  if !label_chars.any(fn(c) { c < '0' || c > '9' }) {
     return true
   }
   if n >= 2 &&
