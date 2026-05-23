@@ -118,21 +118,9 @@ fn split_host_port(s : String) -> (String, String?) {
       }
     }
   } else {
-    let chars : Array[Char] = []
-    for c in s {
-      chars.push(c)
-    }
-    let n = chars.length()
-    let mut colon : Int? = None
-    for i = 0; i < n; i = i + 1 {
-      if chars[i] == ':' {
-        colon = Some(i)
-        break
-      }
-    }
-    match colon {
+    match s.find(":") {
       None => (s, None)
-      Some(i) => (s[0:i].to_owned(), Some(s[i + 1:n].to_owned()))
+      Some(i) => (s[0:i].to_owned(), Some(s[i + 1:s.length()].to_owned()))
     }
   }
 }
