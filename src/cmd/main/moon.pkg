@@ -1,7 +1,0 @@
-// import {
-//   "connect0459/uri" @lib,
-// }
-
-options(
-  "is-main": true,
-)
