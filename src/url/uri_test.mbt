@@ -397,3 +397,47 @@ test "path_segments returns Some for file URL" {
     Some((["usr", "local", "bin"] : Array[String])),
   )
 }
+
+// ===== domain_to_ascii =====
+
+///|
+test "domain_to_ascii: ASCII domain lowercased" {
+  assert_eq(@url.domain_to_ascii("gOoGle.com"), "google.com")
+}
+
+///|
+test "domain_to_ascii: Unicode domain encodes to Punycode" {
+  assert_eq(@url.domain_to_ascii("ẞ.com"), "xn--zca.com")
+}
+
+///|
+test "domain_to_ascii: already-ACE label unchanged" {
+  assert_eq(@url.domain_to_ascii("xn--zca.com"), "xn--zca.com")
+}
+
+///|
+test "domain_to_ascii: empty input returns empty string" {
+  assert_eq(@url.domain_to_ascii(""), "")
+}
+
+// ===== domain_to_unicode =====
+
+///|
+test "domain_to_unicode: ACE label decodes to Unicode" {
+  assert_eq(@url.domain_to_unicode("xn--zca.com"), "ß.com")
+}
+
+///|
+test "domain_to_unicode: ASCII domain unchanged" {
+  assert_eq(@url.domain_to_unicode("google.com"), "google.com")
+}
+
+///|
+test "domain_to_unicode: roundtrip from Unicode input" {
+  assert_eq(@url.domain_to_unicode("ẞ.com"), "ß.com")
+}
+
+///|
+test "domain_to_unicode: empty input returns empty string" {
+  assert_eq(@url.domain_to_unicode(""), "")
+}

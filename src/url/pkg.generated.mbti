@@ -9,6 +9,10 @@ import {
 // Values
 pub fn can_parse(String, Url?) -> Bool
 
+pub fn domain_to_ascii(String) -> String
+
+pub fn domain_to_unicode(String) -> String
+
 pub fn parse(String) -> Url raise UrlParseError
 
 pub fn parse_maybe(String, Url?) -> Url?

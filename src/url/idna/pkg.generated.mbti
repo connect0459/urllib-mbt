@@ -4,6 +4,8 @@ package "connect0459/urllib/url/idna"
 // Values
 pub fn domain_to_ascii(String) -> String raise IdnaParseError
 
+pub fn domain_to_unicode(String) -> String raise IdnaParseError
+
 // Errors
 pub suberror IdnaParseError {
   IdnaParseError(String)

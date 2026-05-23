@@ -71,3 +71,17 @@ pub fn Url::path_segments(self : Url) -> Iter[String]? {
     UrlPath::Segments(segs) => Some(segs.iter())
   }
 }
+
+///|
+pub fn domain_to_ascii(domain : String) -> String {
+  @idna.domain_to_ascii(domain) catch {
+    _ => ""
+  }
+}
+
+///|
+pub fn domain_to_unicode(domain : String) -> String {
+  @idna.domain_to_unicode(domain) catch {
+    _ => ""
+  }
+}

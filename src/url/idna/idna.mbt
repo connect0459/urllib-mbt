@@ -475,3 +475,30 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
   }
   result
 }
+
+///|
+pub fn domain_to_unicode(domain : String) -> String raise IdnaParseError {
+  let ascii = domain_to_ascii(domain)
+  let labels = split_on_char(ascii, '.')
+  let out = StringBuilder::new()
+  for i = 0; i < labels.length(); i = i + 1 {
+    if i > 0 {
+      out.write_char('.')
+    }
+    let label = labels[i]
+    if label.has_prefix("xn--") {
+      let suffix = label[4:label.length()].to_owned()
+      let cps = punycode_decode(suffix)
+      for cp in cps {
+        out.write_char(Int::unsafe_to_char(cp))
+      }
+    } else {
+      out.write_string(label)
+    }
+  }
+  let result = out.to_string()
+  if result.is_empty() {
+    raise IdnaParseError("empty domain")
+  }
+  result
+}
