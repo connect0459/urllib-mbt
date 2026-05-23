@@ -1,11 +1,11 @@
 # todo - uri
 
 Current state: **611/611 WPT success cases pass (100%)**  
-URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern constructor cases pass.**  
+URLPattern: **384/384 tests pass (0 failed, 3 skipped). 65/65 string pattern constructor cases pass.**  
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **549 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **555 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -776,7 +776,7 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
   compile/match/canonicalize logic
 - `types.mbt` — public type definitions
 - `urlpattern_test.mbt` — 6 hand-written unit tests
-- `urlpattern_wpt_test.mbt` — WPT runner (382 pass / 0 failed / 3 skipped)
+- `urlpattern_wpt_test.mbt` — WPT runner (384 pass / 0 failed / 3 skipped)
 
 ### WPT conformance
 
@@ -824,20 +824,21 @@ string pattern cases. 65/65 string-pattern-constructor WPT cases pass
    matching the WHATWG spec requirement. Cases: `/foo`, `example.com/foo`,
    `(https://)example.com/foo`, `data:foobar`.
 
-#### Remaining known failures (2, in expected_obj dict test)
+#### Previously known failures (resolved)
 
-1. **Lone-surrogate pathname encoding** — `{"pathname":" 🚲"}` (JSON lone
-   surrogates U+D83D U+0020 U+DEB2). Expected `%EF%BF%BD%20%EF%BF%BD`
-   (browser replaces lone surrogates with U+FFFD before encoding); our URL
-   library encodes them as raw surrogate UTF-8 bytes
-   `%ED%A0%BD%20%ED%BA%B2`. Root cause: `@url` library behaviour; fixing
-   requires modifying URL library surrogate handling. Out of scope.
+1. **Lone-surrogate pathname encoding** — `{"pathname":"\uD83D \uDEB2"}`.
+   Fixed by substituting U+FFFD for lone-surrogate code points in
+   `char_to_utf8_bytes` (`src/url/percent_encoding/percent_encoding.mbt`),
+   aligning with the WHATWG "UTF-8 encode" algorithm applied to USVStrings.
+   Now produces `%EF%BF%BD%20%EF%BF%BD` as expected.
 
 2. **Optional FullWildcard regex capture** — `{"pathname":"*{}**?"}` with
-   input `"foobar"` expects `groups["1"] = null`; we return `""`. Root cause:
-   JavaScript's V8 regex engine returns `undefined` for `(.*)?` when the
-   greedy match leaves nothing for the optional group, but MoonBit's regex
-   engine returns `""`. Out of scope.
+   input `"foobar"` now returns `groups["1"] = None` (mapped from JS `null`).
+   Fixed by emitting `(.+)?` instead of `(.*)?` in `generate_regexp`
+   (`src/urlpattern/pattern_parser.mbt`) for `FullWildcard` parts with the
+   `Optional` modifier and no prefix/suffix. The 1+ char requirement makes
+   the optional group correctly skip when no input remains, matching V8's
+   "RepeatMatcher breaks on empty match" semantics.
 
 ### Multiple inputs with base URL (completed)
 
