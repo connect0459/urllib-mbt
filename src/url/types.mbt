@@ -129,23 +129,18 @@ fn UrlRecord::is_special(self : UrlRecord) -> Bool {
 
 ///|
 fn is_special_scheme(scheme : String) -> Bool {
-  scheme == "ftp" ||
-  scheme == "file" ||
-  scheme == "http" ||
-  scheme == "https" ||
-  scheme == "ws" ||
-  scheme == "wss"
+  match scheme {
+    "ftp" | "file" | "http" | "https" | "ws" | "wss" => true
+    _ => false
+  }
 }
 
 ///|
 fn special_scheme_default_port(scheme : String) -> Int? {
-  if scheme == "ftp" {
-    Some(21)
-  } else if scheme == "http" || scheme == "ws" {
-    Some(80)
-  } else if scheme == "https" || scheme == "wss" {
-    Some(443)
-  } else {
-    None
+  match scheme {
+    "ftp" => Some(21)
+    "http" | "ws" => Some(80)
+    "https" | "wss" => Some(443)
+    _ => None
   }
 }
