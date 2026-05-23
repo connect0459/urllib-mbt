@@ -328,6 +328,37 @@ pub fn Url::make_relative(self : Url, other : Url) -> String? {
 }
 
 ///|
+/// Returns the port if explicitly set, otherwise the default port for the
+/// scheme (`http`/`ws`→80, `https`/`wss`→443, `ftp`→21). Returns `None`
+/// when neither is available.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(
+///     @url.parse("https://example.com/").port_or_known_default() == Some(443),
+///     content="true",
+///   )
+///   inspect(
+///     @url.parse("https://example.com:8080/").port_or_known_default() ==
+///     Some(8080),
+///     content="true",
+///   )
+///   inspect(
+///     @url.parse("custom://example.com/").port_or_known_default() is None,
+///     content="true",
+///   )
+/// }
+/// ```
+pub fn Url::port_or_known_default(self : Url) -> Int? {
+  match self.port {
+    Some(_) as p => p
+    None => special_scheme_default_port(self.scheme)
+  }
+}
+
+///|
 /// Parses `url` and appends `params` as query parameters.
 /// Existing query parameters are preserved; new ones are appended with `&`.
 /// Raises `UrlParseError` if `url` cannot be parsed.

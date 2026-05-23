@@ -55,6 +55,7 @@ pub fn Url::password(Self) -> String
 pub fn Url::path_segments(Self) -> Iter[String]?
 pub fn Url::pathname(Self) -> String
 pub fn Url::port(Self) -> Int?
+pub fn Url::port_or_known_default(Self) -> Int?
 pub fn Url::port_str(Self) -> String
 pub fn Url::protocol(Self) -> String
 pub fn Url::scheme(Self) -> String

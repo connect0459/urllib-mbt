@@ -694,3 +694,60 @@ test "parse_with_params: invalid URL raises UrlParseError" {
     (try? @url.parse_with_params("https://test:test", [("k", "v")])) is Err(_),
   )
 }
+
+// ===== Url::port_or_known_default =====
+
+///|
+test "port_or_known_default returns Some(80) for http with no explicit port" {
+  assert_true(
+    @url.parse("http://example.com/").port_or_known_default() == Some(80),
+  )
+}
+
+///|
+test "port_or_known_default returns Some(443) for https with no explicit port" {
+  assert_true(
+    @url.parse("https://example.com/").port_or_known_default() == Some(443),
+  )
+}
+
+///|
+test "port_or_known_default returns Some(21) for ftp with no explicit port" {
+  assert_true(
+    @url.parse("ftp://example.com/").port_or_known_default() == Some(21),
+  )
+}
+
+///|
+test "port_or_known_default returns Some(80) for ws with no explicit port" {
+  assert_true(
+    @url.parse("ws://example.com/").port_or_known_default() == Some(80),
+  )
+}
+
+///|
+test "port_or_known_default returns Some(443) for wss with no explicit port" {
+  assert_true(
+    @url.parse("wss://example.com/").port_or_known_default() == Some(443),
+  )
+}
+
+///|
+test "port_or_known_default returns explicit port when set" {
+  assert_true(
+    @url.parse("https://example.com:8080/").port_or_known_default() ==
+    Some(8080),
+  )
+}
+
+///|
+test "port_or_known_default returns None for non-special scheme" {
+  assert_true(
+    @url.parse("custom://example.com/").port_or_known_default() is None,
+  )
+}
+
+///|
+test "port_or_known_default returns None for file scheme" {
+  assert_true(@url.parse("file:///tmp/").port_or_known_default() is None)
+}
