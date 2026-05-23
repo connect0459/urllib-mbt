@@ -4,6 +4,7 @@ Current state: **611/611 WPT success cases pass (100%)**
 URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern constructor cases pass.**  
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
+WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
 Coverage: **377 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
@@ -904,6 +905,40 @@ string pattern cases. 65/65 string-pattern-constructor WPT cases pass
   ws, wss, ftp, file (and empty proto treated as special for exec_url)
 - **None→"" in exec_init**: all components always matched; fixed-value
   patterns must reject empty string, not skip the check entirely
+
+---
+
+## Phase 13 — URLPattern compareComponent (completed)
+
+WPT URLPattern static API: `compareComponent` method. Implemented in
+`src/urlpattern/urlpattern.mbt`.
+
+### New method
+
+- `UrlPattern::compare_component(component: String, left: UrlPattern, right: UrlPattern) -> Int`
+  — compares the specificity of two URLPattern objects for a given component.
+  Returns 1 if left is more specific, -1 if right is more specific, 0 if equal.
+
+### Algorithm
+
+- Normalize each component's Part list by merging consecutive NoMod FixedText
+  parts (our parser may split what the spec keeps in one Part due to early
+  flush on `{...}` groups).
+- Pairwise `compare_pattern_parts` on the merged lists:
+  1. FixedText vs FixedText → UTF-16 code-unit lexicographic comparison of values
+  2. FixedText beats non-FixedText (more specific)
+  3. For non-FixedText: compare `prefix + suffix` string, then modifier
+     (NoMod > OneOrMore > Optional > ZeroOrMore), then type
+     (Regexp > SegmentWildcard > FullWildcard), then regexp value
+  4. FixedText with non-NoMod modifier is treated as Regexp (per WHATWG spec)
+- `compare_str_lex` implements true code-unit lexicographic comparison
+  (MoonBit's built-in `String::compare` is length-first, not character-first)
+
+### Tests
+
+| Suite | Assertions | File |
+| :--- | ---: | :--- |
+| `urlpattern-compare.tentative.any.js` | 100/100 (25 × 4) | `urlpattern_compare_wpt_test.mbt` |
 
 ---
 

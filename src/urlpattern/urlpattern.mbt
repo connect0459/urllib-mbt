@@ -1161,3 +1161,184 @@ pub fn UrlPattern::generate(
   }
   generate_component_string(comp.parts, comp.kind, groups)
 }
+
+///|
+fn compare_str_lex(a : String, b : String) -> Int {
+  let la = a.length()
+  let lb = b.length()
+  let n = if la < lb { la } else { lb }
+  for i = 0; i < n; i = i + 1 {
+    let ca = a.unsafe_get(i).to_int()
+    let cb = b.unsafe_get(i).to_int()
+    if ca != cb {
+      return if ca < cb { -1 } else { 1 }
+    }
+  }
+  if la < lb {
+    -1
+  } else if la > lb {
+    1
+  } else {
+    0
+  }
+}
+
+///|
+fn effective_part_kind(part : Part) -> PartType {
+  if part.kind == FixedText && part.modifier != NoMod {
+    Regexp
+  } else {
+    part.kind
+  }
+}
+
+///|
+fn merge_fixed_text_parts(parts : Array[Part]) -> Array[Part] {
+  let result : Array[Part] = []
+  for part in parts {
+    let n = result.length()
+    if n > 0 {
+      let last = result[n - 1]
+      if last.kind == FixedText &&
+        last.modifier == NoMod &&
+        part.kind == FixedText &&
+        part.modifier == NoMod {
+        result[n - 1] = {
+          kind: FixedText,
+          value: last.value + part.value,
+          modifier: NoMod,
+          name: "",
+          prefix: "",
+          suffix: "",
+        }
+        continue
+      }
+    }
+    result.push(part)
+  }
+  result
+}
+
+///|
+fn compare_pattern_parts(left : Part, right : Part) -> Int {
+  let lkind = effective_part_kind(left)
+  let rkind = effective_part_kind(right)
+  if lkind == FixedText && rkind == FixedText {
+    return compare_str_lex(left.value, right.value)
+  }
+  if lkind == FixedText {
+    return 1
+  }
+  if rkind == FixedText {
+    return -1
+  }
+  let r = compare_str_lex(
+    left.prefix + left.suffix,
+    right.prefix + right.suffix,
+  )
+  if r != 0 {
+    return r
+  }
+  if left.modifier == right.modifier {
+    if lkind == Regexp && rkind == Regexp {
+      let lv = if left.kind == FixedText {
+        escape_regexp_string(left.value)
+      } else {
+        left.value
+      }
+      let rv = if right.kind == FixedText {
+        escape_regexp_string(right.value)
+      } else {
+        right.value
+      }
+      return compare_str_lex(lv, rv)
+    }
+    if lkind == Regexp {
+      return 1
+    }
+    if rkind == Regexp {
+      return -1
+    }
+    if lkind == SegmentWildcard && rkind != SegmentWildcard {
+      return 1
+    }
+    if rkind == SegmentWildcard && lkind != SegmentWildcard {
+      return -1
+    }
+    return 0
+  }
+  if left.modifier == NoMod {
+    return 1
+  }
+  if right.modifier == NoMod {
+    return -1
+  }
+  if left.modifier == OneOrMore {
+    return 1
+  }
+  if right.modifier == OneOrMore {
+    return -1
+  }
+  if left.modifier == Optional {
+    return 1
+  }
+  if right.modifier == Optional {
+    return -1
+  }
+  0
+}
+
+///|
+fn compare_pattern_part_lists(left : Array[Part], right : Array[Part]) -> Int {
+  let lm = merge_fixed_text_parts(left)
+  let rm = merge_fixed_text_parts(right)
+  let n = if lm.length() < rm.length() { lm.length() } else { rm.length() }
+  for i = 0; i < n; i = i + 1 {
+    let r = compare_pattern_parts(lm[i], rm[i])
+    if r != 0 {
+      return r
+    }
+  }
+  if lm.length() > rm.length() {
+    1
+  } else if lm.length() < rm.length() {
+    -1
+  } else {
+    0
+  }
+}
+
+///|
+fn get_urlpattern_component(
+  pattern : UrlPattern,
+  component : String,
+) -> UrlPatternComponent? {
+  match component {
+    "protocol" => Some(pattern.protocol)
+    "username" => Some(pattern.username)
+    "password" => Some(pattern.password)
+    "hostname" => Some(pattern.hostname)
+    "port" => Some(pattern.port)
+    "pathname" => Some(pattern.pathname)
+    "search" => Some(pattern.search)
+    "hash" => Some(pattern.hash)
+    _ => None
+  }
+}
+
+///|
+pub fn UrlPattern::compare_component(
+  component : String,
+  left : UrlPattern,
+  right : UrlPattern,
+) -> Int {
+  let lc = match get_urlpattern_component(left, component) {
+    Some(c) => c
+    None => return 0
+  }
+  let rc = match get_urlpattern_component(right, component) {
+    Some(c) => c
+    None => return 0
+  }
+  compare_pattern_part_lists(lc.parts, rc.parts)
+}
