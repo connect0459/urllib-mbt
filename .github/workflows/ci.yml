@@ -25,6 +25,8 @@ jobs:
         uses: hustcer/setup-moonbit@1e551191814a94ba0ce769885e2b32d42ab2c890 # v1.9.0
         with:
           version: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update package registry
         run: moon update
@@ -57,9 +59,11 @@ jobs:
         uses: hustcer/setup-moonbit@1e551191814a94ba0ce769885e2b32d42ab2c890 # v1.9.0
         with:
           version: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bundle core for native target
-        run: moon bundle --target native --source-dir $HOME/.moon/lib/core
+        run: cd $HOME/.moon/lib/core && moon bundle --target native
 
       - name: Update package registry
         run: moon update
