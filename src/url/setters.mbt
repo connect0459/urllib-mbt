@@ -1,9 +1,8 @@
 ///|
 fn strip_leading_char(s : String, c : Char) -> String {
-  if s.has_prefix(c.to_string()) {
-    s[1:s.length()].to_owned()
-  } else {
-    s
+  match s.get_char(0) {
+    Some(head) if head == c => s[1:s.length()].to_owned()
+    _ => s
   }
 }
 
@@ -83,10 +82,7 @@ fn parse_setter_port(s : String, scheme : String) -> SetterPort {
 
 ///|
 fn truncate_host_value(s : String, is_special : Bool) -> String {
-  let chars : Array[Char] = []
-  for c in s {
-    chars.push(c)
-  }
+  let chars = string_to_chars(s)
   let n = chars.length()
   let mut end = n
   for i = 0; i < n; i = i + 1 {
@@ -139,10 +135,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
   if stripped.is_empty() {
     return self
   }
-  let chars : Array[Char] = []
-  for c in stripped {
-    chars.push(c)
-  }
+  let chars = string_to_chars(stripped)
   let n = chars.length()
   if !is_ascii_alpha(chars[0]) {
     return self
@@ -259,10 +252,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     }
     return { ..self, path: new_path }
   }
-  let chars : Array[Char] = []
-  for c in stripped {
-    chars.push(c)
-  }
+  let chars = string_to_chars(stripped)
   let n = chars.length()
   let segs : Array[String] = []
   let buf = StringBuilder::new()
