@@ -78,6 +78,7 @@ priv struct UrlPatternComponent {
   pattern : String
   regex : @string.Regex
   group_names : Array[String]
+  group_strips : Array[(String, String)]
 }
 
 ///|

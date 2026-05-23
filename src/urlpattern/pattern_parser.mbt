@@ -188,8 +188,8 @@ fn ParserCtx::extract_prefix_from_pending(self : ParserCtx) -> String {
 fn modifier_from_token(t : Token?) -> PartModifier {
   match t {
     None => NoMod
-    Some({ kind: OtherModifier, value: "?" }) => Optional
-    Some({ kind: OtherModifier, value: "+" }) => OneOrMore
+    Some({ kind: OtherModifier, value: "?", .. }) => Optional
+    Some({ kind: OtherModifier, value: "+", .. }) => OneOrMore
     Some({ kind: Asterisk, .. }) => ZeroOrMore
     _ => NoMod
   }
@@ -259,7 +259,9 @@ fn parse_pattern_to_parts(
           None => ctx.try_consume(Asterisk)
         }
         let suffix_text = ctx.consume_text()
-        let _ = ctx.try_consume(Close)
+        if ctx.try_consume(Close) is None {
+          raise UrlPatternError("unclosed group '{' in pattern")
+        }
         let mod_tok = ctx.try_consume_modifier()
         ctx.flush_pending()
         let name = match name_tok {
@@ -299,7 +301,7 @@ fn parse_pattern_to_parts(
         seen_names.push(name)
         let seg_wc = ctx.segment_wildcard_regexp()
         let (pk, pv) = match rw_tok {
-          Some({ kind: Regexp, value: rv }) =>
+          Some({ kind: Regexp, value: rv, .. }) =>
             if rv == ".*" {
               (FullWildcard, ".*")
             } else if rv == seg_wc {
@@ -331,7 +333,7 @@ fn parse_pattern_to_parts(
         let mod_tok = ctx.try_consume_modifier()
         let seg_wc = ctx.segment_wildcard_regexp()
         let (pk, pv) = match rw_tok {
-          Some({ kind: Regexp, value: rv }) =>
+          Some({ kind: Regexp, value: rv, .. }) =>
             if rv == ".*" {
               (FullWildcard, ".*")
             } else if rv == seg_wc {
@@ -611,9 +613,10 @@ fn generate_pattern_string(
 fn generate_regexp(
   parts : Array[Part],
   options : CompileOptions,
-) -> (String, Array[String]) {
+) -> (String, Array[String], Array[(String, String)]) {
   let buf = StringBuilder::new()
   let names : Array[String] = []
+  let strips : Array[(String, String)] = []
   buf.write_string("^")
   for part in parts {
     match part.kind {
@@ -641,6 +644,7 @@ fn generate_regexp(
         let esc_prefix = escape_regexp_string(part.prefix)
         let esc_suffix = escape_regexp_string(part.suffix)
         if part.prefix.length() == 0 && part.suffix.length() == 0 {
+          strips.push(("", ""))
           if part.modifier == NoMod || part.modifier == Optional {
             buf.write_string("(")
             buf.write_string(regexp_value)
@@ -653,7 +657,15 @@ fn generate_regexp(
             buf.write_string(modifier_to_string(part.modifier))
             buf.write_string(")")
           }
-        } else if part.modifier == NoMod || part.modifier == Optional {
+        } else if part.modifier == Optional {
+          strips.push((part.prefix, part.suffix))
+          buf.write_string("(")
+          buf.write_string(esc_prefix)
+          buf.write_string(regexp_value)
+          buf.write_string(esc_suffix)
+          buf.write_string(")?")
+        } else if part.modifier == NoMod {
+          strips.push(("", ""))
           buf.write_string("(?:")
           buf.write_string(esc_prefix)
           buf.write_string("(")
@@ -661,8 +673,8 @@ fn generate_regexp(
           buf.write_string(")")
           buf.write_string(esc_suffix)
           buf.write_string(")")
-          buf.write_string(modifier_to_string(part.modifier))
         } else {
+          strips.push(("", ""))
           buf.write_string("(?:")
           buf.write_string(esc_prefix)
           buf.write_string("((?:")
@@ -683,7 +695,7 @@ fn generate_regexp(
     }
   }
   buf.write_string("$")
-  (buf.to_string(), names)
+  (buf.to_string(), names, strips)
 }
 
 ///|

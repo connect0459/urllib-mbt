@@ -304,14 +304,32 @@ fn compile_component(
   let raw_parts = parse_pattern_to_parts(pattern, options, policy)
   let parts = encode_parts(raw_parts, kind)
   let pat_str = generate_pattern_string(parts, options)
-  let (regexp_str, group_names) = generate_regexp(parts, options)
+  let (regexp_str, group_names, group_strips) = generate_regexp(parts, options)
   let regex = @string.Regex(regexp_str) catch {
     err =>
       raise UrlPatternError(
         "compile_component: invalid regex '\{regexp_str}': \{err}",
       )
   }
-  { pattern: pat_str, regex, group_names }
+  { pattern: pat_str, regex, group_names, group_strips }
+}
+
+///|
+pub fn UrlPattern::from_string(
+  pattern : String,
+  base_url : String?,
+) -> UrlPattern raise UrlPatternError {
+  let init = parse_constructor_string(pattern)
+  if init.protocol is None && base_url is None {
+    raise UrlPatternError(
+      "constructor string pattern requires a protocol or base URL",
+    )
+  }
+  let init = match base_url {
+    None => init
+    Some(b) => { ..init, base_url: Some(b) }
+  }
+  UrlPattern::from_init(init)
 }
 
 ///|
@@ -367,9 +385,14 @@ pub fn UrlPattern::from_init(
   } else {
     Pathname
   }
+  let pathname_compile_opts = if pathname_kind == OpaquePathname {
+    default_options
+  } else {
+    pathname_options
+  }
   let pathname = compile_component(
     init.pathname.unwrap_or("*"),
-    pathname_options,
+    pathname_compile_opts,
     Strict,
     pathname_kind,
   )
@@ -402,7 +425,30 @@ fn match_component(
       for idx, name in component.group_names {
         let val = match m.group(idx + 1) {
           None => None
-          Some(sv) => Some(sv.to_owned())
+          Some(sv) => {
+            let raw = sv.to_owned()
+            let (pre, suf) = component.group_strips[idx]
+            let stripped = if pre.length() > 0 || suf.length() > 0 {
+              let chars : Array[Char] = []
+              for c in raw {
+                chars.push(c)
+              }
+              let start = pre.length()
+              let end = chars.length() - suf.length()
+              if start <= end {
+                let buf = StringBuilder::new()
+                for j = start; j < end; j = j + 1 {
+                  buf.write_char(chars[j])
+                }
+                buf.to_string()
+              } else {
+                raw
+              }
+            } else {
+              raw
+            }
+            Some(stripped)
+          }
         }
         groups[name] = val
       }
@@ -664,6 +710,50 @@ fn canonicalize_port(port : String, protocol : String) -> String {
 }
 
 ///|
+fn normalize_path_dots(path : String) -> String {
+  let segments : Array[String] = []
+  let chars : Array[Char] = []
+  for c in path {
+    chars.push(c)
+  }
+  let mut i = 0
+  let n = chars.length()
+  while i < n {
+    if chars[i] == '/' {
+      i += 1
+      continue
+    }
+    let seg_start = i
+    while i < n && chars[i] != '/' {
+      i += 1
+    }
+    let buf = StringBuilder::new()
+    for j = seg_start; j < i; j = j + 1 {
+      buf.write_char(chars[j])
+    }
+    let seg = buf.to_string()
+    if seg == "." {
+      ()
+    } else if seg == ".." {
+      if segments.length() > 0 {
+        segments.pop() |> ignore
+      }
+    } else {
+      segments.push(seg)
+    }
+  }
+  let result = StringBuilder::new()
+  result.write_char('/')
+  for k = 0; k < segments.length(); k = k + 1 {
+    if k > 0 {
+      result.write_char('/')
+    }
+    result.write_string(segments[k])
+  }
+  result.to_string()
+}
+
+///|
 fn get_base_dir(pathname : String) -> String {
   let chars : Array[Char] = []
   for c in pathname {
@@ -765,13 +855,7 @@ fn apply_base_url(
     } else {
       let resolved = get_base_dir(base.pathname()) + pn
       if for_pattern {
-        let normalized = try? @url.parse("https://dummy.test" + resolved)
-        Some(
-          match normalized {
-            Ok(u) => u.pathname()
-            Err(_) => resolved
-          },
-        )
+        Some(normalize_path_dots(resolved))
       } else {
         Some(resolved)
       }
