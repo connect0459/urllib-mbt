@@ -5,7 +5,7 @@ URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **531 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **549 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1102,6 +1102,37 @@ pub fn parse_with_params(
 | Empty params, existing query | `"https://example.com/?a=1"` + `[]` | `?a=1` (unchanged) |
 | Empty params, no query | `"https://example.com/"` + `[]` | no query (unchanged) |
 | Invalid URL | `"https://test:test"` | raises `UrlParseError` |
+
+---
+
+## `from_file_path` and `Url::to_file_path` (completed)
+
+Added filesystem-path ↔ `file://` URL conversion functions, mirroring
+rust-url's `Url::from_file_path` / `Url::to_file_path` API.
+
+```moonbit
+pub fn from_file_path(path : String) -> Url raise UrlParseError
+pub fn Url::to_file_path(self : Url) -> String raise UrlParseError
+```
+
+### `from_file_path` behavior
+
+- Accepts Unix absolute paths starting with `/`
+- Accepts Windows drive-letter paths (`C:\...` or `C:/...`);
+  backslashes are treated as path separators
+- Percent-encodes each path segment using the WHATWG path encode set
+- Raises `UrlParseError` for empty or non-absolute paths
+
+### `to_file_path` behavior
+
+- Raises `UrlParseError` for non-`file:` URLs, non-local hosts (only
+  empty host or `localhost` are accepted), and opaque paths
+- Decodes percent-encoded characters in each path segment
+- Detects Windows drive-letter paths (first segment matches `X:`) and
+  omits the leading `/`
+
+Equivalent to rust-url's `Url::from_file_path` / `Url::to_file_path`.
+16 unit tests added (8 for each function).
 
 ---
 
