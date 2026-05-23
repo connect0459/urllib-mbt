@@ -421,45 +421,39 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
         url.host = Some(@host.Host::empty_domain())
         match c {
           Some('/') | Some('\\') => state = State::FileSlash
-          _ => {
-            let is_file_base = match base {
-              Some(b) => b.scheme == "file"
-              None => false
-            }
-            if is_file_base {
-              let b = match base {
-                Some(b) => b
-                None => panic()
-              }
-              url.host = b.host
-              url.copy_path_from(b)
-              url.query = b.query
-              match c {
-                Some('?') => {
-                  url.query = Some("")
-                  state = State::Query
-                }
-                Some('#') => {
-                  url.fragment = Some("")
-                  state = State::Fragment
-                }
-                None => ()
-                _ => {
-                  url.query = None
-                  if chars_start_with_wdl(chars, pointer, n) {
-                    url.path_segments = []
-                  } else {
-                    shorten_path_segs(url.path_segments, url.scheme)
+          _ =>
+            match base {
+              Some(b) if b.scheme == "file" => {
+                url.host = b.host
+                url.copy_path_from(b)
+                url.query = b.query
+                match c {
+                  Some('?') => {
+                    url.query = Some("")
+                    state = State::Query
                   }
-                  state = State::Path
-                  advance = false
+                  Some('#') => {
+                    url.fragment = Some("")
+                    state = State::Fragment
+                  }
+                  None => ()
+                  _ => {
+                    url.query = None
+                    if chars_start_with_wdl(chars, pointer, n) {
+                      url.path_segments = []
+                    } else {
+                      shorten_path_segs(url.path_segments, url.scheme)
+                    }
+                    state = State::Path
+                    advance = false
+                  }
                 }
               }
-            } else {
-              state = State::Path
-              advance = false
+              _ => {
+                state = State::Path
+                advance = false
+              }
             }
-          }
         }
       }
       FileSlash =>
