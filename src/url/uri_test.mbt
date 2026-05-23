@@ -751,3 +751,124 @@ test "port_or_known_default returns None for non-special scheme" {
 test "port_or_known_default returns None for file scheme" {
   assert_true(@url.parse("file:///tmp/").port_or_known_default() is None)
 }
+
+// ===== Url::query =====
+
+///|
+test "query returns None when URL has no query" {
+  assert_true(@url.parse("https://example.com/").query() is None)
+}
+
+///|
+test "query returns Some empty string for empty query" {
+  @debug.assert_eq(@url.parse("https://example.com/?").query(), Some(""))
+}
+
+///|
+test "query returns Some with query content" {
+  @debug.assert_eq(
+    @url.parse("https://example.com/?q=foo").query(),
+    Some("q=foo"),
+  )
+}
+
+///|
+test "query returns Some with multiple params" {
+  @debug.assert_eq(
+    @url.parse("https://example.com/?a=1&b=2").query(),
+    Some("a=1&b=2"),
+  )
+}
+
+// ===== Url::fragment =====
+
+///|
+test "fragment returns None when URL has no fragment" {
+  assert_true(@url.parse("https://example.com/").fragment() is None)
+}
+
+///|
+test "fragment returns Some empty string for empty fragment" {
+  @debug.assert_eq(@url.parse("https://example.com/#").fragment(), Some(""))
+}
+
+///|
+test "fragment returns Some with fragment content" {
+  @debug.assert_eq(
+    @url.parse("https://example.com/#section").fragment(),
+    Some("section"),
+  )
+}
+
+// ===== Url::has_host =====
+
+///|
+test "has_host returns true for URL with domain host" {
+  assert_eq(@url.parse("https://example.com/").has_host(), true)
+}
+
+///|
+test "has_host returns true for file URL with empty host" {
+  assert_eq(@url.parse("file:///tmp/foo").has_host(), true)
+}
+
+///|
+test "has_host returns false for URL without authority" {
+  assert_eq(@url.parse("unix:/run/foo.socket").has_host(), false)
+}
+
+///|
+test "has_host returns false for opaque-path URL" {
+  assert_eq(@url.parse("data:text/html,Hello").has_host(), false)
+}
+
+// ===== Url::has_port =====
+
+///|
+test "has_port returns false when no port is present" {
+  assert_eq(@url.parse("https://example.com/").has_port(), false)
+}
+
+///|
+test "has_port returns true when explicit non-default port is present" {
+  assert_eq(@url.parse("https://example.com:8080/").has_port(), true)
+}
+
+///|
+test "has_port returns false when default port is stripped by parser" {
+  assert_eq(@url.parse("https://example.com:443/").has_port(), false)
+}
+
+// ===== Url::has_query =====
+
+///|
+test "has_query returns false when URL has no query" {
+  assert_eq(@url.parse("https://example.com/").has_query(), false)
+}
+
+///|
+test "has_query returns true for empty query string" {
+  assert_eq(@url.parse("https://example.com/?").has_query(), true)
+}
+
+///|
+test "has_query returns true when query has content" {
+  assert_eq(@url.parse("https://example.com/?q=1").has_query(), true)
+}
+
+// ===== Url::has_fragment =====
+
+///|
+test "has_fragment returns false when URL has no fragment" {
+  assert_eq(@url.parse("https://example.com/").has_fragment(), false)
+}
+
+///|
+test "has_fragment returns true for empty fragment" {
+  assert_eq(@url.parse("https://example.com/#").has_fragment(), true)
+}
+
+///|
+test "has_fragment returns true when fragment has content" {
+  assert_eq(@url.parse("https://example.com/#section").has_fragment(), true)
+}

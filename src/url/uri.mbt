@@ -359,6 +359,68 @@ pub fn Url::port_or_known_default(self : Url) -> Int? {
 }
 
 ///|
+/// Returns the raw query string without the leading `?`, or `None` when the
+/// URL has no query component.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(
+///     @url.parse("https://example.com/?a=1").query() == Some("a=1"),
+///     content="true",
+///   )
+///   inspect(@url.parse("https://example.com/").query() is None, content="true")
+/// }
+/// ```
+pub fn Url::query(self : Url) -> String? {
+  self.query
+}
+
+///|
+/// Returns the raw fragment string without the leading `#`, or `None` when the
+/// URL has no fragment component.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   inspect(
+///     @url.parse("https://example.com/#section").fragment() == Some("section"),
+///     content="true",
+///   )
+///   inspect(@url.parse("https://example.com/").fragment() is None, content="true")
+/// }
+/// ```
+pub fn Url::fragment(self : Url) -> String? {
+  self.fragment
+}
+
+///|
+/// Returns `true` when the URL has a host component (i.e. the host is non-`None`).
+pub fn Url::has_host(self : Url) -> Bool {
+  self.host is Some(_)
+}
+
+///|
+/// Returns `true` when the URL has an explicitly set port number.
+pub fn Url::has_port(self : Url) -> Bool {
+  self.port is Some(_)
+}
+
+///|
+/// Returns `true` when the URL has a query component (even if empty).
+pub fn Url::has_query(self : Url) -> Bool {
+  self.query is Some(_)
+}
+
+///|
+/// Returns `true` when the URL has a fragment component (even if empty).
+pub fn Url::has_fragment(self : Url) -> Bool {
+  self.fragment is Some(_)
+}
+
+///|
 /// Parses `url` and appends `params` as query parameters.
 /// Existing query parameters are preserved; new ones are appended with `&`.
 /// Raises `UrlParseError` if `url` cannot be parsed.

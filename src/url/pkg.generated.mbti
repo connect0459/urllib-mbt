@@ -40,9 +40,14 @@ pub struct Url {
 } derive(Eq, @debug.Debug)
 pub fn Url::authority(Self) -> String
 pub fn Url::domain(Self) -> String?
+pub fn Url::fragment(Self) -> String?
 pub fn Url::has_authority(Self) -> Bool
 pub fn Url::has_credentials(Self) -> Bool
+pub fn Url::has_fragment(Self) -> Bool
+pub fn Url::has_host(Self) -> Bool
 pub fn Url::has_opaque_path(Self) -> Bool
+pub fn Url::has_port(Self) -> Bool
+pub fn Url::has_query(Self) -> Bool
 pub fn Url::hash(Self) -> String
 pub fn Url::host_str(Self) -> String
 pub fn Url::hostname(Self) -> String
@@ -58,6 +63,7 @@ pub fn Url::port(Self) -> Int?
 pub fn Url::port_or_known_default(Self) -> Int?
 pub fn Url::port_str(Self) -> String
 pub fn Url::protocol(Self) -> String
+pub fn Url::query(Self) -> String?
 pub fn Url::scheme(Self) -> String
 pub fn Url::search(Self) -> String
 pub fn Url::search_params(Self) -> UrlSearchParams
