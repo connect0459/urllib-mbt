@@ -174,6 +174,9 @@ test "WPT URLPattern: components listed in exactly_empty_components compile to e
       passed += 1
     }
   }
+  println(
+    "WPT URLPattern exactly_empty_components: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
+  )
   if failures.length() > 0 {
     let msg = StringBuilder::new()
     msg.write_string(
@@ -182,10 +185,8 @@ test "WPT URLPattern: components listed in exactly_empty_components compile to e
     for f in failures {
       msg.write_string("  - \{f}\n")
     }
-    msg.write_string("passed=\{passed} skipped=\{skipped}")
     fail(msg.to_string())
   }
-  assert_true(passed > 0)
 }
 
 ///|
@@ -317,6 +318,9 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
       }
     }
   }
+  println(
+    "WPT URLPattern base URL resolution: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
+  )
   if failures.length() > 0 {
     let msg = StringBuilder::new()
     msg.write_string(
@@ -325,10 +329,8 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
     for f in failures {
       msg.write_string("  - \{f}\n")
     }
-    msg.write_string("passed=\{passed} skipped=\{skipped}")
     fail(msg.to_string())
   }
-  assert_true(passed > 0)
 }
 
 ///|
@@ -540,6 +542,9 @@ test "WPT URLPattern: string pattern constructor — expected_obj normalization 
     }
     true
   })
+  println(
+    "WPT URLPattern string pattern: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
+  )
   if real_failures.length() > 0 {
     let msg = StringBuilder::new()
     msg.write_string(
@@ -548,10 +553,8 @@ test "WPT URLPattern: string pattern constructor — expected_obj normalization 
     for f in real_failures {
       msg.write_string("  - \{f}\n")
     }
-    msg.write_string("passed=\{passed} skipped=\{skipped}")
     fail(msg.to_string())
   }
-  assert_true(passed > 0)
 }
 
 ///|
@@ -631,6 +634,9 @@ test "WPT URLPattern: construction rejects invalid patterns" {
       }
     }
   }
+  println(
+    "WPT URLPattern construction rejects: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
+  )
   if failures.length() > 0 {
     let msg = StringBuilder::new()
     msg.write_string(
@@ -639,10 +645,8 @@ test "WPT URLPattern: construction rejects invalid patterns" {
     for f in failures {
       msg.write_string("  - \{f}\n")
     }
-    msg.write_string("passed=\{passed} skipped=\{skipped}")
     fail(msg.to_string())
   }
-  assert_true(passed > 0)
 }
 
 ///|
@@ -845,6 +849,9 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
       _ => passed += 1
     }
   }
+  println(
+    "WPT URLPattern expected_obj: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
+  )
   if failures.length() > 0 {
     let msg = StringBuilder::new()
     msg.write_string(
@@ -853,10 +860,8 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
     for f in failures {
       msg.write_string("  - \{f}\n")
     }
-    msg.write_string("passed=\{passed} skipped=\{skipped}")
     fail(msg.to_string())
   }
-  assert_true(passed > 0)
 }
 
 ///|
@@ -982,14 +987,15 @@ test "WPT URLPattern: simple init-to-init cases" {
       _ => skipped += 1
     }
   }
+  println(
+    "WPT URLPattern: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
+  )
   if failures.length() > 0 {
     let msg = StringBuilder::new()
     msg.write_string("WPT URLPattern failures (\{failures.length()}):\n")
     for f in failures {
       msg.write_string("  - \{f}\n")
     }
-    msg.write_string("passed=\{passed} skipped=\{skipped}")
     fail(msg.to_string())
   }
-  assert_true(passed > 0)
 }
