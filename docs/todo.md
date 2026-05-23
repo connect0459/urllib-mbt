@@ -5,7 +5,7 @@ URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **526 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **531 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1102,6 +1102,20 @@ pub fn parse_with_params(
 | Empty params, existing query | `"https://example.com/?a=1"` + `[]` | `?a=1` (unchanged) |
 | Empty params, no query | `"https://example.com/"` + `[]` | no query (unchanged) |
 | Invalid URL | `"https://test:test"` | raises `UrlParseError` |
+
+---
+
+## `UrlSearchParams::entries` (completed)
+
+Added `entries()` as the WHATWG `URLSearchParams.entries()` alias for the
+existing `iter()` method. Completes the three-method WHATWG iterator surface
+alongside the already-implemented `keys()` and `values()`.
+
+```moonbit
+pub fn UrlSearchParams::entries(self : UrlSearchParams) -> Iter[(String, String)]
+```
+
+Delegates to `self.list.iter()`, identical to `iter()`. 4 unit tests added.
 
 ---
 
