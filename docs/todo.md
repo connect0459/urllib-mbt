@@ -5,7 +5,7 @@ URLPattern: **384/384 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **555 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **570 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1184,6 +1184,35 @@ pub fn Url::has_fragment(self : Url) -> Bool
   ada's `ada_has_hostname`, `ada_has_port`, `ada_has_search`, `ada_has_hash`
 
 17 unit tests added.
+
+---
+
+## `from_directory_path` and `Url::query_pairs` (completed)
+
+Added two utility functions that mirror rust-url's API.
+
+```moonbit
+pub fn from_directory_path(path : String) -> Url raise UrlParseError
+pub fn Url::query_pairs(self : Url) -> Iter[(String, String)]
+```
+
+### `from_directory_path` behavior
+
+- Calls `from_file_path` internally, then ensures the resulting URL
+  pathname ends with `/` via `set_pathname`.
+- The trailing slash makes the result usable as a base URL for
+  resolving relative references (e.g. `dir.join("index.html")`).
+- Raises `UrlParseError` for empty or non-absolute paths (same as
+  `from_file_path`).
+
+### `query_pairs` behavior
+
+- Delegates to `self.search_params().iter()`.
+- Returns an empty iterator when the URL has no query component.
+- Percent-decodes keys and values; `+` is decoded as space
+  (`application/x-www-form-urlencoded` semantics).
+
+13 unit tests added.
 
 ---
 
