@@ -1,7 +1,3 @@
-// Remove ASCII tab (0x09), LF (0x0A), CR (0x0D) from input without touching
-// leading/trailing C0 controls or spaces. Used by URL setters per WHATWG spec
-// (basic URL parse with state override skips the C0/space trim).
-
 ///|
 fn strip_ascii_tabs_newlines(s : String) -> String {
   let buf = StringBuilder::new()
@@ -46,11 +42,6 @@ fn url_can_have_credentials(url : Url) -> Bool {
   !(url.host is (None | Some(Host::Domain(""))))
 }
 
-// Returns (changed, new_port) where:
-//   changed=false => keep original port unchanged
-//   changed=true, new_port=None => clear port (default port or zero digits after stop)
-//   changed=true, new_port=Some(p) => set port to p
-
 ///|
 fn parse_setter_port(s : String, scheme : String) -> (Bool, Int?) {
   let mut val = 0
@@ -75,8 +66,6 @@ fn parse_setter_port(s : String, scheme : String) -> (Bool, Int?) {
   }
 }
 
-// Truncate s at first /, ?, #, or \ (when is_special) after stripping tabs/newlines
-
 ///|
 fn truncate_host_value(s : String, is_special : Bool) -> String {
   let chars : Array[Char] = []
@@ -98,9 +87,6 @@ fn truncate_host_value(s : String, is_special : Bool) -> String {
     s[0:end].to_owned()
   }
 }
-
-// Split "host" or "host:port" string into (host_part, port_str?)
-// port_str = None if no colon, Some(s) if colon found (s may be empty)
 
 ///|
 fn split_host_port(s : String) -> (String, String?) {
