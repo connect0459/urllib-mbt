@@ -45,11 +45,7 @@ fn parse_urlencoded(s : String) -> UrlSearchParams {
 /// }
 /// ```
 pub fn UrlSearchParams::from_string(s : String) -> UrlSearchParams {
-  let input = if s.length() > 0 && s.get_char(0) == Some('?') {
-    s[1:].to_owned()
-  } else {
-    s
-  }
+  let input = if s.has_prefix("?") { s[1:].to_owned() } else { s }
   parse_urlencoded(input)
 }
 
