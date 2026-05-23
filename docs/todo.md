@@ -5,7 +5,7 @@ URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **487 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **496 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1026,7 +1026,35 @@ The `./` issue (incorrectly outputting `/` when there is an empty path_parts + a
 
 ---
 
-## `parse_with_params` (completed)
+## `port_or_known_default` (completed)
+
+`Url::port_or_known_default() -> Int?` — returns the port if explicitly set,
+otherwise the default port for the scheme. Equivalent to rust-url's
+`Url::port_or_known_default`.
+
+```moonbit
+pub fn Url::port_or_known_default(self : Url) -> Int?
+```
+
+Returns `Some(p)` when port is explicitly set; otherwise returns the scheme
+default: `http`/`ws`→80, `https`/`wss`→443, `ftp`→21, others→`None`.
+
+### Tests added (8)
+
+| Test | Input | Expected |
+| :--- | :--- | :--- |
+| http no explicit port | `http://example.com/` | `Some(80)` |
+| https no explicit port | `https://example.com/` | `Some(443)` |
+| ftp no explicit port | `ftp://example.com/` | `Some(21)` |
+| ws no explicit port | `ws://example.com/` | `Some(80)` |
+| wss no explicit port | `wss://example.com/` | `Some(443)` |
+| explicit non-default port | `https://example.com:8080/` | `Some(8080)` |
+| non-special scheme | `custom://example.com/` | `None` |
+| file scheme | `file:///tmp/` | `None` |
+
+---
+
+## Task B — `parse_with_params` (completed)
 
 `parse_with_params(url, params)` — parses a URL string and appends query
 parameters, preserving any existing query. Equivalent to rust-url's
