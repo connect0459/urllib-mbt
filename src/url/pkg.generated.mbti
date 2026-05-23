@@ -19,6 +19,8 @@ pub fn parse_maybe(String, Url?) -> Url?
 
 pub fn parse_with_base(String, Url?) -> Url raise UrlParseError
 
+pub fn parse_with_params(String, Array[(String, String)]) -> Url raise UrlParseError
+
 // Errors
 pub suberror UrlParseError {
   UrlParseError(String)

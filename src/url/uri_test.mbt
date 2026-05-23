@@ -649,3 +649,48 @@ test "make_relative: result round-trips via join" {
     None => fail("expected Some but got None")
   }
 }
+
+// ===== parse_with_params =====
+
+///|
+test "parse_with_params: adds params to URL with no existing query" {
+  let url = @url.parse_with_params("https://example.com/", [("lang", "rust")])
+  assert_eq(url.href(), "https://example.com/?lang=rust")
+}
+
+///|
+test "parse_with_params: appends to existing query without clobbering" {
+  let url = @url.parse_with_params("https://example.net?dont=clobberme", [
+    ("lang", "rust"),
+    ("browser", "servo"),
+  ])
+  assert_eq(
+    url.href(),
+    "https://example.net/?dont=clobberme&lang=rust&browser=servo",
+  )
+}
+
+///|
+test "parse_with_params: empty params returns URL with no query change" {
+  let url = @url.parse_with_params(
+    "https://example.com/?a=1",
+    ([] : Array[(String, String)]),
+  )
+  assert_eq(url.href(), "https://example.com/?a=1")
+}
+
+///|
+test "parse_with_params: empty params with no existing query preserves no query" {
+  let url = @url.parse_with_params(
+    "https://example.com/",
+    ([] : Array[(String, String)]),
+  )
+  assert_eq(url.href(), "https://example.com/")
+}
+
+///|
+test "parse_with_params: invalid URL raises UrlParseError" {
+  assert_true(
+    (try? @url.parse_with_params("https://test:test", [("k", "v")])) is Err(_),
+  )
+}

@@ -328,6 +328,39 @@ pub fn Url::make_relative(self : Url, other : Url) -> String? {
 }
 
 ///|
+/// Parses `url` and appends `params` as query parameters.
+/// Existing query parameters are preserved; new ones are appended with `&`.
+/// Raises `UrlParseError` if `url` cannot be parsed.
+///
+/// ### Example
+///
+/// ```mbt check
+/// test {
+///   let url = try! parse_with_params("https://example.net?k=v", [("lang", "rust")])
+///   inspect(url.href(), content="https://example.net/?k=v&lang=rust")
+/// }
+/// ```
+pub fn parse_with_params(
+  url : String,
+  params : Array[(String, String)],
+) -> Url raise UrlParseError {
+  let u = parse(url)
+  if params.is_empty() {
+    return u
+  }
+  let new_sp = UrlSearchParams::new()
+  for kv in params {
+    new_sp.append(kv.0, kv.1)
+  }
+  let appended = new_sp.to_string()
+  let query_str = match u.query {
+    Some(q) if q != "" => q + "&" + appended
+    _ => appended
+  }
+  u.set_search(query_str)
+}
+
+///|
 fn dir_and_filename(segs : Array[String]) -> (Array[String], String) {
   let n = segs.length()
   if n == 0 {
