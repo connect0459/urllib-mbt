@@ -377,12 +377,6 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
       }
     }
     let cps = if has_non_ascii { nfc_compose(cps) } else { cps }
-    has_non_ascii = false
-    for cp in cps {
-      if cp > 0x7F {
-        has_non_ascii = true
-      }
-    }
     if has_non_ascii {
       if label.has_prefix("xn--") {
         raise IdnaParseError("invalid ACE label: non-ASCII in xn-- label")
