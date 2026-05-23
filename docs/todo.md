@@ -5,7 +5,7 @@ URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **377 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **481 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1005,6 +1005,24 @@ All 445 tests pass after adding the doc comments and fixing two doctests:
 
 - `exec_url` example: split combined `guard … && …` into two separate `guard` statements
 - `has_regexp_groups` example: replaced `(\\d+)` with `(hi)` (pattern that parses correctly)
+
+---
+
+## API ergonomics (completed: `bdfd12a`)
+
+Added utility methods equivalent to rust-url to `src/url/uri.mbt`.
+
+| Method | Description |
+| :--- | :--- |
+| `Url::has_authority() -> Bool` | Returns true when `host != None` |
+| `Url::authority() -> String` | Returns `[user[:pass]@]host[:port]` |
+| `Url::domain() -> String?` | Returns `Some(s)` when host is `Domain`, `None` for IP/no host |
+| `Url::make_relative(other) -> String?` | Generates a relative URL from `self` to `other` |
+
+- Added 36 unit tests
+- `make_relative` is implemented based on the method of the same name in rust-url.
+
+The `./` issue (incorrectly outputting `/` when there is an empty path_parts + an empty filename) has been fixed.
 
 ---
 
