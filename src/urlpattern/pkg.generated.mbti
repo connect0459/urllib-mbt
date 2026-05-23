@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "connect0459/urllib/url_pattern"
+package "connect0459/urllib/urlpattern"
 
 import {
   "moonbitlang/core/debug",

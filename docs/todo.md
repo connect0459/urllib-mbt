@@ -701,9 +701,9 @@ equivalent in a MoonBit URL parsing library.
 
 ---
 
-## T8 — URL Pattern API (`src/url_pattern/`) (completed)
+## T8 — URL Pattern API (`src/urlpattern/`) (completed)
 
-WHATWG URL Pattern API. Implemented in `src/url_pattern/` as a standalone
+WHATWG URL Pattern API. Implemented in `src/urlpattern/` as a standalone
 sub-package. WPT test runner against `resources/urlpatterntestdata.json`
 (364 entries).
 
@@ -712,11 +712,11 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
 - `tokenizer.mbt` — pattern tokenizer (PartType, Token, tokenize)
 - `pattern_parser.mbt` — parse pattern string → `Array[Part]`, generate
   regexp and normalized pattern string
-- `url_pattern.mbt` — `UrlPattern`, `UrlPatternInit`, `UrlPatternResult`,
+- `urlpattern.mbt` — `UrlPattern`, `UrlPatternInit`, `UrlPatternResult`,
   compile/match/canonicalize logic
 - `types.mbt` — public type definitions
-- `url_pattern_test.mbt` — 6 hand-written unit tests
-- `url_pattern_wpt_test.mbt` — WPT runner (173 pass / 191 skipped)
+- `urlpattern_test.mbt` — 6 hand-written unit tests
+- `urlpattern_wpt_test.mbt` — WPT runner (173 pass / 191 skipped)
 
 ### WPT conformance
 
@@ -730,7 +730,7 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
 - [x] Fixed 13 compiler warnings to 0:
   - Removed unused `derive(Debug)` from `Part`, `Token`, `PartType`, `PartModifier`, `TokenType`
   - Removed unused `Lenient` variant from `TokenizePolicy`
-  - Fixed 3 `match (try? expr)` anti-patterns in `url_pattern.mbt` (extract to `let`)
+  - Fixed 3 `match (try? expr)` anti-patterns in `urlpattern.mbt` (extract to `let`)
   - Fixed `Str` constructor now used in `exec_url` (was unused)
   - Fixed `assert_eq` with `Int?` → `assert_true(x == Some(n))` in percent_encoding tests
   - Fixed `.is_none()` deprecated → `x is None` pattern
