@@ -1,6 +1,6 @@
 ///|
 test "WPT toascii: domain-to-ascii cases" {
-  let content = @fs.read_file_to_string("resources/toascii.json")
+  let content = @fs.read_file_to_string("resources/url/toascii.json")
   let json = @json.parse(content)
   let items = match json {
     Array(a) => a

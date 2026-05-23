@@ -1,6 +1,6 @@
 ///|
 fn load_percent_encoding_utf8_cases() -> Array[(String, String)] raise {
-  let content = @fs.read_file_to_string("resources/percent-encoding.json")
+  let content = @fs.read_file_to_string("resources/url/percent-encoding.json")
   let json = @json.parse(content)
   let items = match json {
     Array(a) => a
