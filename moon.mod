@@ -12,7 +12,7 @@ repository = "https://github.com/connect0459/urllib.mbt"
 
 license = "Apache-2.0"
 
-keywords = ["url", "whatwg", "urlpattern", "parser", "idna"]
+keywords = [ "url", "whatwg", "urlpattern", "parser", "idna" ]
 
 description = "WHATWG-compliant URL and URLPattern library for MoonBit"
 
