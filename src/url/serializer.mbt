@@ -51,12 +51,12 @@ pub fn Url::href(self : Url) -> String {
   buf.write_char(':')
   match self.host {
     None => ()
-    _ => buf.write_string("//")
-  }
-  if self.host is Some(h) {
-    write_credentials(buf, self)
-    buf.write_string(@host.serialize_host(h))
-    write_port(buf, self.port)
+    Some(h) => {
+      buf.write_string("//")
+      write_credentials(buf, self)
+      buf.write_string(@host.serialize_host(h))
+      write_port(buf, self.port)
+    }
   }
   match self.path {
     Opaque(s) => buf.write_string(s)
