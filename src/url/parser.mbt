@@ -645,28 +645,6 @@ fn parse_port_number(s : String) -> Int raise UrlParseError {
 }
 
 ///|
-fn UrlRecord::copy_path_from(self : UrlRecord, other : Url) -> Unit {
-  match other.path {
-    Segments(segs) => {
-      self.has_opaque_path = false
-      self.path_segments = segs.copy()
-    }
-    Opaque(s) => {
-      self.has_opaque_path = true
-      self.opaque_path = s
-    }
-  }
-}
-
-///|
-fn UrlRecord::copy_authority_from(self : UrlRecord, other : Url) -> Unit {
-  self.username = other.username
-  self.password = other.password
-  self.host = other.host
-  self.port = other.port
-}
-
-///|
 fn host_parse(input : String, is_special : Bool) -> Host raise UrlParseError {
   @host.parse_host(input, is_special) catch {
     @host.HostParseError(msg) => raise UrlParseError(msg)

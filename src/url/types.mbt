@@ -76,12 +76,7 @@ fn UrlRecord::new() -> UrlRecord {
 }
 
 ///|
-fn UrlRecord::copy_from(self : UrlRecord, other : Url) -> Unit {
-  self.scheme = other.scheme
-  self.username = other.username
-  self.password = other.password
-  self.host = other.host
-  self.port = other.port
+fn UrlRecord::copy_path_from(self : UrlRecord, other : Url) -> Unit {
   match other.path {
     Segments(segs) => {
       self.has_opaque_path = false
@@ -92,6 +87,21 @@ fn UrlRecord::copy_from(self : UrlRecord, other : Url) -> Unit {
       self.opaque_path = s
     }
   }
+}
+
+///|
+fn UrlRecord::copy_authority_from(self : UrlRecord, other : Url) -> Unit {
+  self.username = other.username
+  self.password = other.password
+  self.host = other.host
+  self.port = other.port
+}
+
+///|
+fn UrlRecord::copy_from(self : UrlRecord, other : Url) -> Unit {
+  self.scheme = other.scheme
+  self.copy_authority_from(other)
+  self.copy_path_from(other)
   self.query = other.query
   self.fragment = other.fragment
 }
