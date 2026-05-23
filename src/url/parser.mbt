@@ -98,7 +98,7 @@ fn push_normalized_segment(
 }
 
 ///|
-fn strip_tabs_and_newlines(input : String) -> String {
+fn preprocess_url_input(input : String) -> String {
   let chars = @pe.string_to_chars(input)
   let mut start = 0
   let mut end = chars.length()
@@ -171,7 +171,7 @@ pub fn parse(input : String) -> Url raise UrlParseError {
 /// }
 /// ```
 pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
-  let stripped = strip_tabs_and_newlines(input)
+  let stripped = preprocess_url_input(input)
   let url = UrlRecord::new()
   let chars = @pe.string_to_chars(stripped)
   let n = chars.length()

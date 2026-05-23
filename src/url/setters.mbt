@@ -7,7 +7,7 @@ fn strip_leading_char(s : String, c : Char) -> String {
 }
 
 ///|
-fn strip_ascii_tabs_newlines(s : String) -> String {
+fn strip_tab_newline(s : String) -> String {
   let buf = StringBuilder::new()
   for c in s {
     let cp = c.to_int()
@@ -145,7 +145,7 @@ pub fn Url::set_href(_ : Url, value : String) -> Url raise UrlParseError {
 /// Changes the URL scheme if the new scheme is valid and compatible with the
 /// current scheme type; no-op otherwise.
 pub fn Url::set_protocol(self : Url, value : String) -> Url {
-  let stripped = strip_ascii_tabs_newlines(value)
+  let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
     return self
   }
@@ -215,7 +215,7 @@ pub fn Url::set_port(self : Url, value : String) -> Url {
   if value.is_empty() {
     return { ..self, port: None }
   }
-  let stripped = strip_ascii_tabs_newlines(value)
+  let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
     return self
   }
@@ -229,7 +229,7 @@ pub fn Url::set_port(self : Url, value : String) -> Url {
 /// Sets the fragment from `value`, stripping a leading `"#"`; clears the
 /// fragment when `value` is empty.
 pub fn Url::set_hash(self : Url, value : String) -> Url {
-  let stripped = strip_ascii_tabs_newlines(value)
+  let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
     return { ..self, fragment: None }
   }
@@ -241,7 +241,7 @@ pub fn Url::set_hash(self : Url, value : String) -> Url {
 /// Sets the query from `value`, stripping a leading `"?"`; clears the query
 /// when `value` is empty.
 pub fn Url::set_search(self : Url, value : String) -> Url {
-  let stripped = strip_ascii_tabs_newlines(value)
+  let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
     return { ..self, query: None }
   }
@@ -257,7 +257,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     return self
   }
   let is_special = self.is_special()
-  let stripped = strip_ascii_tabs_newlines(value)
+  let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
     let new_path = if self.host != None {
       UrlPath::Segments([])
@@ -333,7 +333,7 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
     return self
   }
   let is_special = self.is_special()
-  let stripped = strip_ascii_tabs_newlines(value)
+  let stripped = strip_tab_newline(value)
   let truncated = truncate_host_value(stripped, is_special)
   let (host_str, port_opt) = split_host_port(truncated)
   if self.scheme == "file" {
@@ -374,7 +374,7 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
     return self
   }
   let is_special = self.is_special()
-  let stripped = strip_ascii_tabs_newlines(value)
+  let stripped = strip_tab_newline(value)
   let truncated = truncate_host_value(stripped, is_special)
   if truncated.has_prefix("[") {
     match truncated.rev_find("]") {
