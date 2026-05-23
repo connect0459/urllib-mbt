@@ -5,7 +5,19 @@ URLPattern: **384/384 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **574 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **574 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**
+
+---
+
+## Internal refactoring (completed: `e75fd3e`)
+
+- [x] **T1** Remove self-explanatory inline comments from `setters.mbt` (no-comment-policy)
+- [x] **R1** Replace `match self.path { Opaque(_) => ... }` guards with `has_opaque_path()`
+  in `set_pathname`, `set_host`, `set_hostname`
+- [x] **R2** Consolidate five single-condition `if` statements in `domain_has_forbidden_char`
+  into one compound boolean expression
+- [x] **D1** Remove `percent_encode_opaque_path` alias; internal callers now use
+  `percent_encode_c0` directly  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
