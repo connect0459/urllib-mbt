@@ -115,3 +115,18 @@ test "origin: blob URL with empty Segments path returns null" {
   }
   assert_eq(url.origin(), "null")
 }
+
+///|
+test "to_file_path raises for file URL with opaque path" {
+  let url : Url = {
+    scheme: "file",
+    username: "",
+    password: "",
+    host: None,
+    port: None,
+    path: UrlPath::Opaque("odd"),
+    query: None,
+    fragment: None,
+  }
+  assert_true((try? url.to_file_path()) is Err(_))
+}

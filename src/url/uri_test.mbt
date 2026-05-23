@@ -633,6 +633,27 @@ test "make_relative: opaque-path other returns None" {
 }
 
 ///|
+test "make_relative: opaque-path other with matching non-special scheme returns None" {
+  let base = @url.parse("sc:/x")
+  let url = @url.parse("sc:opaque")
+  assert_true(base.make_relative(url) is None)
+}
+
+///|
+test "make_relative: navigating up to parent directory produces trailing slash" {
+  let base = @url.parse("https://e.com/a/b/c.html")
+  let url = @url.parse("https://e.com/a/")
+  @debug.assert_eq(base.make_relative(url), Some("../"))
+}
+
+///|
+test "make_relative: base with no path segments produces relative path to target" {
+  let base = @url.parse("http://example.com/").set_pathname("")
+  let url = @url.parse("http://example.com/foo")
+  @debug.assert_eq(base.make_relative(url), Some("foo"))
+}
+
+///|
 test "make_relative: navigate to parent directory" {
   let base = @url.parse("https://example.net/a/b.html")
   let url = @url.parse("https://example.net/a/")
@@ -963,6 +984,12 @@ test "to_file_path returns Windows-style path for drive letter URL" {
 test "to_file_path preserves trailing slash" {
   let url = @url.parse("file:///path/to/dir/")
   assert_eq(url.to_file_path(), "/path/to/dir/")
+}
+
+///|
+test "to_file_path returns root slash for file URL with empty path segment list" {
+  let url = @url.parse("file:///").set_pathname("")
+  assert_eq(url.to_file_path(), "/")
 }
 
 ///|

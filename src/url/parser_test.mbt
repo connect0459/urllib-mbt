@@ -377,6 +377,13 @@ test "drive letter with query relative to file host base" {
 }
 
 ///|
+test "file URL with single slash and empty-segments file base copies host without drive segment" {
+  let base = @url.parse("file:///").set_pathname("")
+  let url = @url.parse_with_base("file:/x", Some(base))
+  assert_eq(url.href(), "file:///x")
+}
+
+///|
 test "non-special double-slash path gets /. prefix in href" {
   let url = @url.parse("non-spec:/.//")
   assert_eq(url.href(), "non-spec:/.//")
