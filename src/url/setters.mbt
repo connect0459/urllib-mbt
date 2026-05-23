@@ -333,6 +333,18 @@ fn Url::normalize_and_guard_host(
 }
 
 ///|
+fn Url::parse_and_normalize_host(
+  self : Url,
+  input : String,
+  is_special : Bool,
+) -> Host? {
+  match safe_parse_host(input, is_special) {
+    None => None
+    Some(h) => self.normalize_and_guard_host(h, is_special)
+  }
+}
+
+///|
 /// Sets the host and optional port from a `"host"` or `"host:port"` string.
 /// No-op for opaque-path URLs or on parse failure.
 pub fn Url::set_host(self : Url, value : String) -> Url {
@@ -358,11 +370,7 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
       _ => ()
     }
   }
-  let parsed = match safe_parse_host(host_str, is_special) {
-    None => return self
-    Some(h) => h
-  }
-  let new_host = match self.normalize_and_guard_host(parsed, is_special) {
+  let new_host = match self.parse_and_normalize_host(host_str, is_special) {
     None => return self
     Some(h) => h
   }
@@ -402,11 +410,7 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
   if self.scheme == "file" && truncated == "" {
     return { ..self, host: Some(@host.Host::empty_domain()) }
   }
-  let parsed = match safe_parse_host(truncated, is_special) {
-    None => return self
-    Some(h) => h
-  }
-  let new_host = match self.normalize_and_guard_host(parsed, is_special) {
+  let new_host = match self.parse_and_normalize_host(truncated, is_special) {
     None => return self
     Some(h) => h
   }
