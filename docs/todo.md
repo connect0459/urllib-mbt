@@ -671,6 +671,11 @@ and provides symmetry with the existing setter API.
 All four methods delegate directly to the corresponding struct fields.
 13 unit tests added to `src/url/uri_test.mbt`.
 
+- [x] **`Url::path_segments() -> Iter[String]?`** — iterates over path
+  segments; `None` for opaque-path URLs, `Some(Iter)` for hierarchical
+  URLs (mirrors rust-url's `path_segments()`). Segments are stored
+  percent-encoded, as produced by the parser. 8 unit tests added.
+
 ---
 
 ## API ergonomics

@@ -42,6 +42,7 @@ pub fn Url::is_special(Self) -> Bool
 pub fn Url::join(Self, String) -> Self raise UrlParseError
 pub fn Url::origin(Self) -> String
 pub fn Url::password(Self) -> String
+pub fn Url::path_segments(Self) -> Iter[String]?
 pub fn Url::pathname(Self) -> String
 pub fn Url::port(Self) -> Int?
 pub fn Url::port_str(Self) -> String

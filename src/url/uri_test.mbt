@@ -323,3 +323,77 @@ test "port returns Some for non-default port" {
   let url = @url.parse("http://example.com:8000/")
   assert_true(url.port() is Some(8000))
 }
+
+// ===== Url::path_segments =====
+
+///|
+fn collect_segments(url : @url.Url) -> Array[String]? {
+  match url.path_segments() {
+    None => None
+    Some(iter) => {
+      let arr : Array[String] = []
+      for s in iter {
+        arr.push(s)
+      }
+      Some(arr)
+    }
+  }
+}
+
+///|
+test "path_segments returns None for opaque-path URL" {
+  assert_true(collect_segments(@url.parse("mailto:user@example.com")) is None)
+}
+
+///|
+test "path_segments returns None for data URL" {
+  assert_true(collect_segments(@url.parse("data:text/html,Hello")) is None)
+}
+
+///|
+test "path_segments returns single empty segment for root path" {
+  let url = @url.parse("https://example.com/")
+  @debug.assert_eq(collect_segments(url), Some(([""] : Array[String])))
+}
+
+///|
+test "path_segments returns segments for multi-segment path" {
+  let url = @url.parse("https://example.com/a/b/c")
+  @debug.assert_eq(
+    collect_segments(url),
+    Some((["a", "b", "c"] : Array[String])),
+  )
+}
+
+///|
+test "path_segments includes trailing empty segment for trailing slash" {
+  let url = @url.parse("https://example.com/a/b/")
+  @debug.assert_eq(
+    collect_segments(url),
+    Some((["a", "b", ""] : Array[String])),
+  )
+}
+
+///|
+test "path_segments returns empty iterator for non-special URL with no path" {
+  let url = @url.parse("sc://example.com")
+  @debug.assert_eq(collect_segments(url), Some(([] : Array[String])))
+}
+
+///|
+test "path_segments returns percent-encoded segment values as-is" {
+  let url = @url.parse("https://example.com/hello%20world")
+  @debug.assert_eq(
+    collect_segments(url),
+    Some((["hello%20world"] : Array[String])),
+  )
+}
+
+///|
+test "path_segments returns Some for file URL" {
+  let url = @url.parse("file:///usr/local/bin")
+  @debug.assert_eq(
+    collect_segments(url),
+    Some((["usr", "local", "bin"] : Array[String])),
+  )
+}

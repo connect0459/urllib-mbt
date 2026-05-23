@@ -63,3 +63,11 @@ pub fn Url::password(self : Url) -> String {
 pub fn Url::port(self : Url) -> Int? {
   self.port
 }
+
+///|
+pub fn Url::path_segments(self : Url) -> Iter[String]? {
+  match self.path {
+    UrlPath::Opaque(_) => None
+    UrlPath::Segments(segs) => Some(segs.iter())
+  }
+}
