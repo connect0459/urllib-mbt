@@ -195,9 +195,7 @@ pub fn Url::authority(self : Url) -> String {
     None => ""
     Some(h) => {
       let buf = StringBuilder::new()
-      write_credentials(buf, self)
-      buf.write_string(@host.serialize_host(h))
-      write_port(buf, self.port)
+      write_authority_components(buf, self, h)
       buf.to_string()
     }
   }

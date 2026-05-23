@@ -44,6 +44,13 @@ fn write_port(buf : StringBuilder, port : Int?) -> Unit {
 }
 
 ///|
+fn write_authority_components(buf : StringBuilder, url : Url, h : Host) -> Unit {
+  write_credentials(buf, url)
+  buf.write_string(@host.serialize_host(h))
+  write_port(buf, url.port)
+}
+
+///|
 /// Returns the full serialized URL string.
 pub fn Url::href(self : Url) -> String {
   let buf = StringBuilder::new()
@@ -53,9 +60,7 @@ pub fn Url::href(self : Url) -> String {
     None => ()
     Some(h) => {
       buf.write_string("//")
-      write_credentials(buf, self)
-      buf.write_string(@host.serialize_host(h))
-      write_port(buf, self.port)
+      write_authority_components(buf, self, h)
     }
   }
   match self.path {
