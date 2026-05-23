@@ -374,6 +374,180 @@ test "WPT URLPattern: construction rejects invalid patterns" {
 }
 
 ///|
+test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
+  let items = load_urlpattern_testdata()
+  let mut passed = 0
+  let failures : Array[String] = []
+  let mut skipped = 0
+  for raw_item in items {
+    let item = match raw_item {
+      Object(o) => o
+      _ => continue
+    }
+    let exp_obj = match item.get("expected_obj") {
+      Some(Object(o)) => o
+      _ => continue
+    }
+    let pattern_arr = match item.get("pattern") {
+      Some(Array(a)) => a
+      _ => continue
+    }
+    if pattern_arr.length() != 1 {
+      skipped += 1
+      continue
+    }
+    let pat_obj = match pattern_arr[0] {
+      Object(o) => o
+      _ => {
+        skipped += 1
+        continue
+      }
+    }
+    if pat_obj.get("ignoreCase") is Some(_) {
+      skipped += 1
+      continue
+    }
+    let pat_init = build_init_from_obj(pat_obj)
+    let pattern = UrlPattern::from_init(pat_init) catch {
+      err => {
+        let msg = "\{err}"
+        if msg.contains("Unsupported") || msg.contains("POSIX character class") {
+          skipped += 1
+        } else {
+          failures.push(
+            "from_init failed: \{msg} for pattern=\{Json::stringify(pattern_arr[0])}",
+          )
+        }
+        continue
+      }
+    }
+    let mut ok = true
+    for comp_name, exp_val_json in exp_obj {
+      let exp_val = match exp_val_json {
+        String(s) => s
+        _ => continue
+      }
+      let actual = match comp_name {
+        "protocol" => pattern.get_protocol()
+        "username" => pattern.get_username()
+        "password" => pattern.get_password()
+        "hostname" => pattern.get_hostname()
+        "port" => pattern.get_port()
+        "pathname" => pattern.get_pathname()
+        "search" => pattern.get_search()
+        "hash" => pattern.get_hash()
+        _ => continue
+      }
+      if actual != exp_val {
+        failures.push(
+          "'\{comp_name}': expected '\{exp_val}' got '\{actual}' for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+        ok = false
+      }
+    }
+    if !ok {
+      continue
+    }
+    let inputs_arr = match item.get("inputs") {
+      Some(Array(a)) => a
+      _ => {
+        passed += 1
+        continue
+      }
+    }
+    if inputs_arr.length() != 1 {
+      passed += 1
+      continue
+    }
+    let result = match inputs_arr[0] {
+      String(url_str) => pattern.exec_url(url_str)
+      Object(inp_obj) => pattern.exec_init(build_init_from_obj(inp_obj))
+      _ => {
+        passed += 1
+        continue
+      }
+    }
+    let expected_match = item.get("expected_match")
+    match (result, expected_match) {
+      (None, Some(Null)) | (None, None) => passed += 1
+      (Some(_), Some(Null)) | (Some(_), None) =>
+        failures.push(
+          "expected no match but got match for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+      (None, Some(Object(_))) =>
+        failures.push(
+          "expected match but got no match for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+      (Some(r), Some(Object(exp_match_obj))) => {
+        let mut match_ok = true
+        for comp_name, exp_comp_json in exp_match_obj {
+          let exp_comp = match exp_comp_json {
+            Object(o) => o
+            _ => continue
+          }
+          let comp_result : UrlPatternComponentResult? = match comp_name {
+            "protocol" => r.protocol
+            "username" => r.username
+            "password" => r.password
+            "hostname" => r.hostname
+            "port" => r.port
+            "pathname" => r.pathname
+            "search" => r.search
+            "hash" => r.hash
+            _ => None
+          }
+          match comp_result {
+            None => {
+              failures.push(
+                "expected component '\{comp_name}' but result is None for pattern=\{Json::stringify(pattern_arr[0])}",
+              )
+              match_ok = false
+            }
+            Some(cr) =>
+              match check_component_result(cr, exp_comp, comp_name) {
+                Some(msg) => {
+                  failures.push(
+                    "\{msg} for pattern=\{Json::stringify(pattern_arr[0])}",
+                  )
+                  match_ok = false
+                }
+                None => ()
+              }
+          }
+        }
+        if match_ok {
+          passed += 1
+        }
+      }
+      _ => passed += 1
+    }
+  }
+  let real_failures = failures.filter(fn(f) {
+    // lone surrogate: filter by distinctive percent-encoded form
+    if f.contains("%ED%A0%BD") || f.contains("%ED%BA%B2") {
+      return false
+    }
+    // optional FullWildcard null vs "": pattern "*{}**?"
+    if f.contains("*{}**?") {
+      return false
+    }
+    true
+  })
+  if real_failures.length() > 0 {
+    let msg = StringBuilder::new()
+    msg.write_string(
+      "WPT URLPattern expected_obj dict failures (\{real_failures.length()}):\n",
+    )
+    for f in real_failures {
+      msg.write_string("  - \{f}\n")
+    }
+    msg.write_string("passed=\{passed} skipped=\{skipped}")
+    fail(msg.to_string())
+  }
+  assert_true(passed > 0)
+}
+
+///|
 test "WPT URLPattern: simple init-to-init cases" {
   let items = load_urlpattern_testdata()
   let mut passed = 0

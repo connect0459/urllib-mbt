@@ -4,7 +4,7 @@ priv enum PartType {
   Regexp
   SegmentWildcard
   FullWildcard
-}
+} derive(Eq)
 
 ///|
 priv enum PartModifier {
@@ -51,13 +51,22 @@ priv struct ParserCtx {
   mut i : Int
   parts : Array[Part]
   mut pending_fixed : String
+  mut pending_escaped : Bool
   mut next_numeric_name : Int
   options : CompileOptions
 }
 
 ///|
 fn ParserCtx::new(tokens : Array[Token], options : CompileOptions) -> ParserCtx {
-  { tokens, i: 0, parts: [], pending_fixed: "", next_numeric_name: 0, options }
+  {
+    tokens,
+    i: 0,
+    parts: [],
+    pending_fixed: "",
+    pending_escaped: false,
+    next_numeric_name: 0,
+    options,
+  }
 }
 
 ///|
@@ -124,6 +133,7 @@ fn ParserCtx::flush_pending(self : ParserCtx) -> Unit {
       suffix: "",
     })
     self.pending_fixed = ""
+    self.pending_escaped = false
   }
 }
 
@@ -147,6 +157,9 @@ fn ParserCtx::extract_prefix_from_pending(self : ParserCtx) -> String {
   match self.options.prefix_char {
     None => ""
     Some(pc) => {
+      if self.pending_escaped {
+        return ""
+      }
       let pf = self.pending_fixed
       if pf.length() > 0 {
         let chars : Array[Char] = []
@@ -159,6 +172,7 @@ fn ParserCtx::extract_prefix_from_pending(self : ParserCtx) -> String {
             buf.write_char(chars[j])
           }
           self.pending_fixed = buf.to_string()
+          self.pending_escaped = false
           pc.to_string()
         } else {
           ""
@@ -187,8 +201,8 @@ fn is_valid_id_start(c : Char) -> Bool {
   (c >= 'a' && c <= 'z') ||
   (c >= 'A' && c <= 'Z') ||
   c == '_' ||
-  (cp >= 0x80 && cp <= 0xD7FF) ||
-  (cp >= 0xE000 && cp <= 0xFFFC)
+  (cp >= 0x80 && cp < 0xD800) ||
+  (cp >= 0x10000 && cp <= 0x1DFFF)
 }
 
 ///|
@@ -198,8 +212,9 @@ fn is_valid_id_continue(c : Char) -> Bool {
   (c >= 'A' && c <= 'Z') ||
   (c >= '0' && c <= '9') ||
   c == '_' ||
-  (cp >= 0x80 && cp <= 0xD7FF) ||
-  (cp >= 0xE000 && cp <= 0xFFFC)
+  (cp >= 0x80 && cp < 0xD800) ||
+  (cp >= 0x10000 && cp <= 0x1DFFF) ||
+  (cp >= 0xE0100 && cp <= 0xE01EF)
 }
 
 ///|
@@ -282,10 +297,18 @@ fn parse_pattern_to_parts(
           }
         }
         seen_names.push(name)
+        let seg_wc = ctx.segment_wildcard_regexp()
         let (pk, pv) = match rw_tok {
-          Some({ kind: Regexp, value: rv }) => (PartType::Regexp, rv)
+          Some({ kind: Regexp, value: rv }) =>
+            if rv == ".*" {
+              (FullWildcard, ".*")
+            } else if rv == seg_wc {
+              (SegmentWildcard, seg_wc)
+            } else {
+              (PartType::Regexp, rv)
+            }
           Some({ kind: Asterisk, .. }) => (FullWildcard, ".*")
-          _ => (SegmentWildcard, ctx.segment_wildcard_regexp())
+          _ => (SegmentWildcard, seg_wc)
         }
         ctx.parts.push({
           kind: pk,
@@ -306,9 +329,17 @@ fn parse_pattern_to_parts(
         ctx.flush_pending()
         let rw_tok = ctx.try_consume(Regexp)
         let mod_tok = ctx.try_consume_modifier()
+        let seg_wc = ctx.segment_wildcard_regexp()
         let (pk, pv) = match rw_tok {
-          Some({ kind: Regexp, value: rv }) => (PartType::Regexp, rv)
-          _ => (SegmentWildcard, ctx.segment_wildcard_regexp())
+          Some({ kind: Regexp, value: rv }) =>
+            if rv == ".*" {
+              (FullWildcard, ".*")
+            } else if rv == seg_wc {
+              (SegmentWildcard, seg_wc)
+            } else {
+              (PartType::Regexp, rv)
+            }
+          _ => (SegmentWildcard, seg_wc)
         }
         let name = name_tok.value
         for n in seen_names {
@@ -334,9 +365,18 @@ fn parse_pattern_to_parts(
         let mod_tok = ctx.try_consume_modifier()
         let name = ctx.alloc_name()
         seen_names.push(name)
+        let seg_wc = ctx.segment_wildcard_regexp()
+        let rv = rw_tok.value
+        let (pk, pv) = if rv == ".*" {
+          (FullWildcard, ".*")
+        } else if rv == seg_wc {
+          (SegmentWildcard, seg_wc)
+        } else {
+          (PartType::Regexp, rv)
+        }
         ctx.parts.push({
-          kind: PartType::Regexp,
-          value: rw_tok.value,
+          kind: pk,
+          value: pv,
           modifier: modifier_from_token(mod_tok),
           name,
           prefix,
@@ -359,8 +399,14 @@ fn parse_pattern_to_parts(
           suffix: "",
         })
       }
-      Char | EscapedChar => {
+      Char => {
         ctx.pending_fixed = ctx.pending_fixed + ctx.tokens[ctx.i].value
+        ctx.pending_escaped = false
+        ctx.i += 1
+      }
+      EscapedChar => {
+        ctx.pending_fixed = ctx.pending_fixed + ctx.tokens[ctx.i].value
+        ctx.pending_escaped = true
         ctx.i += 1
       }
       OtherModifier =>
@@ -375,33 +421,188 @@ fn parse_pattern_to_parts(
 }
 
 ///|
-fn generate_pattern_string(parts : Array[Part]) -> String {
+fn str_first_char(s : String) -> Char? {
+  for c in s {
+    return Some(c)
+  }
+  None
+}
+
+///|
+fn str_last_char(s : String) -> Char? {
+  let mut last : Char? = None
+  for c in s {
+    last = Some(c)
+  }
+  last
+}
+
+///|
+fn segment_wildcard_regexp_str(options : CompileOptions) -> String {
+  match options.delimiter {
+    None => "[^]+?"
+    Some(d) => "[^" + escape_regexp_char(d) + "]+?"
+  }
+}
+
+///|
+fn is_empty_fixed_text(part : Part) -> Bool {
+  part.kind == FixedText &&
+  part.value == "" &&
+  part.prefix == "" &&
+  part.suffix == ""
+}
+
+///|
+fn generate_pattern_string(
+  parts : Array[Part],
+  options : CompileOptions,
+) -> String {
   let buf = StringBuilder::new()
-  for part in parts {
+  let n = parts.length()
+  let seg_wc = segment_wildcard_regexp_str(options)
+  for i = 0; i < n; i = i + 1 {
+    let part = parts[i]
+    let prev : Part? = if i > 0 { Some(parts[i - 1]) } else { None }
     match part.kind {
-      FixedText => buf.write_string(escape_pattern_string(part.value))
-      SegmentWildcard => {
-        buf.write_string(part.prefix)
-        buf.write_char(':')
-        buf.write_string(part.name)
-        buf.write_string(part.suffix)
-        buf.write_string(modifier_to_string(part.modifier))
+      FixedText => {
+        // Drop empty-value FixedText with modifier — they are semantic no-ops
+        if part.value == "" && part.modifier != NoMod {
+          continue
+        }
+        if part.modifier == NoMod {
+          buf.write_string(escape_pattern_string(part.value))
+        } else {
+          buf.write_string("{")
+          buf.write_string(escape_pattern_string(part.value))
+          buf.write_string("}")
+          buf.write_string(modifier_to_string(part.modifier))
+        }
+        continue
       }
-      FullWildcard => {
-        buf.write_string(part.prefix)
-        buf.write_char('*')
-        buf.write_string(part.suffix)
-        buf.write_string(modifier_to_string(part.modifier))
+      _ => ()
+    }
+    // Find next non-empty-fixed-text part for needs_grouping checks
+    let mut next_real : Part? = None
+    for k = i + 1; k < n; k = k + 1 {
+      if !is_empty_fixed_text(parts[k]) {
+        next_real = Some(parts[k])
+        break
       }
+    }
+    let custom_name = match str_first_char(part.name) {
+      None => false
+      Some(c) => !(c >= '0' && c <= '9')
+    }
+    let prefix_needs_group = part.prefix.length() > 0 &&
+      (match options.prefix_char {
+        None => true
+        Some(pc) =>
+          match str_first_char(part.prefix) {
+            None => false
+            Some(c) => c != pc
+          }
+      })
+    let mut needs_grouping = part.suffix.length() > 0 || prefix_needs_group
+    if !needs_grouping &&
+      custom_name &&
+      part.kind == SegmentWildcard &&
+      part.modifier == NoMod {
+      match next_real {
+        None => ()
+        Some(np) =>
+          if np.prefix.length() == 0 && np.suffix.length() == 0 {
+            match np.kind {
+              FixedText =>
+                match str_first_char(np.value) {
+                  Some(c) =>
+                    if is_valid_id_continue(c) {
+                      needs_grouping = true
+                    }
+                  None => ()
+                }
+              _ =>
+                match str_first_char(np.name) {
+                  Some(c) => if c >= '0' && c <= '9' { needs_grouping = true }
+                  None => ()
+                }
+            }
+          }
+      }
+    }
+    if !needs_grouping && part.prefix.length() == 0 {
+      match prev {
+        None => ()
+        Some(pp) =>
+          if pp.kind == FixedText {
+            match (str_last_char(pp.value), options.prefix_char) {
+              (Some(lc), Some(pc)) => if lc == pc { needs_grouping = true }
+              _ => ()
+            }
+          }
+      }
+    }
+    // For FullWildcard use_star: find the effective prev (skip empty FixedText)
+    let effective_prev : Part? = {
+      let mut ep : Part? = None
+      for k = i - 1; k >= 0; k = k - 1 {
+        if !is_empty_fixed_text(parts[k]) {
+          ep = Some(parts[k])
+          break
+        }
+      }
+      ep
+    }
+    if needs_grouping {
+      buf.write_string("{")
+    }
+    buf.write_string(escape_pattern_string(part.prefix))
+    if custom_name {
+      buf.write_char(':')
+      buf.write_string(part.name)
+    }
+    match part.kind {
       Regexp => {
-        buf.write_string(part.prefix)
         buf.write_char('(')
         buf.write_string(part.value)
         buf.write_char(')')
-        buf.write_string(part.suffix)
-        buf.write_string(modifier_to_string(part.modifier))
+      }
+      SegmentWildcard =>
+        if !custom_name {
+          buf.write_char('(')
+          buf.write_string(seg_wc)
+          buf.write_char(')')
+        }
+      FullWildcard => {
+        let use_star = !custom_name &&
+          (
+            effective_prev is None ||
+            (match effective_prev {
+              None => false
+              Some(pp) =>
+                pp.kind == FixedText || pp.modifier != NoMod || needs_grouping
+            }) ||
+            part.prefix.length() > 0
+          )
+        if use_star {
+          buf.write_char('*')
+        } else {
+          buf.write_string("(.*)")
+        }
+      }
+      FixedText => ()
+    }
+    if part.kind == SegmentWildcard && custom_name {
+      match str_first_char(part.suffix) {
+        Some(c) => if is_valid_id_continue(c) { buf.write_char('\\') }
+        None => ()
       }
     }
+    buf.write_string(escape_pattern_string(part.suffix))
+    if needs_grouping {
+      buf.write_string("}")
+    }
+    buf.write_string(modifier_to_string(part.modifier))
   }
   buf.to_string()
 }

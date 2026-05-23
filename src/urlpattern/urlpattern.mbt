@@ -6,6 +6,7 @@ priv enum ComponentKind {
   Hostname
   Port
   Pathname
+  OpaquePathname
   Search
   Hash
 } derive(Eq)
@@ -43,8 +44,24 @@ fn canonicalize_hostname_for_pattern(
   if input == "" {
     return ""
   }
-  let host = @host.parse_host(input, true) catch {
-    err => raise UrlPatternError("invalid hostname: \{err}")
+  // Strip C0 controls; truncate at #, /, \ (URL parsing would do the same)
+  let buf = StringBuilder::new()
+  for c in input {
+    let cp = c.to_int()
+    if cp <= 0x1F || cp == 0x7F {
+      continue
+    }
+    if c == '#' || c == '/' || c == '\\' || c == '?' {
+      break
+    }
+    buf.write_char(c)
+  }
+  let processed = buf.to_string()
+  if processed == "" {
+    return ""
+  }
+  let host = @host.parse_host(processed, true) catch {
+    e => raise UrlPatternError("invalid hostname: \{e}")
   }
   @host.serialize_host(host)
 }
@@ -85,13 +102,14 @@ fn apply_encode_for_component(
     Hostname => canonicalize_hostname_for_pattern(value)
     Port => canonicalize_port(value, "")
     Pathname => canonicalize_pathname(value)
+    OpaquePathname => value
     Search => canonicalize_search(value)
     Hash => canonicalize_hash(value)
   }
 }
 
 ///|
-fn is_ipv6_pattern_char(c : Char) -> Bool {
+fn is_ipv6_literal_char(c : Char) -> Bool {
   (c >= '0' && c <= '9') ||
   (c >= 'a' && c <= 'f') ||
   (c >= 'A' && c <= 'F') ||
@@ -102,77 +120,97 @@ fn is_ipv6_pattern_char(c : Char) -> Bool {
 }
 
 ///|
-fn validate_hostname_value(
+fn encode_hostname_value(
   value : String,
   in_ipv6 : Bool,
-) -> Bool raise UrlPatternError {
+) -> String raise UrlPatternError {
   if value == "" {
-    return false
+    return ""
   }
-  for c in value {
-    if c.to_int() > 0x7F {
-      raise UrlPatternError("invalid hostname: non-ASCII character")
-    }
-  }
-  let chars : Array[Char] = []
-  for c in value {
-    chars.push(c)
-  }
-  if chars[0] == '[' {
-    for j = 1; j < chars.length(); j = j + 1 {
-      if !is_ipv6_pattern_char(chars[j]) {
-        raise UrlPatternError(
-          "invalid hostname: invalid character '\{chars[j]}' in bracket expression",
-        )
-      }
-    }
-    return true
-  }
-  if chars[chars.length() - 1] == ']' {
-    if !in_ipv6 {
-      raise UrlPatternError("invalid hostname: ']' without preceding '['")
-    }
+  if in_ipv6 {
     for c in value {
-      if !is_ipv6_pattern_char(c) {
+      if !is_ipv6_literal_char(c) {
         raise UrlPatternError(
-          "invalid hostname: invalid character '\{c}' in IPv6 closing",
+          "invalid character '\{c}' in IPv6 address literal",
         )
       }
     }
-    return false
+    let buf = StringBuilder::new()
+    for c in value {
+      buf.write_char(
+        if c >= 'A' && c <= 'F' {
+          (c.to_int() + 32).unsafe_to_char()
+        } else {
+          c
+        },
+      )
+    }
+    return buf.to_string()
   }
-  let _ = @host.parse_host(value, true) catch {
-    err => raise UrlPatternError("invalid hostname: \{err}")
+  let first_char : Char? = {
+    let mut fc : Char? = None
+    for c in value {
+      fc = Some(c)
+      break
+    }
+    fc
   }
-  false
+  if first_char == Some('[') {
+    for c in value {
+      if !is_ipv6_literal_char(c) {
+        raise UrlPatternError(
+          "invalid character '\{c}' in IPv6 address literal",
+        )
+      }
+    }
+    let buf = StringBuilder::new()
+    for c in value {
+      buf.write_char(
+        if c >= 'A' && c <= 'F' {
+          (c.to_int() + 32).unsafe_to_char()
+        } else {
+          c
+        },
+      )
+    }
+    return buf.to_string()
+  }
+  canonicalize_hostname_for_pattern(value)
 }
 
 ///|
-fn validate_parts_with_encode(
-  parts : Array[Part],
+fn encode_parts(
+  raw_parts : Array[Part],
   kind : ComponentKind,
-) -> Unit raise UrlPatternError {
+) -> Array[Part] raise UrlPatternError {
+  let result : Array[Part] = []
   let mut ipv6_open = false
-  for part in parts {
+  for part in raw_parts {
     match part.kind {
-      FixedText =>
-        if kind == Hostname {
-          if validate_hostname_value(part.value, ipv6_open) {
-            ipv6_open = true
+      FixedText => {
+        let enc = if kind == Hostname {
+          let v = encode_hostname_value(part.value, ipv6_open)
+          for c in part.value {
+            if c == '[' {
+              ipv6_open = true
+            } else if c == ']' {
+              ipv6_open = false
+            }
           }
+          v
         } else {
-          let _ = apply_encode_for_component(part.value, kind)
+          apply_encode_for_component(part.value, kind)
         }
+        result.push({
+          kind: FixedText,
+          value: enc,
+          modifier: part.modifier,
+          name: part.name,
+          prefix: part.prefix,
+          suffix: part.suffix,
+        })
+      }
       Regexp => {
-        if kind == Hostname {
-          if validate_hostname_value(part.prefix, ipv6_open) {
-            ipv6_open = true
-          }
-          let _ = validate_hostname_value(part.suffix, ipv6_open)
-        } else {
-          let _ = apply_encode_for_component(part.prefix, kind)
-          let _ = apply_encode_for_component(part.suffix, kind)
-        }
         for c in part.value {
           if c.to_int() > 0x7F {
             raise UrlPatternError(
@@ -180,19 +218,80 @@ fn validate_parts_with_encode(
             )
           }
         }
-      }
-      SegmentWildcard | FullWildcard =>
-        if kind == Hostname {
-          if validate_hostname_value(part.prefix, ipv6_open) {
-            ipv6_open = true
+        let enc_prefix = if kind == Hostname {
+          let p = encode_hostname_value(part.prefix, ipv6_open)
+          for c in part.prefix {
+            if c == '[' {
+              ipv6_open = true
+            } else if c == ']' {
+              ipv6_open = false
+            }
           }
-          let _ = validate_hostname_value(part.suffix, ipv6_open)
+          p
         } else {
-          let _ = apply_encode_for_component(part.prefix, kind)
-          let _ = apply_encode_for_component(part.suffix, kind)
+          apply_encode_for_component(part.prefix, kind)
         }
+        let enc_suffix = if kind == Hostname {
+          let s = encode_hostname_value(part.suffix, ipv6_open)
+          for c in part.suffix {
+            if c == '[' {
+              ipv6_open = true
+            } else if c == ']' {
+              ipv6_open = false
+            }
+          }
+          s
+        } else {
+          apply_encode_for_component(part.suffix, kind)
+        }
+        result.push({
+          kind: Regexp,
+          value: part.value,
+          modifier: part.modifier,
+          name: part.name,
+          prefix: enc_prefix,
+          suffix: enc_suffix,
+        })
+      }
+      SegmentWildcard | FullWildcard => {
+        let enc_prefix = if kind == Hostname {
+          let p = encode_hostname_value(part.prefix, ipv6_open)
+          for c in part.prefix {
+            if c == '[' {
+              ipv6_open = true
+            } else if c == ']' {
+              ipv6_open = false
+            }
+          }
+          p
+        } else {
+          apply_encode_for_component(part.prefix, kind)
+        }
+        let enc_suffix = if kind == Hostname {
+          let s = encode_hostname_value(part.suffix, ipv6_open)
+          for c in part.suffix {
+            if c == '[' {
+              ipv6_open = true
+            } else if c == ']' {
+              ipv6_open = false
+            }
+          }
+          s
+        } else {
+          apply_encode_for_component(part.suffix, kind)
+        }
+        result.push({
+          kind: part.kind,
+          value: part.value,
+          modifier: part.modifier,
+          name: part.name,
+          prefix: enc_prefix,
+          suffix: enc_suffix,
+        })
+      }
     }
   }
+  result
 }
 
 ///|
@@ -202,9 +301,9 @@ fn compile_component(
   policy : TokenizePolicy,
   kind : ComponentKind,
 ) -> UrlPatternComponent raise UrlPatternError {
-  let parts = parse_pattern_to_parts(pattern, options, policy)
-  validate_parts_with_encode(parts, kind)
-  let pat_str = generate_pattern_string(parts)
+  let raw_parts = parse_pattern_to_parts(pattern, options, policy)
+  let parts = encode_parts(raw_parts, kind)
+  let pat_str = generate_pattern_string(parts, options)
   let (regexp_str, group_names) = generate_regexp(parts, options)
   let regex = @string.Regex(regexp_str) catch {
     err =>
@@ -220,7 +319,13 @@ pub fn UrlPattern::from_init(
   init : UrlPatternInit,
 ) -> UrlPattern raise UrlPatternError {
   let init = apply_base_url(init, true)
-  let proto_val = init.protocol.unwrap_or("*")
+  let proto_raw = init.protocol.unwrap_or("*")
+  let proto_val = if proto_raw.length() > 0 &&
+    proto_raw[proto_raw.length() - 1] == ':' {
+    proto_raw[0:proto_raw.length() - 1].to_owned()
+  } else {
+    proto_raw
+  }
   let port_raw = init.port.unwrap_or("*")
   if is_literal_port_out_of_range(port_raw) {
     raise UrlPatternError("port out of range: '\{port_raw}'")
@@ -251,24 +356,37 @@ pub fn UrlPattern::from_init(
     Hostname,
   )
   let port = compile_component(port_val, default_options, Strict, Port)
+  let can_match_special_proto = protocol.regex.execute("ftp") is Some(_) ||
+    protocol.regex.execute("file") is Some(_) ||
+    protocol.regex.execute("http") is Some(_) ||
+    protocol.regex.execute("https") is Some(_) ||
+    protocol.regex.execute("ws") is Some(_) ||
+    protocol.regex.execute("wss") is Some(_)
+  let pathname_kind = if !can_match_special_proto {
+    OpaquePathname
+  } else {
+    Pathname
+  }
   let pathname = compile_component(
     init.pathname.unwrap_or("*"),
     pathname_options,
     Strict,
-    Pathname,
+    pathname_kind,
   )
-  let search = compile_component(
-    init.search.unwrap_or("*"),
-    default_options,
-    Strict,
-    Search,
-  )
-  let hash = compile_component(
-    init.hash.unwrap_or("*"),
-    default_options,
-    Strict,
-    Hash,
-  )
+  let search_raw = init.search.unwrap_or("*")
+  let search_val = if search_raw.length() > 0 && search_raw[0] == '?' {
+    search_raw[1:].to_owned()
+  } else {
+    search_raw
+  }
+  let search = compile_component(search_val, default_options, Strict, Search)
+  let hash_raw = init.hash.unwrap_or("*")
+  let hash_val = if hash_raw.length() > 0 && hash_raw[0] == '#' {
+    hash_raw[1:].to_owned()
+  } else {
+    hash_raw
+  }
+  let hash = compile_component(hash_val, default_options, Strict, Hash)
   { protocol, username, password, hostname, port, pathname, search, hash }
 }
 
@@ -299,8 +417,13 @@ pub fn UrlPattern::exec_init(
   init : UrlPatternInit,
 ) -> UrlPatternResult? {
   let init = apply_base_url(init, false) catch { _ => return None }
-  let proto_str = init.protocol.unwrap_or("")
-  let proto_input = init.protocol.unwrap_or("")
+  let proto_raw = init.protocol.unwrap_or("")
+  let proto_input = try? canonicalize_protocol_for_pattern(proto_raw)
+  let proto_input = match proto_input {
+    Err(_) => return None
+    Ok(s) => s
+  }
+  let proto_str = proto_input
   let protocol = match match_component(self.protocol, proto_input) {
     None => return None
     Some(r) => Some(r)
@@ -320,7 +443,27 @@ pub fn UrlPattern::exec_init(
     None => return None
     Some(r) => Some(r)
   }
-  let port_input = canonicalize_port(init.port.unwrap_or(""), proto_str)
+  let raw_port = init.port.unwrap_or("")
+  let port_input = if raw_port != "" {
+    let p = canonicalize_port(raw_port, proto_str)
+    // If port has non-digit characters after canonicalization, it's invalid
+    let valid = {
+      let mut ok = true
+      for c in p {
+        if !(c >= '0' && c <= '9') {
+          ok = false
+          break
+        }
+      }
+      ok
+    }
+    if !valid {
+      return None
+    }
+    p
+  } else {
+    ""
+  }
   let port = match match_component(self.port, port_input) {
     None => return None
     Some(r) => Some(r)
@@ -551,9 +694,14 @@ fn apply_base_url(
   let base = @url.parse(base_str) catch {
     _ => raise UrlPatternError("invalid baseURL: \{base_str}")
   }
-  let base_search = strip_leading_char(base.search(), '?')
-  let base_hash = strip_leading_char(base.hash(), '#')
+  let base_search_raw = strip_leading_char(base.search(), '?')
+  let base_hash_raw = strip_leading_char(base.hash(), '#')
   let base_port = base.port_str()
+  let esc : (String) -> String = if for_pattern {
+    escape_pattern_string
+  } else {
+    fn(s) { s }
+  }
   let has_protocol = init.protocol is Some(_)
   let has_username = init.username is Some(_)
   let has_password = init.password is Some(_)
@@ -561,7 +709,11 @@ fn apply_base_url(
   let has_port = init.port is Some(_)
   let has_pathname = init.pathname is Some(_)
   let has_search = init.search is Some(_)
-  let protocol = if has_protocol { init.protocol } else { Some(base.scheme) }
+  let protocol = if has_protocol {
+    init.protocol
+  } else {
+    Some(esc(base.scheme))
+  }
   let username = if !for_pattern &&
     !has_protocol &&
     !has_hostname &&
@@ -582,31 +734,47 @@ fn apply_base_url(
     init.password
   }
   let hostname = if !has_protocol && !has_hostname {
-    Some(base.hostname())
+    Some(esc(base.hostname()))
   } else {
     init.hostname
   }
   let port = if !has_protocol && !has_hostname && !has_port {
-    Some(base_port)
+    Some(esc(base_port))
   } else {
     init.port
   }
   let pathname = if !has_protocol && !has_hostname && !has_port && !has_pathname {
-    Some(base.pathname())
-  } else if !has_protocol &&
-    !has_hostname &&
-    !has_port &&
-    has_pathname &&
-    !for_pattern {
+    Some(esc(base.pathname()))
+  } else if !has_protocol && !has_hostname && !has_port && has_pathname {
     let pn = init.pathname.unwrap_or("")
-    let chars : Array[Char] = []
-    for c in pn {
-      chars.push(c)
+    let first_slash : Bool = {
+      let chars : Array[Char] = []
+      for c in pn {
+        chars.push(c)
+      }
+      if chars.is_empty() {
+        false
+      } else {
+        let c0 = chars[0]
+        c0 == '/' ||
+        (chars.length() > 1 && (c0 == '{' || c0 == '\\') && chars[1] == '/')
+      }
     }
-    if chars.length() > 0 && chars[0] == '/' {
+    if first_slash {
       init.pathname
     } else {
-      Some(get_base_dir(base.pathname()) + pn)
+      let resolved = get_base_dir(base.pathname()) + pn
+      if for_pattern {
+        let normalized = try? @url.parse("https://dummy.test" + resolved)
+        Some(
+          match normalized {
+            Ok(u) => u.pathname()
+            Err(_) => resolved
+          },
+        )
+      } else {
+        Some(resolved)
+      }
     }
   } else {
     init.pathname
@@ -616,7 +784,7 @@ fn apply_base_url(
     !has_port &&
     !has_pathname &&
     !has_search {
-    Some(base_search)
+    Some(esc(base_search_raw))
   } else {
     init.search
   }
@@ -626,7 +794,7 @@ fn apply_base_url(
     !has_pathname &&
     !has_search &&
     init.hash is None {
-    Some(base_hash)
+    Some(esc(base_hash_raw))
   } else {
     init.hash
   }

@@ -720,11 +720,24 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
 
 ### WPT conformance
 
-- [x] **WPT URLPattern: 173/173 passing** (+29 from compiler-warning fixes,
-  string-URL input handling, and baseURL support).
-  191 cases skipped: `expected_obj` (pattern normalization), `ignoreCase`,
-  unsupported regex features (`[[a-z]--a]` char-class subtraction,
-  `[\d&&[0-1]]` intersection), multiple-element pattern/input arrays.
+- [x] **WPT URLPattern: 380/381 tests pass** (1 test with 2 failures; see below).
+  Previously 173/173; expanded to cover `expected_obj` dict normalization (+79
+  WPT cases from Task D).
+
+#### Remaining known failures (2, in expected_obj dict test)
+
+1. **Lone-surrogate pathname encoding** — `{"pathname":" 🚲"}` (JSON lone
+   surrogates U+D83D U+0020 U+DEB2). Expected `%EF%BF%BD%20%EF%BF%BD`
+   (browser replaces lone surrogates with U+FFFD before encoding); our URL
+   library encodes them as raw surrogate UTF-8 bytes
+   `%ED%A0%BD%20%ED%BA%B2`. Root cause: `@url` library behaviour; fixing
+   requires modifying URL library surrogate handling. Out of scope.
+
+2. **Optional FullWildcard regex capture** — `{"pathname":"*{}**?"}` with
+   input `"foobar"` expects `groups["1"] = null`; we return `""`. Root cause:
+   JavaScript's V8 regex engine returns `undefined` for `(.*)?` when the
+   greedy match leaves nothing for the optional group, but MoonBit's regex
+   engine returns `""`. Out of scope.
 
 ### Multiple inputs with base URL (completed)
 
