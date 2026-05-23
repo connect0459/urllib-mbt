@@ -257,9 +257,8 @@ pub fn Url::set_search(self : Url, value : String) -> Url {
 ///|
 /// Sets the URL path from `value`; no-op for opaque-path URLs.
 pub fn Url::set_pathname(self : Url, value : String) -> Url {
-  match self.path {
-    Opaque(_) => return self
-    _ => ()
+  if self.has_opaque_path() {
+    return self
   }
   let is_special = is_special_scheme(self.scheme)
   let stripped = strip_ascii_tabs_newlines(value)
@@ -336,9 +335,8 @@ fn Url::normalize_and_guard_host(
 /// Sets the host and optional port from a `"host"` or `"host:port"` string.
 /// No-op for opaque-path URLs or on parse failure.
 pub fn Url::set_host(self : Url, value : String) -> Url {
-  match self.path {
-    Opaque(_) => return self
-    _ => ()
+  if self.has_opaque_path() {
+    return self
   }
   let is_special = is_special_scheme(self.scheme)
   let stripped = strip_ascii_tabs_newlines(value)
@@ -382,9 +380,8 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
 /// Sets the host from `value` without modifying the port.
 /// No-op for opaque-path URLs or on parse failure.
 pub fn Url::set_hostname(self : Url, value : String) -> Url {
-  match self.path {
-    Opaque(_) => return self
-    _ => ()
+  if self.has_opaque_path() {
+    return self
   }
   let is_special = is_special_scheme(self.scheme)
   let stripped = strip_ascii_tabs_newlines(value)
