@@ -152,7 +152,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
   while i < n && chars[i] != ':' {
     let c = chars[i]
     if is_ascii_alphanumeric(c) || c == '+' || c == '-' || c == '.' {
-      buf.write_char(ascii_lowercase(c))
+      buf.write_char(ascii_lowercase_char(c))
     } else {
       return self
     }

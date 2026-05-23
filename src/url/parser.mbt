@@ -31,7 +31,7 @@ fn is_ascii_alphanumeric(c : Char) -> Bool {
 }
 
 ///|
-fn ascii_lowercase(c : Char) -> Char {
+fn ascii_lowercase_char(c : Char) -> Char {
   if c >= 'A' && c <= 'Z' {
     Int::unsafe_to_char(c.to_int() + 32)
   } else {
@@ -122,7 +122,7 @@ fn strip_tabs_and_newlines(input : String) -> String {
 }
 
 ///|
-fn ascii_lower(s : String) -> String {
+fn ascii_lowercase(s : String) -> String {
   let buf = StringBuilder::new()
   for c in s {
     let cp = c.to_int()
@@ -137,13 +137,13 @@ fn ascii_lower(s : String) -> String {
 
 ///|
 fn is_dot_segment(s : String) -> Bool {
-  let low = ascii_lower(s)
+  let low = ascii_lowercase(s)
   low == ".." || low == ".%2e" || low == "%2e." || low == "%2e%2e"
 }
 
 ///|
 fn is_single_dot(s : String) -> Bool {
-  let low = ascii_lower(s)
+  let low = ascii_lowercase(s)
   low == "." || low == "%2e"
 }
 
@@ -200,7 +200,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
       SchemeStart =>
         match c {
           Some(ch) if is_ascii_alpha(ch) => {
-            buf.write_char(ascii_lowercase(ch))
+            buf.write_char(ascii_lowercase_char(ch))
             state = State::Scheme
           }
           _ => {
@@ -213,7 +213,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
           Some(ch) if is_ascii_alphanumeric(ch) ||
             ch == '+' ||
             ch == '-' ||
-            ch == '.' => buf.write_char(ascii_lowercase(ch))
+            ch == '.' => buf.write_char(ascii_lowercase_char(ch))
           Some(':') => {
             url.scheme = buf.to_string()
             buf.reset()
