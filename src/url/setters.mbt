@@ -45,9 +45,10 @@ fn safe_parse_host(input : String, is_special : Bool) -> Host? {
 
 ///|
 fn url_can_have_credentials(url : Url) -> Bool {
-  url.scheme != "file" &&
-  !url.has_opaque_path() &&
-  !(url.host is (None | Some(Host::Domain(""))))
+  match url.host {
+    None | Some(Host::Domain("")) => false
+    _ => url.scheme != "file" && !url.has_opaque_path()
+  }
 }
 
 ///|
