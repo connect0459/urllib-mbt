@@ -142,8 +142,7 @@ pub fn parse_host(
     return Host::Ipv6(pieces)
   }
   if !is_special {
-    let h = parse_opaque_host(input)
-    return h
+    return parse_opaque_host(input)
   }
   let domain = @pe.percent_decode(input)
   let ascii_domain = @idna.domain_to_ascii(domain) catch {

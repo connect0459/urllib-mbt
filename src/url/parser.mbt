@@ -611,10 +611,7 @@ fn parse_host_and_port(
         }
         (h, p)
       }
-      None => {
-        let h = host_parse(input, is_special)
-        (h, None)
-      }
+      None => (host_parse(input, is_special), None)
     }
   }
 }
