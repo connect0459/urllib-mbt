@@ -404,14 +404,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
         if decoded.length() == 0 {
           raise IdnaParseError("decoded ACE label is empty (P4)")
         }
-        let mut has_nonascii_in_decoded = false
-        for cp in decoded {
-          if cp > 0x7F {
-            has_nonascii_in_decoded = true
-            break
-          }
-        }
-        if !has_nonascii_in_decoded {
+        if !decoded.any(fn(cp) { cp > 0x7F }) {
           raise IdnaParseError("decoded ACE label contains no non-ASCII (P4)")
         }
         let nfc_decoded = nfc_compose(decoded)
