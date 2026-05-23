@@ -144,12 +144,6 @@ pub fn percent_encode_userinfo(input : String) -> String {
 }
 
 ///|
-/// Encodes `input` using the C0 percent-encode set (intended for opaque paths).
-pub fn percent_encode_opaque_path(input : String) -> String {
-  percent_encode_c0(input)
-}
-
-///|
 /// Encodes `input` using the C0 percent-encode set (control chars ≤ U+001F
 /// and non-ASCII > U+007E).
 ///

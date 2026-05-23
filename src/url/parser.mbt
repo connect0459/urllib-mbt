@@ -544,8 +544,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             url.fragment = Some("")
             state = State::Fragment
           }
-          None =>
-            url.opaque_path = @pe.percent_encode_opaque_path(buf.to_string())
+          None => url.opaque_path = @pe.percent_encode_c0(buf.to_string())
           Some(ch) => buf.write_char(ch)
         }
       Query =>

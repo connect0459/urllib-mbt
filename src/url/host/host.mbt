@@ -167,7 +167,7 @@ fn parse_opaque_host(input : String) -> Host raise HostParseError {
       raise HostParseError("opaque host has forbidden code point")
     }
   }
-  Host::OpaqueHost(@pe.percent_encode_opaque_path(input))
+  Host::OpaqueHost(@pe.percent_encode_c0(input))
 }
 
 ///|
