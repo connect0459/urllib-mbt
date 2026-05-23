@@ -374,7 +374,7 @@ pub fn Url::fragment(self : Url) -> String? {
 ///|
 /// Returns `true` when the URL has a host component (i.e. the host is non-`None`).
 pub fn Url::has_host(self : Url) -> Bool {
-  self.host is Some(_)
+  self.has_authority()
 }
 
 ///|
