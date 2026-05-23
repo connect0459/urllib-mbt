@@ -33,17 +33,9 @@ fn safe_parse_host(input : String, is_special : Bool) -> Host? {
 
 ///|
 fn url_can_have_credentials(url : Url) -> Bool {
-  if url.scheme == "file" {
-    return false
-  }
-  match url.path {
-    Opaque(_) => false
-    _ =>
-      match url.host {
-        None | Some(Host::Domain("")) => false
-        _ => true
-      }
-  }
+  url.scheme != "file" &&
+  !(url.path is Opaque(_)) &&
+  !(url.host is (None | Some(Host::Domain(""))))
 }
 
 // Returns (changed, new_port) where:
