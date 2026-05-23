@@ -74,8 +74,11 @@ pub fn percent_encode_byte(byte : Int) -> String {
 
 ///|
 /// Encodes a Unicode character to its UTF-8 byte sequence as an array of integers.
+/// Lone surrogate code points (U+D800–U+DFFF) are replaced with U+FFFD to
+/// match the WHATWG "UTF-8 encode" algorithm applied to USVStrings.
 pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
-  let cp = c.to_int()
+  let raw_cp = c.to_int()
+  let cp = if raw_cp >= 0xD800 && raw_cp <= 0xDFFF { 0xFFFD } else { raw_cp }
   let result : Array[Int] = []
   if cp <= 0x7F {
     result.push(cp)
