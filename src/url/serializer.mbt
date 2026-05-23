@@ -1,4 +1,15 @@
 ///|
+fn write_port(buf : StringBuilder, port : Int?) -> Unit {
+  match port {
+    Some(p) => {
+      buf.write_char(':')
+      buf.write_string(p.to_string())
+    }
+    None => ()
+  }
+}
+
+///|
 /// Returns the full serialized URL string.
 pub fn Url::href(self : Url) -> String {
   let buf = StringBuilder::new()
@@ -21,13 +32,7 @@ pub fn Url::href(self : Url) -> String {
       Some(h) => buf.write_string(@host.serialize_host(h))
       None => ()
     }
-    match self.port {
-      Some(p) => {
-        buf.write_char(':')
-        buf.write_string(p.to_string())
-      }
-      None => ()
-    }
+    write_port(buf, self.port)
   }
   match self.path {
     Opaque(s) => buf.write_string(s)
@@ -74,13 +79,7 @@ pub fn Url::origin(self : Url) -> String {
       Some(h) => buf.write_string(@host.serialize_host(h))
       None => ()
     }
-    match self.port {
-      Some(p) => {
-        buf.write_char(':')
-        buf.write_string(p.to_string())
-      }
-      None => ()
-    }
+    write_port(buf, self.port)
     buf.to_string()
   } else if self.scheme == "blob" {
     let inner_str = match self.path {
