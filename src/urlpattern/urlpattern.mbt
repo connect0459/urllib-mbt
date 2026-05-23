@@ -1,10 +1,209 @@
 ///|
+priv enum ComponentKind {
+  Protocol
+  Username
+  Password
+  Hostname
+  Port
+  Pathname
+  Search
+  Hash
+} derive(Eq)
+
+///|
+fn canonicalize_protocol_for_pattern(
+  input : String,
+) -> String raise UrlPatternError {
+  if input == "" {
+    return ""
+  }
+  let chars : Array[Char] = []
+  for c in input {
+    chars.push(c)
+  }
+  let stripped = if chars.length() > 0 && chars[chars.length() - 1] == ':' {
+    let buf = StringBuilder::new()
+    for j = 0; j < chars.length() - 1; j = j + 1 {
+      buf.write_char(chars[j])
+    }
+    buf.to_string()
+  } else {
+    input
+  }
+  let parsed = @url.parse(stripped + "://dummy.test") catch {
+    _ => raise UrlPatternError("invalid protocol: '\{input}'")
+  }
+  parsed.scheme
+}
+
+///|
+fn canonicalize_hostname_for_pattern(
+  input : String,
+) -> String raise UrlPatternError {
+  if input == "" {
+    return ""
+  }
+  let host = @host.parse_host(input, true) catch {
+    err => raise UrlPatternError("invalid hostname: \{err}")
+  }
+  @host.serialize_host(host)
+}
+
+///|
+fn is_literal_port_out_of_range(s : String) -> Bool {
+  if s == "" {
+    return false
+  }
+  let chars : Array[Char] = []
+  for c in s {
+    chars.push(c)
+  }
+  for c in chars {
+    if !(c >= '0' && c <= '9') {
+      return false
+    }
+  }
+  let mut n = 0
+  for c in chars {
+    n = n * 10 + (c.to_int() - '0'.to_int())
+    if n > 65535 {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn apply_encode_for_component(
+  value : String,
+  kind : ComponentKind,
+) -> String raise UrlPatternError {
+  match kind {
+    Protocol => canonicalize_protocol_for_pattern(value)
+    Username => canonicalize_userinfo(value)
+    Password => canonicalize_password(value)
+    Hostname => canonicalize_hostname_for_pattern(value)
+    Port => canonicalize_port(value, "")
+    Pathname => canonicalize_pathname(value)
+    Search => canonicalize_search(value)
+    Hash => canonicalize_hash(value)
+  }
+}
+
+///|
+fn is_ipv6_pattern_char(c : Char) -> Bool {
+  (c >= '0' && c <= '9') ||
+  (c >= 'a' && c <= 'f') ||
+  (c >= 'A' && c <= 'F') ||
+  c == ':' ||
+  c == '.' ||
+  c == '[' ||
+  c == ']'
+}
+
+///|
+fn validate_hostname_value(
+  value : String,
+  in_ipv6 : Bool,
+) -> Bool raise UrlPatternError {
+  if value == "" {
+    return false
+  }
+  for c in value {
+    if c.to_int() > 0x7F {
+      raise UrlPatternError("invalid hostname: non-ASCII character")
+    }
+  }
+  let chars : Array[Char] = []
+  for c in value {
+    chars.push(c)
+  }
+  if chars[0] == '[' {
+    for j = 1; j < chars.length(); j = j + 1 {
+      if !is_ipv6_pattern_char(chars[j]) {
+        raise UrlPatternError(
+          "invalid hostname: invalid character '\{chars[j]}' in bracket expression",
+        )
+      }
+    }
+    return true
+  }
+  if chars[chars.length() - 1] == ']' {
+    if !in_ipv6 {
+      raise UrlPatternError("invalid hostname: ']' without preceding '['")
+    }
+    for c in value {
+      if !is_ipv6_pattern_char(c) {
+        raise UrlPatternError(
+          "invalid hostname: invalid character '\{c}' in IPv6 closing",
+        )
+      }
+    }
+    return false
+  }
+  let _ = @host.parse_host(value, true) catch {
+    err => raise UrlPatternError("invalid hostname: \{err}")
+  }
+  false
+}
+
+///|
+fn validate_parts_with_encode(
+  parts : Array[Part],
+  kind : ComponentKind,
+) -> Unit raise UrlPatternError {
+  let mut ipv6_open = false
+  for part in parts {
+    match part.kind {
+      FixedText =>
+        if kind == Hostname {
+          if validate_hostname_value(part.value, ipv6_open) {
+            ipv6_open = true
+          }
+        } else {
+          let _ = apply_encode_for_component(part.value, kind)
+        }
+      Regexp => {
+        if kind == Hostname {
+          if validate_hostname_value(part.prefix, ipv6_open) {
+            ipv6_open = true
+          }
+          let _ = validate_hostname_value(part.suffix, ipv6_open)
+        } else {
+          let _ = apply_encode_for_component(part.prefix, kind)
+          let _ = apply_encode_for_component(part.suffix, kind)
+        }
+        for c in part.value {
+          if c.to_int() > 0x7F {
+            raise UrlPatternError(
+              "regexp value contains non-ASCII character '\{c}'",
+            )
+          }
+        }
+      }
+      SegmentWildcard | FullWildcard =>
+        if kind == Hostname {
+          if validate_hostname_value(part.prefix, ipv6_open) {
+            ipv6_open = true
+          }
+          let _ = validate_hostname_value(part.suffix, ipv6_open)
+        } else {
+          let _ = apply_encode_for_component(part.prefix, kind)
+          let _ = apply_encode_for_component(part.suffix, kind)
+        }
+    }
+  }
+}
+
+///|
 fn compile_component(
   pattern : String,
   options : CompileOptions,
   policy : TokenizePolicy,
+  kind : ComponentKind,
 ) -> UrlPatternComponent raise UrlPatternError {
   let parts = parse_pattern_to_parts(pattern, options, policy)
+  validate_parts_with_encode(parts, kind)
   let pat_str = generate_pattern_string(parts)
   let (regexp_str, group_names) = generate_regexp(parts, options)
   let regex = @string.Regex(regexp_str) catch {
@@ -23,43 +222,52 @@ pub fn UrlPattern::from_init(
   let init = apply_base_url(init, true)
   let proto_val = init.protocol.unwrap_or("*")
   let port_raw = init.port.unwrap_or("*")
+  if is_literal_port_out_of_range(port_raw) {
+    raise UrlPatternError("port out of range: '\{port_raw}'")
+  }
   let port_val = match (proto_val, port_raw) {
     ("http" | "ws", "80") => ""
     ("https" | "wss", "443") => ""
     ("ftp", "21") => ""
     (_, v) => v
   }
-  let protocol = compile_component(proto_val, default_options, Strict)
+  let protocol = compile_component(proto_val, default_options, Strict, Protocol)
   let username = compile_component(
     init.username.unwrap_or("*"),
     default_options,
     Strict,
+    Username,
   )
   let password = compile_component(
     init.password.unwrap_or("*"),
     default_options,
     Strict,
+    Password,
   )
   let hostname = compile_component(
     init.hostname.unwrap_or("*"),
     hostname_options,
     Strict,
+    Hostname,
   )
-  let port = compile_component(port_val, default_options, Strict)
+  let port = compile_component(port_val, default_options, Strict, Port)
   let pathname = compile_component(
     init.pathname.unwrap_or("*"),
     pathname_options,
     Strict,
+    Pathname,
   )
   let search = compile_component(
     init.search.unwrap_or("*"),
     default_options,
     Strict,
+    Search,
   )
   let hash = compile_component(
     init.hash.unwrap_or("*"),
     default_options,
     Strict,
+    Hash,
   )
   { protocol, username, password, hostname, port, pathname, search, hash }
 }

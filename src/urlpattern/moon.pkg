@@ -1,6 +1,7 @@
 import {
   "moonbitlang/core/string",
   "connect0459/urllib/url",
+  "connect0459/urllib/url/host",
 }
 
 import {

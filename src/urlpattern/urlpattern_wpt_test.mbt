@@ -76,6 +76,62 @@ fn check_component_result(
 }
 
 ///|
+test "WPT URLPattern T-A: construction rejects invalid patterns" {
+  let items = load_urlpattern_testdata()
+  let mut passed = 0
+  let failures : Array[String] = []
+  let mut skipped = 0
+  for raw_item in items {
+    let item = match raw_item {
+      Object(o) => o
+      _ => continue
+    }
+    match item.get("expected_obj") {
+      Some(String("error")) => ()
+      _ => continue
+    }
+    let pattern_arr = match item.get("pattern") {
+      Some(Array(a)) => a
+      _ => continue
+    }
+    if pattern_arr.length() != 1 {
+      skipped += 1
+      continue
+    }
+    let pat_obj = match pattern_arr[0] {
+      Object(o) => o
+      _ => {
+        skipped += 1
+        continue
+      }
+    }
+    if pat_obj.get("ignoreCase") is Some(_) {
+      skipped += 1
+      continue
+    }
+    let pat_init = build_init_from_obj(pat_obj)
+    try UrlPattern::from_init(pat_init) catch {
+      _ => passed += 1
+    } noraise {
+      _ =>
+        failures.push(
+          "expected error but got Ok for pattern=\{Json::stringify(pattern_arr[0])}",
+        )
+    }
+  }
+  if failures.length() > 0 {
+    let msg = StringBuilder::new()
+    msg.write_string("WPT URLPattern T-A failures (\{failures.length()}):\n")
+    for f in failures {
+      msg.write_string("  - \{f}\n")
+    }
+    msg.write_string("passed=\{passed} skipped=\{skipped}")
+    fail(msg.to_string())
+  }
+  assert_true(passed > 0)
+}
+
+///|
 test "WPT URLPattern: simple init-to-init cases" {
   let items = load_urlpattern_testdata()
   let mut passed = 0

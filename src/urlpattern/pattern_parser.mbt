@@ -182,6 +182,47 @@ fn modifier_from_token(t : Token?) -> PartModifier {
 }
 
 ///|
+fn is_valid_id_start(c : Char) -> Bool {
+  let cp = c.to_int()
+  (c >= 'a' && c <= 'z') ||
+  (c >= 'A' && c <= 'Z') ||
+  c == '_' ||
+  (cp >= 0x80 && cp <= 0xD7FF) ||
+  (cp >= 0xE000 && cp <= 0xFFFC)
+}
+
+///|
+fn is_valid_id_continue(c : Char) -> Bool {
+  let cp = c.to_int()
+  (c >= 'a' && c <= 'z') ||
+  (c >= 'A' && c <= 'Z') ||
+  (c >= '0' && c <= '9') ||
+  c == '_' ||
+  (cp >= 0x80 && cp <= 0xD7FF) ||
+  (cp >= 0xE000 && cp <= 0xFFFC)
+}
+
+///|
+fn is_valid_identifier(name : String) -> Bool {
+  let chars : Array[Char] = []
+  for c in name {
+    chars.push(c)
+  }
+  if chars.is_empty() {
+    return false
+  }
+  if !is_valid_id_start(chars[0]) {
+    return false
+  }
+  for j = 1; j < chars.length(); j = j + 1 {
+    if !is_valid_id_continue(chars[j]) {
+      return false
+    }
+  }
+  true
+}
+
+///|
 fn parse_pattern_to_parts(
   input : String,
   options : CompileOptions,
@@ -189,6 +230,7 @@ fn parse_pattern_to_parts(
 ) -> Array[Part] raise UrlPatternError {
   let tokens = tokenize(input, policy)
   let ctx = ParserCtx::new(tokens, options)
+  let seen_names : Array[String] = []
 
   while ctx.i < ctx.tokens.length() {
     match ctx.peek() {
@@ -206,7 +248,12 @@ fn parse_pattern_to_parts(
         let mod_tok = ctx.try_consume_modifier()
         ctx.flush_pending()
         let name = match name_tok {
-          Some(nt) => nt.value
+          Some(nt) => {
+            if !is_valid_identifier(nt.value) {
+              raise UrlPatternError("invalid group name: '\{nt.value}'")
+            }
+            nt.value
+          }
           None =>
             if rw_tok is Some(_) {
               ctx.alloc_name()
@@ -229,6 +276,12 @@ fn parse_pattern_to_parts(
               continue
             }
         }
+        for n in seen_names {
+          if n == name {
+            raise UrlPatternError("duplicate group name: '\{name}'")
+          }
+        }
+        seen_names.push(name)
         let (pk, pv) = match rw_tok {
           Some({ kind: Regexp, value: rv }) => (PartType::Regexp, rv)
           Some({ kind: Asterisk, .. }) => (FullWildcard, ".*")
@@ -246,6 +299,9 @@ fn parse_pattern_to_parts(
       Name => {
         let name_tok = ctx.tokens[ctx.i]
         ctx.i += 1
+        if !is_valid_identifier(name_tok.value) {
+          raise UrlPatternError("invalid group name: '\{name_tok.value}'")
+        }
         let prefix = ctx.extract_prefix_from_pending()
         ctx.flush_pending()
         let rw_tok = ctx.try_consume(Regexp)
@@ -254,11 +310,18 @@ fn parse_pattern_to_parts(
           Some({ kind: Regexp, value: rv }) => (PartType::Regexp, rv)
           _ => (SegmentWildcard, ctx.segment_wildcard_regexp())
         }
+        let name = name_tok.value
+        for n in seen_names {
+          if n == name {
+            raise UrlPatternError("duplicate group name: '\{name}'")
+          }
+        }
+        seen_names.push(name)
         ctx.parts.push({
           kind: pk,
           value: pv,
           modifier: modifier_from_token(mod_tok),
-          name: name_tok.value,
+          name,
           prefix,
           suffix: "",
         })
@@ -269,11 +332,13 @@ fn parse_pattern_to_parts(
         let prefix = ctx.extract_prefix_from_pending()
         ctx.flush_pending()
         let mod_tok = ctx.try_consume_modifier()
+        let name = ctx.alloc_name()
+        seen_names.push(name)
         ctx.parts.push({
           kind: PartType::Regexp,
           value: rw_tok.value,
           modifier: modifier_from_token(mod_tok),
-          name: ctx.alloc_name(),
+          name,
           prefix,
           suffix: "",
         })
@@ -283,11 +348,13 @@ fn parse_pattern_to_parts(
         let prefix = ctx.extract_prefix_from_pending()
         ctx.flush_pending()
         let mod_tok = ctx.try_consume_modifier()
+        let name = ctx.alloc_name()
+        seen_names.push(name)
         ctx.parts.push({
           kind: FullWildcard,
           value: ".*",
           modifier: modifier_from_token(mod_tok),
-          name: ctx.alloc_name(),
+          name,
           prefix,
           suffix: "",
         })
@@ -296,6 +363,10 @@ fn parse_pattern_to_parts(
         ctx.pending_fixed = ctx.pending_fixed + ctx.tokens[ctx.i].value
         ctx.i += 1
       }
+      OtherModifier =>
+        raise UrlPatternError(
+          "invalid modifier '\{ctx.tokens[ctx.i].value}' without preceding group",
+        )
       _ => ctx.i += 1
     }
   }
