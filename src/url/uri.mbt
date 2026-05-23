@@ -274,23 +274,13 @@ pub fn Url::make_relative(self : Url, other : Url) -> String? {
   if path_parts.length() > 0 || base_filename != url_filename {
     if url_filename == "" {
       if path_parts.length() > 0 {
-        for i = 0; i < path_parts.length(); i = i + 1 {
-          if i > 0 {
-            buf.write_char('/')
-          }
-          buf.write_string(path_parts[i])
-        }
+        write_joined(buf, path_parts)
         buf.write_char('/')
       } else {
         buf.write_string("./")
       }
     } else {
-      for i = 0; i < path_parts.length(); i = i + 1 {
-        if i > 0 {
-          buf.write_char('/')
-        }
-        buf.write_string(path_parts[i])
-      }
+      write_joined(buf, path_parts)
       if path_parts.length() > 0 {
         buf.write_char('/')
       }
@@ -573,6 +563,16 @@ pub fn from_directory_path(path : String) -> Url raise UrlParseError {
 /// ```
 pub fn Url::query_pairs(self : Url) -> Iter[(String, String)] {
   self.search_params().iter()
+}
+
+///|
+fn write_joined(buf : StringBuilder, parts : Array[String]) -> Unit {
+  for i = 0; i < parts.length(); i = i + 1 {
+    if i > 0 {
+      buf.write_char('/')
+    }
+    buf.write_string(parts[i])
+  }
 }
 
 ///|
