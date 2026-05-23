@@ -304,20 +304,8 @@ pub fn Url::make_relative(self : Url, other : Url) -> String? {
       buf.write_string(url_filename)
     }
   }
-  match other.query {
-    Some(q) => {
-      buf.write_char('?')
-      buf.write_string(q)
-    }
-    None => ()
-  }
-  match other.fragment {
-    Some(f) => {
-      buf.write_char('#')
-      buf.write_string(f)
-    }
-    None => ()
-  }
+  write_query(buf, other.query)
+  write_fragment(buf, other.fragment)
   Some(buf.to_string())
 }
 

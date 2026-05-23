@@ -1,4 +1,26 @@
 ///|
+fn write_query(buf : StringBuilder, query : String?) -> Unit {
+  match query {
+    Some(q) => {
+      buf.write_char('?')
+      buf.write_string(q)
+    }
+    None => ()
+  }
+}
+
+///|
+fn write_fragment(buf : StringBuilder, fragment : String?) -> Unit {
+  match fragment {
+    Some(f) => {
+      buf.write_char('#')
+      buf.write_string(f)
+    }
+    None => ()
+  }
+}
+
+///|
 fn write_port(buf : StringBuilder, port : Int?) -> Unit {
   match port {
     Some(p) => {
@@ -51,20 +73,8 @@ pub fn Url::href(self : Url) -> String {
         }
       }
   }
-  match self.query {
-    Some(q) => {
-      buf.write_char('?')
-      buf.write_string(q)
-    }
-    None => ()
-  }
-  match self.fragment {
-    Some(f) => {
-      buf.write_char('#')
-      buf.write_string(f)
-    }
-    None => ()
-  }
+  write_query(buf, self.query)
+  write_fragment(buf, self.fragment)
   buf.to_string()
 }
 
