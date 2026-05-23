@@ -1,0 +1,9 @@
+version: 2
+
+# WPT fixture JSON files and test sources intentionally contain URLs with
+# embedded credentials (e.g. "https://user:pass@example.com") as test vectors
+# for the WHATWG URL Standard. These are not real secrets.
+paths-ignore:
+  - "resources/**"
+  - "**/*_test.mbt"
+  - "**/*_wbtest.mbt"
