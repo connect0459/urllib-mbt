@@ -204,13 +204,7 @@ pub fn Url::authority(self : Url) -> String {
         buf.write_char('@')
       }
       buf.write_string(@host.serialize_host(h))
-      match self.port {
-        Some(p) => {
-          buf.write_char(':')
-          buf.write_string(p.to_string())
-        }
-        None => ()
-      }
+      write_port(buf, self.port)
       buf.to_string()
     }
   }
