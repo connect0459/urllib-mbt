@@ -8,13 +8,13 @@ import {
 
 readme = "README.mbt.md"
 
-repository = ""
+repository = "https://github.com/connect0459/urllib.mbt"
 
 license = "Apache-2.0"
 
-keywords = [ ]
+keywords = ["url", "whatwg", "urlpattern", "parser", "idna"]
 
-description = ""
+description = "WHATWG-compliant URL and URLPattern library for MoonBit"
 
 options(
   source: "src",
