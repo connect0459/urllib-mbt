@@ -213,9 +213,7 @@ pub fn Url::set_password(self : Url, value : String) -> Url {
 /// Sets the port; clears it when `value` is empty or matches the scheme default.
 /// No-op for `file:` URLs and opaque-path URLs.
 pub fn Url::set_port(self : Url, value : String) -> Url {
-  if self.scheme == "file" ||
-    self.path is Opaque(_) ||
-    self.host is (None | Some(Host::Domain(""))) {
+  if !url_can_have_credentials(self) {
     return self
   }
   if value.is_empty() {
