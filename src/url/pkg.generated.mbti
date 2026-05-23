@@ -41,9 +41,12 @@ pub fn Url::href(Self) -> String
 pub fn Url::is_special(Self) -> Bool
 pub fn Url::join(Self, String) -> Self raise UrlParseError
 pub fn Url::origin(Self) -> String
+pub fn Url::password(Self) -> String
 pub fn Url::pathname(Self) -> String
+pub fn Url::port(Self) -> Int?
 pub fn Url::port_str(Self) -> String
 pub fn Url::protocol(Self) -> String
+pub fn Url::scheme(Self) -> String
 pub fn Url::search(Self) -> String
 pub fn Url::search_params(Self) -> UrlSearchParams
 pub fn Url::set_hash(Self, String) -> Self
@@ -57,6 +60,7 @@ pub fn Url::set_protocol(Self, String) -> Self
 pub fn Url::set_search(Self, String) -> Self
 pub fn Url::set_username(Self, String) -> Self
 pub fn Url::to_json(Self) -> String
+pub fn Url::username(Self) -> String
 pub impl Show for Url
 
 pub enum UrlPath {

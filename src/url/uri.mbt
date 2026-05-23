@@ -43,3 +43,23 @@ pub fn Url::search_params(self : Url) -> UrlSearchParams {
     Some(q) => parse_urlencoded(q)
   }
 }
+
+///|
+pub fn Url::scheme(self : Url) -> String {
+  self.scheme
+}
+
+///|
+pub fn Url::username(self : Url) -> String {
+  self.username
+}
+
+///|
+pub fn Url::password(self : Url) -> String {
+  self.password
+}
+
+///|
+pub fn Url::port(self : Url) -> Int? {
+  self.port
+}

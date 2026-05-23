@@ -655,6 +655,24 @@ fixture at `resources/IdnaTestV2.json` (Unicode 17.0.0).
 
 ---
 
+## Phase 10 — WHATWG API completeness (completed)
+
+Added method-style getters for URL components that were previously only
+accessible as public struct fields. Completes the WHATWG URL property surface
+and provides symmetry with the existing setter API.
+
+- [x] **`Url::scheme() -> String`** — scheme without trailing colon
+  (cf. `protocol()` which returns `scheme + ":"`)
+- [x] **`Url::username() -> String`** — symmetric with `set_username`
+- [x] **`Url::password() -> String`** — symmetric with `set_password`
+- [x] **`Url::port() -> Int?`** — typed port; `None` when absent or default
+  (cf. `port_str()` which returns `String`)
+
+All four methods delegate directly to the corresponding struct fields.
+13 unit tests added to `src/url/uri_test.mbt`.
+
+---
+
 ## API ergonomics
 
 - [x] **`impl Show for Url`** (`src/serializer.mbt`) — delegates to `href()`;

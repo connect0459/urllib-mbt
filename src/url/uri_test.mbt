@@ -246,3 +246,80 @@ test "has_opaque_path returns true for data URL" {
 test "has_opaque_path returns true for mailto URL" {
   assert_eq(@url.parse("mailto:user@example.com").has_opaque_path(), true)
 }
+
+// ===== Url::scheme =====
+
+///|
+test "scheme returns scheme string without colon" {
+  assert_eq(@url.parse("https://example.com/").scheme(), "https")
+}
+
+///|
+test "scheme returns non-special scheme without colon" {
+  assert_eq(@url.parse("custom://example.com/").scheme(), "custom")
+}
+
+///|
+test "scheme returns file for file URL" {
+  assert_eq(@url.parse("file:///tmp").scheme(), "file")
+}
+
+// ===== Url::username =====
+
+///|
+test "username returns empty string when no credentials" {
+  assert_eq(@url.parse("https://example.com/").username(), "")
+}
+
+///|
+test "username returns percent-encoded username" {
+  assert_eq(@url.parse("https://user@example.com/").username(), "user")
+}
+
+///|
+test "username returns username from user:pass URL" {
+  assert_eq(@url.parse("https://user:pass@example.com/").username(), "user")
+}
+
+// ===== Url::password =====
+
+///|
+test "password returns empty string when no credentials" {
+  assert_eq(@url.parse("https://example.com/").password(), "")
+}
+
+///|
+test "password returns empty string for user-only credentials" {
+  assert_eq(@url.parse("https://user@example.com/").password(), "")
+}
+
+///|
+test "password returns password from user:pass URL" {
+  assert_eq(@url.parse("https://user:pass@example.com/").password(), "pass")
+}
+
+// ===== Url::port =====
+
+///|
+test "port returns None for URL without explicit port" {
+  let url = @url.parse("https://example.com/")
+  assert_true(url.port() is None)
+}
+
+///|
+test "port returns Some for URL with explicit port" {
+  let url = @url.parse("https://example.com:8080/")
+  assert_true(url.port() is Some(8080))
+}
+
+///|
+test "port returns None when port matches default for scheme" {
+  let url = @url.parse("https://example.com:443/")
+  assert_true(url.port() is None)
+}
+
+///|
+test "port returns Some for non-default port" {
+  let url = @url.parse("http://example.com:8000/")
+  assert_true(url.port() is Some(8000))
+}
