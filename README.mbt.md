@@ -229,22 +229,10 @@ println(p.get_hostname())  // "example.com"
 println(p.get_pathname())  // "/books/:id"
 ```
 
-## WPT Compliance
+## Compliance
 
-| Test suite | Passing |
-| :--- | :--- |
-| URL parsing (urltestdata.json) | 611 / 611 (100 %) |
-| URL failure rejection | 275 / 275 (100 %) |
-| URL getters | 611 / 611 |
-| URL origin | 399 / 399 |
-| URL setters | 278 / 278 |
-| URL setters stripping | 270 / 270 |
-| URLSearchParams (all suites) | 53 / 53 |
-| URL static methods | 9 / 9 |
-| Percent-encoding | 14 / 14 |
-| IDNA ToASCII | 87 / 87 |
-| IDNA V2 (IdnaTestV2.json) | 2670 / 2670 (100 %) |
-| URLPattern | 382 / 382 |
+Full [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt)
+coverage for the URL and URLPattern standards.
 
 ## License
 
