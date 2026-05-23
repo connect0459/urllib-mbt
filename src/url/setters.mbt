@@ -25,6 +25,14 @@ fn shorten_path_segs(segs : Array[String], scheme : String) -> Unit {
 }
 
 ///|
+fn normalize_file_host(h : Host) -> Host {
+  match h {
+    Host::Domain("localhost") => @host.Host::empty_domain()
+    _ => h
+  }
+}
+
+///|
 fn safe_parse_host(input : String, is_special : Bool) -> Host? {
   Some(@host.parse_host(input, is_special)) catch {
     _ => None
@@ -360,10 +368,7 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
     Some(h) => h
   }
   let new_host = if self.scheme == "file" {
-    match parsed {
-      Host::Domain("localhost") => @host.Host::empty_domain()
-      h => h
-    }
+    normalize_file_host(parsed)
   } else {
     parsed
   }
@@ -418,10 +423,7 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
     Some(h) => h
   }
   let new_host = if self.scheme == "file" {
-    match parsed {
-      Host::Domain("localhost") => @host.Host::empty_domain()
-      h => h
-    }
+    normalize_file_host(parsed)
   } else {
     parsed
   }

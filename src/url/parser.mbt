@@ -500,11 +500,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
                 let h = @host.parse_host(host_str, true) catch {
                   @host.HostParseError(msg) => raise UrlParseError(msg)
                 }
-                let final_h = match h {
-                  Domain(d) if d == "localhost" => @host.Host::empty_domain()
-                  _ => h
-                }
-                url.host = Some(final_h)
+                url.host = Some(normalize_file_host(h))
                 state = State::PathStart
               }
             }
