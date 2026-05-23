@@ -278,7 +278,7 @@ fn Csp::change_state(self : Csp, new_state : CspState, skip : Int) -> Unit {
 fn parse_constructor_string(
   input : String,
 ) -> UrlPatternInit raise UrlPatternError {
-  let chars = string_to_chars(input)
+  let chars = @pe.string_to_chars(input)
   let tokens = tokenize(input, Lenient)
   let csp = Csp::new(chars, tokens)
   while csp.token_index < csp.token_list.length() {

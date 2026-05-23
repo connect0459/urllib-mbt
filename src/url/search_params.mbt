@@ -274,7 +274,7 @@ pub fn UrlSearchParams::for_each(
 
 ///|
 fn url_form_decode(s : String) -> String {
-  let chars = string_to_chars(s)
+  let chars = @pe.string_to_chars(s)
   let bytes : Array[Int] = []
   let n = chars.length()
   let mut i = 0

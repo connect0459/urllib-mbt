@@ -1,4 +1,13 @@
 ///|
+pub fn string_to_chars(s : String) -> Array[Char] {
+  let chars : Array[Char] = []
+  for c in s {
+    chars.push(c)
+  }
+  chars
+}
+
+///|
 fn is_c0(cp : Int) -> Bool {
   cp <= 0x1F || cp > 0x7E
 }
@@ -206,10 +215,7 @@ pub fn hex_digit_value(c : Char) -> Int? {
 /// ```
 pub fn percent_decode(input : String) -> String {
   let bytes : Array[Int] = []
-  let chars : Array[Char] = []
-  for c in input {
-    chars.push(c)
-  }
+  let chars = string_to_chars(input)
   let n = chars.length()
   let mut i = 0
   while i < n {

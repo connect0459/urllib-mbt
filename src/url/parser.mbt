@@ -40,15 +40,6 @@ fn ascii_lowercase_char(c : Char) -> Char {
 }
 
 ///|
-fn string_to_chars(s : String) -> Array[Char] {
-  let chars : Array[Char] = []
-  for c in s {
-    chars.push(c)
-  }
-  chars
-}
-
-///|
 fn is_windows_drive_letter(s : String) -> Bool {
   let n = s.length()
   if n < 2 {
@@ -108,7 +99,7 @@ fn push_normalized_segment(
 
 ///|
 fn strip_tabs_and_newlines(input : String) -> String {
-  let chars = string_to_chars(input)
+  let chars = @pe.string_to_chars(input)
   let mut start = 0
   let mut end = chars.length()
   while start < end && chars[start].to_int() <= 0x20 {
@@ -182,7 +173,7 @@ pub fn parse(input : String) -> Url raise UrlParseError {
 pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
   let stripped = strip_tabs_and_newlines(input)
   let url = UrlRecord::new()
-  let chars = string_to_chars(stripped)
+  let chars = @pe.string_to_chars(stripped)
   let n = chars.length()
   let mut state = State::SchemeStart
   let buf = StringBuilder::new()

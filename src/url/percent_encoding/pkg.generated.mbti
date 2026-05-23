@@ -22,6 +22,8 @@ pub fn percent_encode_query(String, Bool) -> String
 
 pub fn percent_encode_userinfo(String) -> String
 
+pub fn string_to_chars(String) -> Array[Char]
+
 pub fn utf8_bytes_to_string(Array[Int]) -> String
 
 // Errors

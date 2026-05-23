@@ -18,7 +18,7 @@ fn canonicalize_protocol_for_pattern(
   if input == "" {
     return ""
   }
-  let chars = string_to_chars(input)
+  let chars = @pe.string_to_chars(input)
   let stripped = if chars.length() > 0 && chars[chars.length() - 1] == ':' {
     let buf = StringBuilder::new()
     for j = 0; j < chars.length() - 1; j = j + 1 {
@@ -495,7 +495,7 @@ fn match_component(
             let raw = sv.to_owned()
             let (pre, suf) = component.group_strips[idx]
             let stripped = if pre.length() > 0 || suf.length() > 0 {
-              let chars = string_to_chars(raw)
+              let chars = @pe.string_to_chars(raw)
               let start = pre.length()
               let end = chars.length() - suf.length()
               if start <= end {
@@ -674,7 +674,7 @@ fn canonicalize_pathname(input : String) -> String {
       if leading_slash {
         p
       } else {
-        let chars = string_to_chars(p)
+        let chars = @pe.string_to_chars(p)
         if chars.length() < 2 {
           input
         } else {
@@ -767,7 +767,7 @@ fn canonicalize_port(port : String, protocol : String) -> String {
 ///|
 fn normalize_path_dots(path : String) -> String {
   let segments : Array[String] = []
-  let chars = string_to_chars(path)
+  let chars = @pe.string_to_chars(path)
   let mut i = 0
   let n = chars.length()
   while i < n {
@@ -807,7 +807,7 @@ fn normalize_path_dots(path : String) -> String {
 
 ///|
 fn get_base_dir(pathname : String) -> String {
-  let chars = string_to_chars(pathname)
+  let chars = @pe.string_to_chars(pathname)
   let mut last_slash = 0
   for i = 0; i < chars.length(); i = i + 1 {
     if chars[i] == '/' {

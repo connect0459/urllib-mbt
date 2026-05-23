@@ -171,15 +171,6 @@ fn parse_opaque_host(input : String) -> Host raise HostParseError {
 }
 
 ///|
-fn string_to_chars(s : String) -> Array[Char] {
-  let chars : Array[Char] = []
-  for c in s {
-    chars.push(c)
-  }
-  chars
-}
-
-///|
 fn is_forbidden_host_cp(cp : Int) -> Bool {
   cp == 0x00 ||
   cp == 0x09 ||
@@ -264,7 +255,7 @@ fn ends_in_number(input : String) -> Bool {
   if last_label.is_empty() {
     return false
   }
-  let label_chars = string_to_chars(last_label)
+  let label_chars = @pe.string_to_chars(last_label)
   let n = label_chars.length()
   if all_decimal_digits(label_chars) {
     return true
@@ -426,7 +417,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
   let pieces : Array[UInt] = [0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U]
   let mut piece_index = 0
   let mut compress : Int? = None
-  let chars = string_to_chars(input)
+  let chars = @pe.string_to_chars(input)
   let n = chars.length()
   let mut pointer = 0
   if pointer < n && chars[pointer] == ':' {

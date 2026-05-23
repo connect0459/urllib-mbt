@@ -82,7 +82,7 @@ fn parse_setter_port(s : String, scheme : String) -> SetterPort {
 
 ///|
 fn truncate_host_value(s : String, is_special : Bool) -> String {
-  let chars = string_to_chars(s)
+  let chars = @pe.string_to_chars(s)
   let n = chars.length()
   let mut end = n
   for i = 0; i < n; i = i + 1 {
@@ -135,7 +135,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
   if stripped.is_empty() {
     return self
   }
-  let chars = string_to_chars(stripped)
+  let chars = @pe.string_to_chars(stripped)
   let n = chars.length()
   if !is_ascii_alpha(chars[0]) {
     return self
@@ -252,7 +252,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     }
     return { ..self, path: new_path }
   }
-  let chars = string_to_chars(stripped)
+  let chars = @pe.string_to_chars(stripped)
   let n = chars.length()
   let segs : Array[String] = []
   let buf = StringBuilder::new()
