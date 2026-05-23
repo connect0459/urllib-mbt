@@ -179,14 +179,10 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
     (self.username != "" || self.password != "" || self.port != None) {
     return self
   }
-  if self.scheme == "file" && new_scheme != "file" {
-    let empty_host = match self.host {
-      None | Some(Host::Domain("")) => true
-      _ => false
-    }
-    if empty_host {
-      return self
-    }
+  if self.scheme == "file" &&
+    new_scheme != "file" &&
+    self.host is (None | Some(Host::Domain(""))) {
+    return self
   }
   let new_port = match self.port {
     Some(p) if special_scheme_default_port(new_scheme) == Some(p) => None
