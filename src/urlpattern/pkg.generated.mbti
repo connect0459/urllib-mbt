@@ -19,8 +19,8 @@ pub struct UrlPattern {
 }
 pub fn UrlPattern::exec_init(Self, UrlPatternInit) -> UrlPatternResult?
 pub fn UrlPattern::exec_url(Self, String) -> UrlPatternResult?
-pub fn UrlPattern::from_init(UrlPatternInit) -> Self raise UrlPatternError
-pub fn UrlPattern::from_string(String, String?) -> Self raise UrlPatternError
+pub fn UrlPattern::from_init(UrlPatternInit, ignore_case? : Bool) -> Self raise UrlPatternError
+pub fn UrlPattern::from_string(String, String?, ignore_case? : Bool) -> Self raise UrlPatternError
 pub fn UrlPattern::get_hash(Self) -> String
 pub fn UrlPattern::get_hostname(Self) -> String
 pub fn UrlPattern::get_password(Self) -> String

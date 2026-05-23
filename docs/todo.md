@@ -655,6 +655,38 @@ fixture at `resources/IdnaTestV2.json` (Unicode 17.0.0).
 
 ---
 
+## Phase 11 — URLPattern ignoreCase support (completed)
+
+WHATWG URLPattern `ignoreCase` option. When `true`, all compiled component
+regexes are wrapped in `(?i:...)` so matching is ASCII case-insensitive.
+MoonBit's regex engine supports `(?i:pattern)` inline flags natively.
+
+### API changes
+
+- `UrlPattern::from_init(init, ignore_case? : Bool = false)`
+- `UrlPattern::from_string(pattern, base_url?, ignore_case? : Bool = false)`
+
+### WPT test coverage (5 cases)
+
+| Case | Pattern | Result |
+| :--- | :--- | :--- |
+| 1 | `[{pathname:"/foo/bar"}, {ignoreCase:true}]` | match `/FOO/BAR` ✓ |
+| 2 | `[{ignoreCase:true}]` (as init, defaults to wildcards) | match anything ✓ |
+| 3 | `["https://…/foo?bar#baz", {ignoreCase:true}]` | expected_obj + match ✓ |
+| 4 | `["/foo…", "https://…", {ignoreCase:true}]` | expected_obj + match ✓ |
+| 5 | `["/foo…", {ignoreCase:true}, "https://…"]` | construction error ✓ |
+
+### WPT runner changes
+
+- Added `is_options_obj` / `extract_ignore_case` helpers
+- "simple init-to-init": handles length-2 pattern arrays `[init, options]`
+- "expected_obj dict": handles string + options and string + base + options
+- "construction rejects": handles string patterns with options argument
+
+5 unit tests added to `urlpattern_test.mbt`.
+
+---
+
 ## Phase 10 — WHATWG API completeness (completed)
 
 Added method-style getters for URL components that were previously only

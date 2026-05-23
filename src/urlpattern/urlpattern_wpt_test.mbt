@@ -19,6 +19,22 @@ fn extract_str_opt(obj : Map[String, Json], key : String) -> String? {
 }
 
 ///|
+fn is_options_obj(obj : Map[String, Json]) -> Bool {
+  obj.get("ignoreCase") is Some(_) &&
+  obj.get("protocol") is None &&
+  obj.get("hostname") is None &&
+  obj.get("pathname") is None &&
+  obj.get("search") is None &&
+  obj.get("hash") is None &&
+  obj.get("baseURL") is None
+}
+
+///|
+fn extract_ignore_case(obj : Map[String, Json]) -> Bool {
+  obj.get("ignoreCase") is Some(True)
+}
+
+///|
 fn build_init_from_obj(obj : Map[String, Json]) -> UrlPatternInit {
   UrlPatternInit::new(
     protocol=extract_str_opt(obj, "protocol"),
@@ -557,29 +573,62 @@ test "WPT URLPattern: construction rejects invalid patterns" {
       Some(Array(a)) => a
       _ => continue
     }
-    if pattern_arr.length() != 1 {
-      skipped += 1
+    if pattern_arr.length() == 0 {
       continue
     }
-    let pat_obj = match pattern_arr[0] {
-      Object(o) => o
+    match pattern_arr[0] {
+      Object(pat_obj) => {
+        if pattern_arr.length() != 1 {
+          skipped += 1
+          continue
+        }
+        let pat_init = build_init_from_obj(pat_obj)
+        try UrlPattern::from_init(pat_init) catch {
+          _ => passed += 1
+        } noraise {
+          _ =>
+            failures.push(
+              "expected error but got Ok for pattern=\{Json::stringify(pattern_arr[0])}",
+            )
+        }
+      }
+      String(pat_str) => {
+        let (base_url_opt, ignore_case) = if pattern_arr.length() >= 2 {
+          match pattern_arr[1] {
+            String(base) =>
+              if pattern_arr.length() >= 3 {
+                match pattern_arr[2] {
+                  Object(opts) => (Some(base), extract_ignore_case(opts))
+                  _ => {
+                    skipped += 1
+                    continue
+                  }
+                }
+              } else {
+                (Some(base), false)
+              }
+            Object(opts) => (None, extract_ignore_case(opts))
+            _ => {
+              skipped += 1
+              continue
+            }
+          }
+        } else {
+          (None, false)
+        }
+        try UrlPattern::from_string(pat_str, base_url_opt, ignore_case~) catch {
+          _ => passed += 1
+        } noraise {
+          _ =>
+            failures.push(
+              "expected error but got Ok for pattern=\{Json::stringify(raw_item)}",
+            )
+        }
+      }
       _ => {
         skipped += 1
         continue
       }
-    }
-    if pat_obj.get("ignoreCase") is Some(_) {
-      skipped += 1
-      continue
-    }
-    let pat_init = build_init_from_obj(pat_obj)
-    try UrlPattern::from_init(pat_init) catch {
-      _ => passed += 1
-    } noraise {
-      _ =>
-        failures.push(
-          "expected error but got Ok for pattern=\{Json::stringify(pattern_arr[0])}",
-        )
     }
   }
   if failures.length() > 0 {
@@ -615,32 +664,83 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
       Some(Array(a)) => a
       _ => continue
     }
-    if pattern_arr.length() != 1 {
+    if pattern_arr.length() == 0 {
       skipped += 1
       continue
     }
-    let pat_obj = match pattern_arr[0] {
-      Object(o) => o
+    let pattern = match pattern_arr[0] {
+      Object(pat_obj) => {
+        let ignore_case = if pattern_arr.length() == 2 {
+          match pattern_arr[1] {
+            Object(opts) if is_options_obj(opts) => extract_ignore_case(opts)
+            _ => {
+              skipped += 1
+              continue
+            }
+          }
+        } else if pattern_arr.length() == 1 {
+          false
+        } else {
+          skipped += 1
+          continue
+        }
+        UrlPattern::from_init(build_init_from_obj(pat_obj), ignore_case~) catch {
+          err => {
+            let msg = "\{err}"
+            if msg.contains("Unsupported") ||
+              msg.contains("POSIX character class") {
+              skipped += 1
+            } else {
+              failures.push(
+                "from_init failed: \{msg} for pattern=\{Json::stringify(pattern_arr[0])}",
+              )
+            }
+            continue
+          }
+        }
+      }
+      String(pat_str) => {
+        let (base_url_opt, ignore_case) = if pattern_arr.length() == 2 {
+          match pattern_arr[1] {
+            String(b) => (Some(b), false)
+            Object(opts) if is_options_obj(opts) =>
+              (None, extract_ignore_case(opts))
+            _ => {
+              skipped += 1
+              continue
+            }
+          }
+        } else if pattern_arr.length() == 3 {
+          match (pattern_arr[1], pattern_arr[2]) {
+            (String(b), Object(opts)) => (Some(b), extract_ignore_case(opts))
+            _ => {
+              skipped += 1
+              continue
+            }
+          }
+        } else if pattern_arr.length() == 1 {
+          (None, false)
+        } else {
+          skipped += 1
+          continue
+        }
+        UrlPattern::from_string(pat_str, base_url_opt, ignore_case~) catch {
+          err => {
+            let msg = "\{err}"
+            if msg.contains("Unsupported") ||
+              msg.contains("POSIX character class") {
+              skipped += 1
+            } else {
+              failures.push(
+                "from_string failed: \{msg} for pattern=\{Json::stringify(raw_item)}",
+              )
+            }
+            continue
+          }
+        }
+      }
       _ => {
         skipped += 1
-        continue
-      }
-    }
-    if pat_obj.get("ignoreCase") is Some(_) {
-      skipped += 1
-      continue
-    }
-    let pat_init = build_init_from_obj(pat_obj)
-    let pattern = UrlPattern::from_init(pat_init) catch {
-      err => {
-        let msg = "\{err}"
-        if msg.contains("Unsupported") || msg.contains("POSIX character class") {
-          skipped += 1
-        } else {
-          failures.push(
-            "from_init failed: \{msg} for pattern=\{Json::stringify(pattern_arr[0])}",
-          )
-        }
         continue
       }
     }
@@ -663,7 +763,7 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
       }
       if actual != exp_val {
         failures.push(
-          "'\{comp_name}': expected '\{exp_val}' got '\{actual}' for pattern=\{Json::stringify(pattern_arr[0])}",
+          "'\{comp_name}': expected '\{exp_val}' got '\{actual}' for pattern=\{Json::stringify(raw_item)}",
         )
         ok = false
       }
@@ -695,11 +795,11 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
       (None, Some(Null)) | (None, None) => passed += 1
       (Some(_), Some(Null)) | (Some(_), None) =>
         failures.push(
-          "expected no match but got match for pattern=\{Json::stringify(pattern_arr[0])}",
+          "expected no match but got match for pattern=\{Json::stringify(raw_item)}",
         )
       (None, Some(Object(_))) =>
         failures.push(
-          "expected match but got no match for pattern=\{Json::stringify(pattern_arr[0])}",
+          "expected match but got no match for pattern=\{Json::stringify(raw_item)}",
         )
       (Some(r), Some(Object(exp_match_obj))) => {
         let mut match_ok = true
@@ -722,7 +822,7 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
           match comp_result {
             None => {
               failures.push(
-                "expected component '\{comp_name}' but result is None for pattern=\{Json::stringify(pattern_arr[0])}",
+                "expected component '\{comp_name}' but result is None for pattern=\{Json::stringify(raw_item)}",
               )
               match_ok = false
             }
@@ -730,7 +830,7 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
               match check_component_result(cr, exp_comp, comp_name) {
                 Some(msg) => {
                   failures.push(
-                    "\{msg} for pattern=\{Json::stringify(pattern_arr[0])}",
+                    "\{msg} for pattern=\{Json::stringify(raw_item)}",
                   )
                   match_ok = false
                 }
@@ -793,23 +893,33 @@ test "WPT URLPattern: simple init-to-init cases" {
       Some(Array(a)) => a
       _ => continue
     }
-    if pattern_arr.length() != 1 || inputs_arr.length() != 1 {
+    if inputs_arr.length() != 1 {
       skipped += 1
       continue
     }
-    let pat_obj = match pattern_arr[0] {
-      Object(o) => o
-      _ => {
-        skipped += 1
-        continue
+    let (pat_obj, ignore_case) = if pattern_arr.length() == 1 {
+      match pattern_arr[0] {
+        Object(o) => (o, false)
+        _ => {
+          skipped += 1
+          continue
+        }
       }
-    }
-    if pat_obj.get("ignoreCase") is Some(_) {
+    } else if pattern_arr.length() == 2 {
+      match (pattern_arr[0], pattern_arr[1]) {
+        (Object(init_obj), Object(opts_obj)) if is_options_obj(opts_obj) =>
+          (init_obj, extract_ignore_case(opts_obj))
+        _ => {
+          skipped += 1
+          continue
+        }
+      }
+    } else {
       skipped += 1
       continue
     }
     let pat_init = build_init_from_obj(pat_obj)
-    let pattern = UrlPattern::from_init(pat_init) catch {
+    let pattern = UrlPattern::from_init(pat_init, ignore_case~) catch {
       err => {
         let msg = "\{err}"
         if msg.contains("Unsupported") || msg.contains("POSIX character class") {

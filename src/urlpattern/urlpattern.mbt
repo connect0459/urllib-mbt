@@ -300,15 +300,21 @@ fn compile_component(
   options : CompileOptions,
   policy : TokenizePolicy,
   kind : ComponentKind,
+  ignore_case? : Bool = false,
 ) -> UrlPatternComponent raise UrlPatternError {
   let raw_parts = parse_pattern_to_parts(pattern, options, policy)
   let parts = encode_parts(raw_parts, kind)
   let pat_str = generate_pattern_string(parts, options)
   let (regexp_str, group_names, group_strips) = generate_regexp(parts, options)
-  let regex = @string.Regex(regexp_str) catch {
+  let final_regexp_str = if ignore_case {
+    "(?i:" + regexp_str + ")"
+  } else {
+    regexp_str
+  }
+  let regex = @string.Regex(final_regexp_str) catch {
     err =>
       raise UrlPatternError(
-        "compile_component: invalid regex '\{regexp_str}': \{err}",
+        "compile_component: invalid regex '\{final_regexp_str}': \{err}",
       )
   }
   { pattern: pat_str, regex, group_names, group_strips }
@@ -318,6 +324,7 @@ fn compile_component(
 pub fn UrlPattern::from_string(
   pattern : String,
   base_url : String?,
+  ignore_case? : Bool = false,
 ) -> UrlPattern raise UrlPatternError {
   let init = parse_constructor_string(pattern)
   if init.protocol is None && base_url is None {
@@ -329,12 +336,13 @@ pub fn UrlPattern::from_string(
     None => init
     Some(b) => { ..init, base_url: Some(b) }
   }
-  UrlPattern::from_init(init)
+  UrlPattern::from_init(init, ignore_case~)
 }
 
 ///|
 pub fn UrlPattern::from_init(
   init : UrlPatternInit,
+  ignore_case? : Bool = false,
 ) -> UrlPattern raise UrlPatternError {
   let init = apply_base_url(init, true)
   let proto_raw = init.protocol.unwrap_or("*")
@@ -354,26 +362,41 @@ pub fn UrlPattern::from_init(
     ("ftp", "21") => ""
     (_, v) => v
   }
-  let protocol = compile_component(proto_val, default_options, Strict, Protocol)
+  let protocol = compile_component(
+    proto_val,
+    default_options,
+    Strict,
+    Protocol,
+    ignore_case~,
+  )
   let username = compile_component(
     init.username.unwrap_or("*"),
     default_options,
     Strict,
     Username,
+    ignore_case~,
   )
   let password = compile_component(
     init.password.unwrap_or("*"),
     default_options,
     Strict,
     Password,
+    ignore_case~,
   )
   let hostname = compile_component(
     init.hostname.unwrap_or("*"),
     hostname_options,
     Strict,
     Hostname,
+    ignore_case~,
   )
-  let port = compile_component(port_val, default_options, Strict, Port)
+  let port = compile_component(
+    port_val,
+    default_options,
+    Strict,
+    Port,
+    ignore_case~,
+  )
   let can_match_special_proto = protocol.regex.execute("ftp") is Some(_) ||
     protocol.regex.execute("file") is Some(_) ||
     protocol.regex.execute("http") is Some(_) ||
@@ -395,6 +418,7 @@ pub fn UrlPattern::from_init(
     pathname_compile_opts,
     Strict,
     pathname_kind,
+    ignore_case~,
   )
   let search_raw = init.search.unwrap_or("*")
   let search_val = if search_raw.length() > 0 && search_raw[0] == '?' {
@@ -402,14 +426,26 @@ pub fn UrlPattern::from_init(
   } else {
     search_raw
   }
-  let search = compile_component(search_val, default_options, Strict, Search)
+  let search = compile_component(
+    search_val,
+    default_options,
+    Strict,
+    Search,
+    ignore_case~,
+  )
   let hash_raw = init.hash.unwrap_or("*")
   let hash_val = if hash_raw.length() > 0 && hash_raw[0] == '#' {
     hash_raw[1:].to_owned()
   } else {
     hash_raw
   }
-  let hash = compile_component(hash_val, default_options, Strict, Hash)
+  let hash = compile_component(
+    hash_val,
+    default_options,
+    Strict,
+    Hash,
+    ignore_case~,
+  )
   { protocol, username, password, hostname, port, pathname, search, hash }
 }
 

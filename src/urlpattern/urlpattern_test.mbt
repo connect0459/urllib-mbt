@@ -59,6 +59,61 @@ test "named group :bar does not match across slash" {
   assert_true(result is None)
 }
 
+// ===== ignoreCase =====
+
+///|
+test "ignoreCase: exact pathname match succeeds case-insensitively" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(pathname=Some("/foo/bar")),
+    ignore_case=true,
+  )
+  let result = p.exec_init(UrlPatternInit::new(pathname=Some("/FOO/BAR")))
+  assert_true(result is Some(_))
+}
+
+///|
+test "ignoreCase: exact pathname does not match when flag is false" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(pathname=Some("/foo/bar")),
+  )
+  let result = p.exec_init(UrlPatternInit::new(pathname=Some("/FOO/BAR")))
+  assert_true(result is None)
+}
+
+///|
+test "ignoreCase: named group captures uppercase input" {
+  let p = try! UrlPattern::from_init(
+    UrlPatternInit::new(pathname=Some("/foo/:name")),
+    ignore_case=true,
+  )
+  let result = p.exec_init(UrlPatternInit::new(pathname=Some("/FOO/HELLO")))
+  assert_true(result is Some(_))
+  guard result is Some(r) else { fail("expected match") }
+  guard r.pathname is Some(pr) else { fail("expected pathname result") }
+  match pr.groups.get("name") {
+    Some(Some(v)) => assert_eq(v, "HELLO")
+    _ => fail("expected group name = 'HELLO'")
+  }
+}
+
+///|
+test "ignoreCase: from_string matches uppercase input" {
+  let p = try! UrlPattern::from_string(
+    "https://example.com/foo",
+    None,
+    ignore_case=true,
+  )
+  let result = p.exec_url("https://example.com/FOO")
+  assert_true(result is Some(_))
+}
+
+///|
+test "ignoreCase: from_string without flag does not match uppercase" {
+  let p = try! UrlPattern::from_string("https://example.com/foo", None)
+  let result = p.exec_url("https://example.com/FOO")
+  assert_true(result is None)
+}
+
 ///|
 test "custom regexp group (.*) captures greedily" {
   let p = try! UrlPattern::from_init(
