@@ -83,6 +83,21 @@ fn chars_start_with_wdl(chars : Array[Char], from : Int, n : Int) -> Bool {
 }
 
 ///|
+fn push_normalized_segment(
+  segs : Array[String],
+  seg : String,
+  scheme : String,
+) -> Unit {
+  if scheme == "file" && segs.is_empty() && is_windows_drive_letter(seg) {
+    let c0 = seg.get_char(0).unwrap_or('C').to_string()
+    let rest = seg[2:].to_owned()
+    segs.push(c0 + ":" + rest)
+  } else {
+    segs.push(@pe.percent_encode_path_seg(seg))
+  }
+}
+
+///|
 fn strip_tabs_and_newlines(input : String) -> String {
   let chars : Array[Char] = []
   for c in input {
@@ -522,16 +537,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
               url.path_segments.push("")
             }
           } else {
-            let is_file_drive = url.scheme == "file" &&
-              url.path_segments.is_empty() &&
-              is_windows_drive_letter(seg)
-            if is_file_drive {
-              let c0 = seg.get_char(0).unwrap_or('C').to_string()
-              let rest = seg[2:].to_owned()
-              url.path_segments.push(c0 + ":" + rest)
-            } else {
-              url.path_segments.push(@pe.percent_encode_path_seg(seg))
-            }
+            push_normalized_segment(url.path_segments, seg, url.scheme)
           }
           if is_query {
             url.query = Some("")

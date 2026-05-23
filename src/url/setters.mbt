@@ -321,16 +321,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
           segs.push("")
         }
       } else {
-        let is_file_drive = self.scheme == "file" &&
-          segs.is_empty() &&
-          is_windows_drive_letter(seg)
-        if is_file_drive {
-          let c0 = seg.get_char(0).unwrap_or('C').to_string()
-          let rest = seg[2:seg.length()].to_owned()
-          segs.push(c0 + ":" + rest)
-        } else {
-          segs.push(@pe.percent_encode_path_seg(seg))
-        }
+        push_normalized_segment(segs, seg, self.scheme)
       }
       if c == None {
         break
