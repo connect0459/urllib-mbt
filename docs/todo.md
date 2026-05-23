@@ -5,7 +5,7 @@ URLPattern: **382/382 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **496 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **504 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -1023,6 +1023,22 @@ Added utility methods equivalent to rust-url to `src/url/uri.mbt`.
 - `make_relative` is implemented based on the method of the same name in rust-url.
 
 The `./` issue (incorrectly outputting `/` when there is an empty path_parts + an empty filename) has been fixed.
+
+---
+
+## `UrlSearchParams::keys` and `UrlSearchParams::values` (completed)
+
+Added iterator methods that return only names or only values from the pair
+list. Completes the WHATWG URLSearchParams iterator surface alongside the
+existing `iter()` (entries).
+
+```moonbit
+pub fn UrlSearchParams::keys(self : UrlSearchParams) -> Iter[String]
+pub fn UrlSearchParams::values(self : UrlSearchParams) -> Iter[String]
+```
+
+Both methods delegate to `self.list.iter().map(...)` and preserve list
+order including duplicates. 6 unit tests added.
 
 ---
 
