@@ -5,7 +5,7 @@ URLPattern: **384/384 tests pass (0 failed, 3 skipped). 65/65 string pattern con
 WPT URLPattern hasRegExpGroups: **10/10 test assertions pass.**  
 WPT URLPattern generate: **19/19 cases pass.**  
 WPT URLPattern compareComponent: **100/100 assertions pass (25 entries × 4 assertions).**  
-Coverage: **570 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
+Coverage: **574 unit tests pass. 9 uncovered lines in 4 files (all verified unreachable).**  
 
 - 1 placeholder (`cmd/main/main.mbt`)  
 - 4 `panic()` assertions (unreachable invariants)  
@@ -775,7 +775,7 @@ sub-package. WPT test runner against `resources/urlpatterntestdata.json`
 - `urlpattern.mbt` — `UrlPattern`, `UrlPatternInit`, `UrlPatternResult`,
   compile/match/canonicalize logic
 - `types.mbt` — public type definitions
-- `urlpattern_test.mbt` — 6 hand-written unit tests
+- `urlpattern_test.mbt` — 10 hand-written unit tests
 - `urlpattern_wpt_test.mbt` — WPT runner (384 pass / 0 failed / 3 skipped)
 
 ### WPT conformance
@@ -980,6 +980,34 @@ instance method. Implemented in `src/urlpattern/urlpattern.mbt`.
 | :--- | ---: | :--- |
 | `urlpattern-hasregexpgroups.any.js` | 10 assertions | `urlpattern_hasregexpgroups_wpt_test.mbt` |
 | `urlpattern-generate.tentative.any.js` | 19/19 | `urlpattern_generate_wpt_test.mbt` |
+
+---
+
+## URLPattern constructor edge cases (completed)
+
+Added unit tests covering the four assertions in the WHATWG WPT
+`urlpattern-constructor.any.js` test file. No implementation changes
+were needed — the existing tokenizer (Strict policy) and the
+`from_string` protocol guard already produce the correct errors.
+
+### Test cases
+
+| Scenario | Expected result |
+| :--- | :--- |
+| `from_init` with pathname `/%25(` (percent sign + open paren after URL parsing) | raises — strict tokenizer detects unclosed regex group |
+| `from_init` with pathname `/%25((` (two such chars) | raises — nested unclosed group detected |
+| `from_string("(\\", None)` (pattern with no protocol or base URL) | raises — protocol guard fires before compilation |
+| `from_init(UrlPatternInit::new())` (all fields absent) | succeeds — all components default to wildcard |
+
+4 unit tests added to `urlpattern_test.mbt`.
+
+### Why `%25(` causes an unclosed group
+
+The WHATWG URL parser encodes a bare `%` not followed by two hex
+digits as `%25`. So the path `%(` in `https://example.org/%(` becomes
+`/%25(`. When URLPattern compiles this pathname literally, the strict
+tokenizer sees `(` as the start of a regex group, finds no matching
+`)`, and raises.
 
 ---
 
