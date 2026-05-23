@@ -43,7 +43,13 @@ fn url_can_have_credentials(url : Url) -> Bool {
 }
 
 ///|
-fn parse_setter_port(s : String, scheme : String) -> (Bool, Int?) {
+priv enum SetterPort {
+  Unchanged
+  Changed(Int?)
+}
+
+///|
+fn parse_setter_port(s : String, scheme : String) -> SetterPort {
   let mut val = 0
   let mut has_digits = false
   for c in s {
@@ -51,18 +57,18 @@ fn parse_setter_port(s : String, scheme : String) -> (Bool, Int?) {
       val = val * 10 + (c.to_int() - '0'.to_int())
       has_digits = true
       if val > 65535 {
-        return (false, None)
+        return Unchanged
       }
     } else {
       break
     }
   }
   if !has_digits {
-    return (false, None)
+    return Unchanged
   }
   match special_scheme_default_port(scheme) {
-    Some(dp) if dp == val => (true, None)
-    _ => (true, Some(val))
+    Some(dp) if dp == val => Changed(None)
+    _ => Changed(Some(val))
   }
 }
 
@@ -210,8 +216,8 @@ pub fn Url::set_port(self : Url, value : String) -> Url {
     return self
   }
   match parse_setter_port(stripped, self.scheme) {
-    (false, _) => self
-    (true, new_port) => { ..self, port: new_port }
+    Unchanged => self
+    Changed(new_port) => { ..self, port: new_port }
   }
 }
 
@@ -368,8 +374,8 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
     None | Some("") => url_with_host
     Some(port_str) =>
       match parse_setter_port(port_str, self.scheme) {
-        (false, _) => url_with_host
-        (true, new_port) => { ..url_with_host, port: new_port }
+        Unchanged => url_with_host
+        Changed(new_port) => { ..url_with_host, port: new_port }
       }
   }
 }
