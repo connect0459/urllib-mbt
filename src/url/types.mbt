@@ -1,5 +1,5 @@
 ///|
-pub type Host = @host.Host
+using @host {type Host}
 
 ///|
 /// The path of a parsed URL: either an ordered list of decoded path segments
