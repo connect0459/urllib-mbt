@@ -37,7 +37,7 @@ percent-encoding by name:
 
 | Function | Used for (outside `internal/percent_encoding`) |
 | :--- | :--- |
-| `string_to_chars` | Random-access char iteration in `host`, `url`, `urlpattern` |
+| `string_to_chars` | Random-access char iteration in `idna`, `url`, `urlpattern` |
 | `split_on_char` | IPv4 label splitting in `host`; domain label splitting in `idna` |
 | `hex_digit_value` | IPv4/IPv6 hex parsing in `host` |
 
