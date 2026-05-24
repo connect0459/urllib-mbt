@@ -434,7 +434,7 @@ pub(all) enum UrlPatternComponent {
   Pathname
   Search
   Hash
-} derive(Eq)
+} derive(Eq, @debug.Debug)
 ```
 
 Used as the component selector in `compare_component` and `generate`.
