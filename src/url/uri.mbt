@@ -32,9 +32,9 @@ pub fn parse_maybe(url : String, base : Url?) -> Url? {
 }
 
 ///|
-/// Returns the serialized URL string, equivalent to `href()`.
-pub fn Url::to_json(self : Url) -> String {
-  self.href()
+/// Serializes the URL as a JSON string value (equivalent to `href()`).
+pub impl ToJson for Url with fn to_json(self : Url) -> Json {
+  Json::string(self.href())
 }
 
 ///|
