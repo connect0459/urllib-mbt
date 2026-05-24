@@ -359,11 +359,10 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
   }
   let labels = @pe.split_on_char(mapped, '.')
   let out = StringBuilder::new()
-  for i = 0; i < labels.length(); i = i + 1 {
+  for i, label in labels {
     if i > 0 {
       out.write_char('.')
     }
-    let label = labels[i]
     if label.is_empty() {
       continue
     }
@@ -452,11 +451,10 @@ pub fn domain_to_unicode(domain : String) -> String raise IdnaParseError {
   let ascii = domain_to_ascii(domain)
   let labels = @pe.split_on_char(ascii, '.')
   let out = StringBuilder::new()
-  for i = 0; i < labels.length(); i = i + 1 {
+  for i, label in labels {
     if i > 0 {
       out.write_char('.')
     }
-    let label = labels[i]
     if label.has_prefix("xn--") {
       let suffix = label[4:label.length()].to_owned()
       let cps = punycode_decode(suffix)
