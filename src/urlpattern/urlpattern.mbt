@@ -108,6 +108,26 @@ fn is_ipv6_literal_char(c : Char) -> Bool {
 }
 
 ///|
+fn lower_ipv6_literal(value : String) -> String raise UrlPatternError {
+  for c in value {
+    if !is_ipv6_literal_char(c) {
+      raise UrlPatternError("invalid character '\{c}' in IPv6 address literal")
+    }
+  }
+  let buf = StringBuilder::new()
+  for c in value {
+    buf.write_char(
+      if c >= 'A' && c <= 'F' {
+        (c.to_int() + 32).unsafe_to_char()
+      } else {
+        c
+      },
+    )
+  }
+  buf.to_string()
+}
+
+///|
 fn encode_hostname_value(
   value : String,
   in_ipv6 : Bool,
@@ -115,45 +135,8 @@ fn encode_hostname_value(
   if value == "" {
     return ""
   }
-  if in_ipv6 {
-    for c in value {
-      if !is_ipv6_literal_char(c) {
-        raise UrlPatternError(
-          "invalid character '\{c}' in IPv6 address literal",
-        )
-      }
-    }
-    let buf = StringBuilder::new()
-    for c in value {
-      buf.write_char(
-        if c >= 'A' && c <= 'F' {
-          (c.to_int() + 32).unsafe_to_char()
-        } else {
-          c
-        },
-      )
-    }
-    return buf.to_string()
-  }
-  if value.get_char(0) == Some('[') {
-    for c in value {
-      if !is_ipv6_literal_char(c) {
-        raise UrlPatternError(
-          "invalid character '\{c}' in IPv6 address literal",
-        )
-      }
-    }
-    let buf = StringBuilder::new()
-    for c in value {
-      buf.write_char(
-        if c >= 'A' && c <= 'F' {
-          (c.to_int() + 32).unsafe_to_char()
-        } else {
-          c
-        },
-      )
-    }
-    return buf.to_string()
+  if in_ipv6 || value.get_char(0) == Some('[') {
+    return lower_ipv6_literal(value)
   }
   canonicalize_hostname_for_pattern(value)
 }
