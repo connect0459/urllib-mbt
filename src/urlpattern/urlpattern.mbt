@@ -495,8 +495,8 @@ fn match_component(
               let end = chars.length() - suf.length()
               if start <= end {
                 let buf = StringBuilder::new()
-                for j = start; j < end; j = j + 1 {
-                  buf.write_char(chars[j])
+                for ch in chars[start:end] {
+                  buf.write_char(ch)
                 }
                 buf.to_string()
               } else {
@@ -768,8 +768,8 @@ fn normalize_path_dots(path : String) -> String {
       i += 1
     }
     let buf = StringBuilder::new()
-    for j = seg_start; j < i; j = j + 1 {
-      buf.write_char(chars[j])
+    for ch in chars[seg_start:i] {
+      buf.write_char(ch)
     }
     let seg = buf.to_string()
     if seg == "." {
