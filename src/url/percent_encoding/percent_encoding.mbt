@@ -1,4 +1,12 @@
 ///|
+pub fn strip_leading_char(s : String, c : Char) -> String {
+  match s.get_char(0) {
+    Some(head) if head == c => s[1:].to_owned()
+    _ => s
+  }
+}
+
+///|
 pub fn string_to_chars(s : String) -> Array[Char] {
   let chars : Array[Char] = []
   for c in s {

@@ -26,6 +26,8 @@ pub fn split_on_char(String, Char) -> Array[String]
 
 pub fn string_to_chars(String) -> Array[Char]
 
+pub fn strip_leading_char(String, Char) -> String
+
 pub fn utf8_bytes_to_string(Array[Int]) -> String
 
 // Errors
