@@ -300,13 +300,16 @@ pub fn hex_digit_value(c : Char) -> Int? {
 /// ```
 pub fn percent_decode(input : String) -> String {
   let bytes : Array[Int] = []
-  let chars = string_to_chars(input)
-  let n = chars.length()
+  let n = input.length()
   let mut i = 0
   while i < n {
-    let c = chars[i]
+    let c = input.get_char(i).unwrap_or('\u{FFFD}')
     if c == '%' && i + 2 < n {
-      match (hex_digit_value(chars[i + 1]), hex_digit_value(chars[i + 2])) {
+      match
+        (
+          hex_digit_value(input.get_char(i + 1).unwrap_or('\u{0}')),
+          hex_digit_value(input.get_char(i + 2).unwrap_or('\u{0}')),
+        ) {
         (Some(hi), Some(lo)) => {
           bytes.push(hi * 16 + lo)
           i = i + 3
@@ -316,7 +319,8 @@ pub fn percent_decode(input : String) -> String {
       }
     }
     push_utf8_bytes(c, bytes)
-    i = i + 1
+    let step = if c.to_int() > 0xFFFF { 2 } else { 1 }
+    i = i + step
   }
   utf8_bytes_to_string(bytes)
 }

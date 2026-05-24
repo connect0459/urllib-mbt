@@ -420,11 +420,11 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
   let pieces : Array[UInt] = [0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U]
   let mut piece_index = 0
   let mut compress : Int? = None
-  let chars = @pe.string_to_chars(input)
-  let n = chars.length()
+  let n = input.length()
+  let gc = fn(i : Int) -> Char { input.get_char(i).unwrap_or('\u{0}') }
   let mut pointer = 0
-  if pointer < n && chars[pointer] == ':' {
-    if pointer + 1 >= n || chars[pointer + 1] != ':' {
+  if pointer < n && gc(pointer) == ':' {
+    if pointer + 1 >= n || gc(pointer + 1) != ':' {
       raise HostParseError("invalid IPv6: single leading colon")
     }
     pointer = pointer + 2
@@ -435,7 +435,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
     if piece_index == 8 {
       raise HostParseError("invalid IPv6: too many pieces")
     }
-    if chars[pointer] == ':' {
+    if gc(pointer) == ':' {
       if compress != None {
         raise HostParseError("invalid IPv6: multiple compressions")
       }
@@ -447,7 +447,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
     let mut value = 0U
     let mut length = 0
     while length < 4 && pointer < n {
-      match @pe.hex_digit_value(chars[pointer]) {
+      match @pe.hex_digit_value(gc(pointer)) {
         Some(v) => {
           value = (value << 4) | v.reinterpret_as_uint()
           pointer = pointer + 1
@@ -456,7 +456,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
         None => break
       }
     }
-    if pointer < n && chars[pointer] == '.' {
+    if pointer < n && gc(pointer) == '.' {
       if length == 0 {
         raise HostParseError("invalid IPv6: bad IPv4 in IPv6")
       }
@@ -467,18 +467,18 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
       let mut numbers_seen = 0
       while pointer < n {
         if numbers_seen > 0 {
-          if chars[pointer] != '.' {
+          if gc(pointer) != '.' {
             raise HostParseError("invalid IPv6: expected dot in IPv4")
           }
           pointer = pointer + 1
         }
-        if pointer >= n || chars[pointer] < '0' || chars[pointer] > '9' {
+        if pointer >= n || gc(pointer) < '0' || gc(pointer) > '9' {
           raise HostParseError("invalid IPv6: expected digit in IPv4")
         }
         let mut ipv4_val : UInt = 0U
         let mut first_digit = true
-        while pointer < n && chars[pointer] >= '0' && chars[pointer] <= '9' {
-          let digit = (chars[pointer].to_int() - '0'.to_int()).reinterpret_as_uint()
+        while pointer < n && gc(pointer) >= '0' && gc(pointer) <= '9' {
+          let digit = (gc(pointer).to_int() - '0'.to_int()).reinterpret_as_uint()
           if !first_digit && ipv4_val == 0U {
             raise HostParseError("invalid IPv6: leading zero in IPv4")
           }
@@ -504,7 +504,7 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
     pieces[piece_index] = value
     piece_index = piece_index + 1
     if pointer < n {
-      if chars[pointer] != ':' {
+      if gc(pointer) != ':' {
         raise HostParseError("invalid IPv6: expected colon")
       }
       pointer = pointer + 1

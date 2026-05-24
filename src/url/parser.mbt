@@ -102,17 +102,23 @@ fn push_normalized_segment(
 
 ///|
 fn preprocess_url_input(input : String) -> String {
-  let chars = @pe.string_to_chars(input)
+  let n = input.length()
   let mut start = 0
-  let mut end = chars.length()
-  while start < end && chars[start].to_int() <= 0x20 {
-    start = start + 1
+  let mut end = n
+  while start < end {
+    match input.get_char(start) {
+      Some(c) if c.to_int() <= 0x20 => start = start + 1
+      _ => break
+    }
   }
-  while end > start && chars[end - 1].to_int() <= 0x20 {
-    end = end - 1
+  while end > start {
+    match input.get_char(end - 1) {
+      Some(c) if c.to_int() <= 0x20 => end = end - 1
+      _ => break
+    }
   }
   let buf = StringBuilder::new()
-  for c in chars[start:end] {
+  for c in input[start:end] {
     let cp = c.to_int()
     if cp != 0x09 && cp != 0x0A && cp != 0x0D {
       buf.write_char(c)
