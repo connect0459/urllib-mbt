@@ -4,7 +4,7 @@ using @host {type Host}
 ///|
 /// The path of a parsed URL: either an ordered list of decoded path segments
 /// or an opaque string for cannot-be-a-base URLs.
-pub enum UrlPath {
+enum UrlPath {
   Segments(Array[String])
   Opaque(String)
 } derive(Debug)

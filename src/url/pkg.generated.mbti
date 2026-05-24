@@ -79,10 +79,7 @@ pub fn Url::username(Self) -> String
 pub impl Show for Url
 pub impl ToJson for Url
 
-pub enum UrlPath {
-  Segments(Array[String])
-  Opaque(String)
-} derive(@debug.Debug)
+type UrlPath derive(@debug.Debug)
 
 pub struct UrlSearchParams {
   // private fields
