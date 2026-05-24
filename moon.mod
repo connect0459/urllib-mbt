@@ -1,6 +1,6 @@
 name = "connect0459/urllib"
 
-version = "0.1.0"
+version = "0.2.0"
 
 import {
   "moonbitlang/x@0.4.43",
