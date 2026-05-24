@@ -584,12 +584,12 @@ fn canonicalize_search(input : String) -> String {
   if input == "" {
     return ""
   }
-  let stripped = strip_leading_char(input, '?')
+  let stripped = @pe.strip_leading_char(input, '?')
   if stripped == "" {
     return ""
   }
   let url = @url.parse("https://x/?" + stripped) catch { _ => return stripped }
-  strip_leading_char(url.search(), '?')
+  @pe.strip_leading_char(url.search(), '?')
 }
 
 ///|
@@ -597,12 +597,12 @@ fn canonicalize_hash(input : String) -> String {
   if input == "" {
     return ""
   }
-  let stripped = strip_leading_char(input, '#')
+  let stripped = @pe.strip_leading_char(input, '#')
   if stripped == "" {
     return ""
   }
   let url = @url.parse("https://x/#" + stripped) catch { _ => return stripped }
-  strip_leading_char(url.hash(), '#')
+  @pe.strip_leading_char(url.hash(), '#')
 }
 
 ///|
@@ -686,8 +686,8 @@ fn apply_base_url(
   let base = @url.parse(base_str) catch {
     _ => raise UrlPatternError("invalid baseURL: \{base_str}")
   }
-  let base_search_raw = strip_leading_char(base.search(), '?')
-  let base_hash_raw = strip_leading_char(base.hash(), '#')
+  let base_search_raw = @pe.strip_leading_char(base.search(), '?')
+  let base_hash_raw = @pe.strip_leading_char(base.hash(), '#')
   let base_port = base.port_str()
   let esc : (String) -> String = if for_pattern {
     escape_pattern_string
@@ -790,14 +790,6 @@ fn apply_base_url(
 }
 
 ///|
-fn strip_leading_char(s : String, c : Char) -> String {
-  match s.get_char(0) {
-    Some(head) if head == c => s[1:].to_owned()
-    _ => s
-  }
-}
-
-///|
 /// Tests a URL string against this pattern and returns match details,
 /// or `None` when the URL does not parse or does not match.
 ///
@@ -828,8 +820,8 @@ pub fn UrlPattern::exec_url(
     hostname: Some(url.hostname()),
     port: Some(url.port_str()),
     pathname: Some(url.pathname()),
-    search: Some(strip_leading_char(search_raw, '?')),
-    hash: Some(strip_leading_char(hash_raw, '#')),
+    search: Some(@pe.strip_leading_char(search_raw, '?')),
+    hash: Some(@pe.strip_leading_char(hash_raw, '#')),
     base_url: None,
   }
   match self.exec_init(init) {

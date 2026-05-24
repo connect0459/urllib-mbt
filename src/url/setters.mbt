@@ -1,12 +1,4 @@
 ///|
-fn strip_leading_char(s : String, c : Char) -> String {
-  match s.get_char(0) {
-    Some(head) if head == c => s[1:].to_owned()
-    _ => s
-  }
-}
-
-///|
 fn strip_tab_newline(s : String) -> String {
   let mut needs_strip = false
   for c in s {
@@ -234,7 +226,7 @@ pub fn Url::set_hash(self : Url, value : String) -> Url {
   if stripped.is_empty() {
     return { ..self, fragment: None }
   }
-  let input = strip_leading_char(stripped, '#')
+  let input = @pe.strip_leading_char(stripped, '#')
   { ..self, fragment: Some(@pe.percent_encode_fragment(input)) }
 }
 
@@ -246,7 +238,7 @@ pub fn Url::set_search(self : Url, value : String) -> Url {
   if stripped.is_empty() {
     return { ..self, query: None }
   }
-  let input = strip_leading_char(stripped, '?')
+  let input = @pe.strip_leading_char(stripped, '?')
   let encoded = @pe.percent_encode_query(input, self.is_special())
   { ..self, query: Some(encoded) }
 }
