@@ -807,18 +807,10 @@ fn normalize_path_dots(path : String) -> String {
 
 ///|
 fn get_base_dir(pathname : String) -> String {
-  let chars = @pe.string_to_chars(pathname)
-  let mut last_slash = 0
-  for i = 0; i < chars.length(); i = i + 1 {
-    if chars[i] == '/' {
-      last_slash = i + 1
-    }
+  match pathname.rev_find("/") {
+    None => ""
+    Some(pos) => pathname[0:pos + 1].to_owned()
   }
-  let buf = StringBuilder::new()
-  for i = 0; i < last_slash; i = i + 1 {
-    buf.write_char(chars[i])
-  }
-  buf.to_string()
 }
 
 ///|
@@ -1199,7 +1191,7 @@ fn compare_str_lex(a : String, b : String) -> Int {
   let la = a.length()
   let lb = b.length()
   let n = if la < lb { la } else { lb }
-  for i = 0; i < n; i = i + 1 {
+  for i in 0..<n {
     let ca = a.unsafe_get(i).to_int()
     let cb = b.unsafe_get(i).to_int()
     if ca != cb {
@@ -1325,7 +1317,7 @@ fn compare_pattern_part_lists(left : Array[Part], right : Array[Part]) -> Int {
   let lm = merge_fixed_text_parts(left)
   let rm = merge_fixed_text_parts(right)
   let n = if lm.length() < rm.length() { lm.length() } else { rm.length() }
-  for i = 0; i < n; i = i + 1 {
+  for i in 0..<n {
     let r = compare_pattern_parts(lm[i], rm[i])
     if r != 0 {
       return r

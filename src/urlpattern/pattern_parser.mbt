@@ -164,11 +164,7 @@ fn ParserCtx::extract_prefix_from_pending(self : ParserCtx) -> String {
       if pf.length() > 0 {
         let chars = @pe.string_to_chars(pf)
         if chars[chars.length() - 1] == pc {
-          let buf = StringBuilder::new()
-          for j = 0; j < chars.length() - 1; j = j + 1 {
-            buf.write_char(chars[j])
-          }
-          self.pending_fixed = buf.to_string()
+          self.pending_fixed = pf[0:pf.length() - 1].to_owned()
           self.pending_escaped = false
           pc.to_string()
         } else {
@@ -217,18 +213,11 @@ fn is_valid_id_continue(c : Char) -> Bool {
 ///|
 fn is_valid_identifier(name : String) -> Bool {
   let chars = @pe.string_to_chars(name)
-  if chars.is_empty() {
-    return false
+  match chars {
+    [] => false
+    [first, .. rest] =>
+      is_valid_id_start(first) && rest.all(fn(c) { is_valid_id_continue(c) })
   }
-  if !is_valid_id_start(chars[0]) {
-    return false
-  }
-  for j = 1; j < chars.length(); j = j + 1 {
-    if !is_valid_id_continue(chars[j]) {
-      return false
-    }
-  }
-  true
 }
 
 ///|
@@ -455,10 +444,8 @@ fn generate_pattern_string(
   options : CompileOptions,
 ) -> String {
   let buf = StringBuilder::new()
-  let n = parts.length()
   let seg_wc = segment_wildcard_regexp_str(options)
-  for i = 0; i < n; i = i + 1 {
-    let part = parts[i]
+  for i, part in parts {
     let prev : Part? = if i > 0 { Some(parts[i - 1]) } else { None }
     match part.kind {
       FixedText => {
@@ -478,14 +465,9 @@ fn generate_pattern_string(
       }
       _ => ()
     }
-    // Find next non-empty-fixed-text part for needs_grouping checks
-    let mut next_real : Part? = None
-    for k = i + 1; k < n; k = k + 1 {
-      if !is_empty_fixed_text(parts[k]) {
-        next_real = Some(parts[k])
-        break
-      }
-    }
+    let next_real = parts[i + 1:]
+      .iter()
+      .find_first(fn(p) { !is_empty_fixed_text(p) })
     let custom_name = match str_first_char(part.name) {
       None => false
       Some(c) => !(c >= '0' && c <= '9')
@@ -538,17 +520,9 @@ fn generate_pattern_string(
           }
       }
     }
-    // For FullWildcard use_star: find the effective prev (skip empty FixedText)
-    let effective_prev : Part? = {
-      let mut ep : Part? = None
-      for k = i - 1; k >= 0; k = k - 1 {
-        if !is_empty_fixed_text(parts[k]) {
-          ep = Some(parts[k])
-          break
-        }
-      }
-      ep
-    }
+    let effective_prev = parts[0:i]
+      .rev_iter()
+      .find_first(fn(p) { !is_empty_fixed_text(p) })
     if needs_grouping {
       buf.write_string("{")
     }
