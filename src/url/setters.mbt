@@ -57,10 +57,10 @@ fn safe_parse_host(input : String, is_special : Bool) -> Host? {
 }
 
 ///|
-fn url_can_have_credentials(url : Url) -> Bool {
-  match url.host {
+fn Url::can_have_credentials(self : Url) -> Bool {
+  match self.host {
     None | Some(Host::Domain("")) => false
-    _ => url.scheme != "file" && !url.has_opaque_path()
+    _ => self.scheme != "file" && !self.has_opaque_path()
   }
 }
 
@@ -190,7 +190,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
 ///|
 /// Sets the percent-encoded username; no-op when credentials are not allowed.
 pub fn Url::set_username(self : Url, value : String) -> Url {
-  if !url_can_have_credentials(self) {
+  if !self.can_have_credentials() {
     return self
   }
   { ..self, username: @pe.percent_encode_userinfo(value) }
@@ -199,7 +199,7 @@ pub fn Url::set_username(self : Url, value : String) -> Url {
 ///|
 /// Sets the percent-encoded password; no-op when credentials are not allowed.
 pub fn Url::set_password(self : Url, value : String) -> Url {
-  if !url_can_have_credentials(self) {
+  if !self.can_have_credentials() {
     return self
   }
   { ..self, password: @pe.percent_encode_userinfo(value) }
@@ -209,7 +209,7 @@ pub fn Url::set_password(self : Url, value : String) -> Url {
 /// Sets the port; clears it when `value` is empty or matches the scheme default.
 /// No-op for `file:` URLs and opaque-path URLs.
 pub fn Url::set_port(self : Url, value : String) -> Url {
-  if !url_can_have_credentials(self) {
+  if !self.can_have_credentials() {
     return self
   }
   if value.is_empty() {
