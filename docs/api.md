@@ -67,7 +67,7 @@ let path = try! url.to_file_path()  // "/home/user/file.txt"
 ### `Url` type
 
 ```moonbit
-pub struct Url { /* private fields */ } derive(Eq)
+pub struct Url { /* private fields */ } derive(Eq, @debug.Debug)
 pub impl Show  for Url  // href()
 pub impl ToJson for Url // href()
 ```
