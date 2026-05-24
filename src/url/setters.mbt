@@ -1,7 +1,7 @@
 ///|
 fn strip_leading_char(s : String, c : Char) -> String {
   match s.get_char(0) {
-    Some(head) if head == c => s[1:s.length()].to_owned()
+    Some(head) if head == c => s[1:].to_owned()
     _ => s
   }
 }
@@ -10,8 +10,7 @@ fn strip_leading_char(s : String, c : Char) -> String {
 fn strip_tab_newline(s : String) -> String {
   let buf = StringBuilder::new()
   for c in s {
-    let cp = c.to_int()
-    if cp != 0x09 && cp != 0x0A && cp != 0x0D {
+    if c != '\t' && c != '\n' && c != '\r' {
       buf.write_char(c)
     }
   }
@@ -111,9 +110,9 @@ fn split_host_port(s : String) -> (String, String?) {
     match s.rev_find("]") {
       None => (s, None)
       Some(pos) => {
-        let after = s[pos + 1:s.length()].to_owned()
+        let after = s[pos + 1:].to_owned()
         if after.has_prefix(":") {
-          (s[0:pos + 1].to_owned(), Some(after[1:after.length()].to_owned()))
+          (s[0:pos + 1].to_owned(), Some(after[1:].to_owned()))
         } else {
           (s, None)
         }
@@ -122,7 +121,7 @@ fn split_host_port(s : String) -> (String, String?) {
   } else {
     match s.find(":") {
       None => (s, None)
-      Some(i) => (s[0:i].to_owned(), Some(s[i + 1:s.length()].to_owned()))
+      Some(i) => (s[0:i].to_owned(), Some(s[i + 1:].to_owned()))
     }
   }
 }
