@@ -1,8 +1,8 @@
 import {
   "moonbitlang/core/string",
   "connect0459/urllib/url",
-  "connect0459/urllib/url/host",
-  "connect0459/urllib/url/percent_encoding" @pe,
+  "connect0459/urllib/internal/host",
+  "connect0459/urllib/internal/percent_encoding" @pe,
 }
 
 import {

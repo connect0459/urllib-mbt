@@ -1,8 +1,8 @@
 import {
   "moonbitlang/core/debug",
-  "connect0459/urllib/url/idna",
-  "connect0459/urllib/url/percent_encoding" @pe,
-  "connect0459/urllib/url/host",
+  "connect0459/urllib/internal/idna",
+  "connect0459/urllib/internal/percent_encoding" @pe,
+  "connect0459/urllib/internal/host",
 }
 
 import {

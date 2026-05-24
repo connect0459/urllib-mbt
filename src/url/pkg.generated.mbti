@@ -2,7 +2,6 @@
 package "connect0459/urllib/url"
 
 import {
-  "connect0459/urllib/url/host",
   "moonbitlang/core/debug",
 }
 
@@ -109,7 +108,6 @@ pub fn UrlSearchParams::values(Self) -> Iter[String]
 pub impl Show for UrlSearchParams
 
 // Type aliases
-pub using @host {type Host}
 
 // Traits
 

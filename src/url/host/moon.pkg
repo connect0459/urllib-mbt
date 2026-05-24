@@ -1,4 +1,0 @@
-import {
-  "connect0459/urllib/url/idna",
-  "connect0459/urllib/url/percent_encoding" @pe,
-}
