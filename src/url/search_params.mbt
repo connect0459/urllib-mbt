@@ -156,7 +156,9 @@ pub fn UrlSearchParams::set(
 /// }
 /// ```
 pub fn UrlSearchParams::sort(self : UrlSearchParams) -> Unit {
-  self.list.sort_by(fn(a, b) { compare_utf16(a.0, b.0) })
+  let keyed = self.list.map(fn(pair) { (string_to_utf16_units(pair.0), pair) })
+  keyed.sort_by(fn(a, b) { compare_utf16_units(a.0, b.0) })
+  self.list = keyed.map(fn(x) { x.1 })
 }
 
 ///|
@@ -177,13 +179,18 @@ pub fn UrlSearchParams::size(self : UrlSearchParams) -> Int {
 /// }
 /// ```
 pub fn UrlSearchParams::to_string(self : UrlSearchParams) -> String {
-  let parts : Array[String] = []
+  let buf = StringBuilder::new()
+  let mut first = true
   for pair in self.list {
-    let encoded_name = url_form_encode(pair.0)
-    let encoded_value = url_form_encode(pair.1)
-    parts.push(encoded_name + "=" + encoded_value)
+    if !first {
+      buf.write_char('&')
+    }
+    first = false
+    buf.write_string(url_form_encode(pair.0))
+    buf.write_char('=')
+    buf.write_string(url_form_encode(pair.1))
   }
-  parts.join("&")
+  buf.to_string()
 }
 
 ///|
@@ -270,15 +277,40 @@ pub fn UrlSearchParams::for_each(
 
 ///|
 fn url_form_decode(s : String) -> String {
-  let buf = StringBuilder::new()
+  let chars : Array[Char] = []
   for c in s {
+    chars.push(c)
+  }
+  let n = chars.length()
+  let bytes : Array[Int] = []
+  let mut i = 0
+  while i < n {
+    let c = chars[i]
     if c == '+' {
-      buf.write_char(' ')
+      bytes.push(0x20)
+      i = i + 1
+    } else if c == '%' && i + 2 < n {
+      match
+        (@pe.hex_digit_value(chars[i + 1]), @pe.hex_digit_value(chars[i + 2])) {
+        (Some(hi), Some(lo)) => {
+          bytes.push(hi * 16 + lo)
+          i = i + 3
+        }
+        _ => {
+          for byte in @pe.char_to_utf8_bytes(c) {
+            bytes.push(byte)
+          }
+          i = i + 1
+        }
+      }
     } else {
-      buf.write_char(c)
+      for byte in @pe.char_to_utf8_bytes(c) {
+        bytes.push(byte)
+      }
+      i = i + 1
     }
   }
-  @pe.percent_decode(buf.to_string())
+  @pe.utf8_bytes_to_string(bytes)
 }
 
 ///|
@@ -335,9 +367,7 @@ fn string_to_utf16_units(s : String) -> Array[Int] {
 }
 
 ///|
-fn compare_utf16(a : String, b : String) -> Int {
-  let ua = string_to_utf16_units(a)
-  let ub = string_to_utf16_units(b)
+fn compare_utf16_units(ua : Array[Int], ub : Array[Int]) -> Int {
   let la = ua.length()
   let lb = ub.length()
   let min_len = if la < lb { la } else { lb }
