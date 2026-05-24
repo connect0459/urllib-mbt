@@ -8,10 +8,10 @@ let utf8_2byte_max : Int = 0x7FF
 let utf8_3byte_max : Int = 0xFFFF
 
 ///|
-let surrogate_low : Int = 0xD800
+let surrogate_start : Int = 0xD800
 
 ///|
-let surrogate_high : Int = 0xDFFF
+let surrogate_end : Int = 0xDFFF
 
 ///|
 let replacement_char : Int = 0xFFFD
@@ -119,7 +119,7 @@ pub fn percent_encode_byte(byte : Int) -> String {
 /// match the WHATWG "UTF-8 encode" algorithm applied to USVStrings.
 pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
   let raw_cp = c.to_int()
-  let cp = if raw_cp >= surrogate_low && raw_cp <= surrogate_high {
+  let cp = if raw_cp >= surrogate_start && raw_cp <= surrogate_end {
     replacement_char
   } else {
     raw_cp
@@ -146,7 +146,7 @@ pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
 ///|
 fn push_utf8_bytes(c : Char, bytes : Array[Int]) -> Unit {
   let raw_cp = c.to_int()
-  let cp = if raw_cp >= surrogate_low && raw_cp <= surrogate_high {
+  let cp = if raw_cp >= surrogate_start && raw_cp <= surrogate_end {
     replacement_char
   } else {
     raw_cp
@@ -180,7 +180,7 @@ fn write_percent_encoded_byte(byte : Int, buf : StringBuilder) -> Unit {
 ///|
 fn write_percent_encoded_char(c : Char, buf : StringBuilder) -> Unit {
   let raw_cp = c.to_int()
-  let cp = if raw_cp >= surrogate_low && raw_cp <= surrogate_high {
+  let cp = if raw_cp >= surrogate_start && raw_cp <= surrogate_end {
     replacement_char
   } else {
     raw_cp
