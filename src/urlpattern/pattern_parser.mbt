@@ -229,11 +229,10 @@ fn is_valid_id_continue(c : Char) -> Bool {
 
 ///|
 fn is_valid_identifier(name : String) -> Bool {
-  let chars = @pe.string_to_chars(name)
-  match chars {
-    [] => false
-    [first, .. rest] =>
-      is_valid_id_start(first) && rest.all(fn(c) { is_valid_id_continue(c) })
+  let it = name.iter()
+  match it.next() {
+    None => false
+    Some(first) => is_valid_id_start(first) && it.all(is_valid_id_continue)
   }
 }
 
