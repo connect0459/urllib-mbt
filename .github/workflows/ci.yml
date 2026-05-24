@@ -41,16 +41,12 @@ jobs:
         run: moon info && git diff --exit-code
 
   test:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            target: native
-          - os: macos-latest
-            target: native
-    name: test (${{ matrix.os }}, ${{ matrix.target }})
-    runs-on: ${{ matrix.os }}
+        target: [js, wasm, wasm-gc, native]
+    name: test (${{ matrix.target }})
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
