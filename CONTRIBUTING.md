@@ -3,15 +3,18 @@
 ## Prerequisites
 
 - [MoonBit toolchain](https://www.moonbitlang.com/download/) — `moon` CLI
+- [just](https://just.systems/) — task runner
 
 ## Setup
 
 ```sh
 git clone https://github.com/connect0459/urllib.mbt
 cd urllib.mbt
-moon update
-moon build
+just setup
 ```
+
+`just setup` initializes the WPT submodule (sparse checkout) and runs
+`moon update` to fetch package dependencies.
 
 ### pre-commit hooks
 
