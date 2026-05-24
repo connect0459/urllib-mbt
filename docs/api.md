@@ -372,7 +372,7 @@ let p = try! @urlpattern.UrlPattern::from_string(
 println(p.has_regexp_groups())  // false
 
 // Generate a URL component from captured values
-let groups = { "id": "42" }
+let groups : Map[String, String] = { "id": "42" }
 match p.generate(@urlpattern.UrlPatternComponent::Pathname, groups) {
   Some(s) => println(s)  // "/books/42"
   None    => println("could not generate")
