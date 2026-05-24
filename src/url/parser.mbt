@@ -1,4 +1,7 @@
 ///|
+let max_port : Int = 65535
+
+///|
 priv enum State {
   SchemeStart
   Scheme
@@ -649,7 +652,7 @@ fn parse_port_number(s : String) -> Int raise UrlParseError {
       raise UrlParseError("invalid port character")
     }
     result = result * 10 + (c.to_int() - '0'.to_int())
-    if result > 65535 {
+    if result > max_port {
       raise UrlParseError("port out of range")
     }
   }
