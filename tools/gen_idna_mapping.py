@@ -12,6 +12,15 @@ have a distinct mapping target.
 """
 import sys
 
+
+def status_output_path() -> str:
+    return 'src/internal/idna/idna_status.mbt'
+
+
+def mapping_output_path() -> str:
+    return 'src/internal/idna/idna_mapping.mbt'
+
+
 STATUS = {
     'valid': 0,
     'ignored': 1,
@@ -71,7 +80,7 @@ for s, e, c, m in raw:
 mapped.sort()
 
 # Write status table
-with open('src/idna/idna_status.mbt', 'w') as f:
+with open(status_output_path(), 'w') as f:
     f.write('// AUTO-GENERATED FILE — do not edit by hand.\n')
     f.write('// Source: IdnaMappingTable.txt (Unicode 16.0.0)\n')
     f.write('// Status codes: 0=valid 1=ignored 2=mapped 3=deviation 4=disallowed 5=disallowed_STD3_valid 6=disallowed_STD3_mapped\n')
@@ -102,7 +111,7 @@ with open('src/idna/idna_status.mbt', 'w') as f:
     f.write('}\n')
 
 # Write mapping table
-with open('src/idna/idna_mapping.mbt', 'w') as f:
+with open(mapping_output_path(), 'w') as f:
     f.write('// AUTO-GENERATED FILE — do not edit by hand.\n')
     f.write('// Source: IdnaMappingTable.txt (Unicode 16.0.0)\n\n')
     f.write('///|\n')

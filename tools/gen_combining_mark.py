@@ -2,9 +2,15 @@
 """Generate a sorted-range table of Unicode Mark code points (Mn, Mc, Me)
 for use by the V6 leading-combining-mark check in IDNA validation.
 
-Usage: python3 tools/gen_combining_mark.py > src/idna/combining_mark.mbt
+Usage: python3 tools/gen_combining_mark.py
 """
 import unicodedata
+
+
+def output_path() -> str:
+    return 'src/internal/idna/combining_mark.mbt'
+
+
 ranges = []
 start = None
 end = None
@@ -24,30 +30,31 @@ for cp in range(0, 0x110000):
 if start is not None:
     ranges.append((start, end))
 
-print('// AUTO-GENERATED FILE — do not edit by hand.')
-print(f'// Unicode {unicodedata.unidata_version}: Mark (Mn|Mc|Me) ranges.')
-print('')
-print('///|')
-print('let combining_mark_ranges : Array[(Int, Int)] = [')
-for s, e in ranges:
-    print(f'  ({s}, {e}),')
-print(']')
-print('')
-print('///|')
-print('fn is_combining_mark_table(cp : Int) -> Bool {')
-print('  let arr = combining_mark_ranges')
-print('  let mut lo = 0')
-print('  let mut hi = arr.length()')
-print('  while lo < hi {')
-print('    let mid = (lo + hi) / 2')
-print('    let (s, e) = arr[mid]')
-print('    if cp < s {')
-print('      hi = mid')
-print('    } else if cp > e {')
-print('      lo = mid + 1')
-print('    } else {')
-print('      return true')
-print('    }')
-print('  }')
-print('  false')
-print('}')
+with open(output_path(), 'w') as f:
+    f.write('// AUTO-GENERATED FILE — do not edit by hand.\n')
+    f.write(f'// Unicode {unicodedata.unidata_version}: Mark (Mn|Mc|Me) ranges.\n')
+    f.write('\n')
+    f.write('///|\n')
+    f.write('let combining_mark_ranges : Array[(Int, Int)] = [\n')
+    for s, e in ranges:
+        f.write(f'  ({s}, {e}),\n')
+    f.write(']\n')
+    f.write('\n')
+    f.write('///|\n')
+    f.write('fn is_combining_mark_table(cp : Int) -> Bool {\n')
+    f.write('  let arr = combining_mark_ranges\n')
+    f.write('  let mut lo = 0\n')
+    f.write('  let mut hi = arr.length()\n')
+    f.write('  while lo < hi {\n')
+    f.write('    let mid = (lo + hi) / 2\n')
+    f.write('    let (s, e) = arr[mid]\n')
+    f.write('    if cp < s {\n')
+    f.write('      hi = mid\n')
+    f.write('    } else if cp > e {\n')
+    f.write('      lo = mid + 1\n')
+    f.write('    } else {\n')
+    f.write('      return true\n')
+    f.write('    }\n')
+    f.write('  }\n')
+    f.write('  false\n')
+    f.write('}\n')
