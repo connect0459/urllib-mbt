@@ -457,9 +457,11 @@ pub struct UrlPatternResult {
 }
 ```
 
-Returned by `exec_url` and `exec_init`. Each component field is `Some` when the
-pattern matched that component, `None` when the component was absent from the
-input.
+Returned by `exec_url` and `exec_init`. When the call returns `Some(result)`,
+every component field is `Some(...)` — `exec_init` matches and guards each
+component before constructing the result, so a mismatch on any single
+component aborts the whole call with `None`. The `Option` wrapper on each
+field exists only to keep room for forward-compatible component additions.
 
 ---
 
