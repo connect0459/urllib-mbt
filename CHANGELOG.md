@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-24
+
+### Changed
+
+- **urlpattern**: `compare_component` / `generate` take a typed `UrlPatternComponent` enum (was `String`)
+- **url**: `Url` implements `ToJson` trait instead of exposing a `to_json()` method
+
+### Added
+
+- **url**: `impl Show for UrlSearchParams`
+
+### Removed
+
+- Hide `percent_encoding`, `idna`, and `host` sub-packages under `internal/` (no longer importable)
+- **url**: drop the `@url.Host` type re-export
+- **url**: privatize fields of `Url` and `UrlSearchParams`
+- **url**: privatize `UrlPath` enum constructors
+
+### Performance
+
+- **url**: eliminate O(N²) string concat in credentials parsing
+- **url**: reduce allocations in `percent_decode`, `percent_encode`, `UrlSearchParams` sort / serialization
+- **url**: add fast paths in `strip_tab_newline`, `is_dot_segment`, `is_single_dot`
+- **host / idna**: reduce allocations in hex / numeric helpers and ASCII-only label processing
+
+### Refactored
+
+- **url / urlpattern**: replace C-style loops and mutation blocks with idiomatic MoonBit iteration
+- **url / urlpattern**: extract shared utilities (`lower_ipv6_literal`, `strip_leading_char`, `encode_part_str`)
+- **host**: eliminate `parse_ipv6` panic path (returns `None` instead)
+
+### Miscellaneous
+
+- **ci**: extend test matrix to `js`, `wasm`, `wasm-gc`, `native`
+- **docs**: add GitHub issue and pull request templates
+
 ## [0.1.0] - 2026-05-23
 
 ### Added
@@ -63,5 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `generate` — reconstructs a URL string from a pattern and captured group values
 - `compare_component` — specificity ordering for route-priority comparisons
 
+<!-- TODO at v0.2.0 release: update the [Unreleased] link below to compare/v0.2.0...HEAD once the tag exists. -->
 [Unreleased]: https://github.com/connect0459/urllib.mbt/compare/v0.1.0...HEAD
+[0.2.0]: https://github.com/connect0459/urllib.mbt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/connect0459/urllib.mbt/releases/tag/v0.1.0

@@ -22,7 +22,7 @@ This project may be released publicly. All of the following must be written in *
   blackbox test files (ending in `_test.mbt`) and whitebox test files (ending in
   `_wbtest.mbt`).
 
-- In the toplevel directory, there is a `moon.mod.json` file listing module
+- In the toplevel directory, there is a `moon.mod` file listing module
   metadata.
 
 ## Coding convention

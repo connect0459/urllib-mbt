@@ -3,11 +3,11 @@
 ## Package graph
 
 ```text
-connect0459/urllib/url/percent_encoding   no external deps
+connect0459/urllib/internal/percent_encoding   no external deps  [internal]
         │
-        ├── connect0459/urllib/url/idna   deps: @pe
+        ├── connect0459/urllib/internal/idna   deps: @pe         [internal]
         │         │
-        │         └── connect0459/urllib/url/host   deps: @idna, @pe
+        │         └── connect0459/urllib/internal/host  deps: @idna, @pe  [internal]
         │                       │
         │         ┌─────────────┘
         │         │
@@ -18,22 +18,26 @@ connect0459/urllib/url/percent_encoding   no external deps
         └── connect0459/urllib/urlpattern deps: @url, @host, @pe
 ```
 
-| Package | Role |
-| :--- | :--- |
-| `percent_encoding` | Percent-encode/decode, UTF-8 codec, shared char utilities |
-| `idna` | UTS#46 domain mapping, Punycode, IDNA status/mapping tables |
-| `host` | `Host` type, IPv4/IPv6/domain parsing and serialization |
-| `url` | URL parser, serializer, setters, `UrlSearchParams` |
-| `urlpattern` | WHATWG URL Pattern API |
+Packages marked `[internal]` live under `src/internal/` and are hidden from
+consumers via MoonBit's `internal` package convention. They are not importable
+outside the module.
 
-## `percent_encoding` as shared low-level substrate
+| Package | Visibility | Role |
+| :--- | :--- | :--- |
+| `internal/percent_encoding` | Internal | Percent-encode/decode, UTF-8 codec, shared char utilities |
+| `internal/idna` | Internal | UTS#46 domain mapping, Punycode, IDNA status/mapping tables |
+| `internal/host` | Internal | `Host` type, IPv4/IPv6/domain parsing and serialization |
+| `url` | Public | URL parser, serializer, setters, `UrlSearchParams` |
+| `urlpattern` | Public | WHATWG URL Pattern API |
 
-`percent_encoding` contains three functions that are unrelated to
+## `internal/percent_encoding` as shared low-level substrate
+
+`internal/percent_encoding` contains three functions that are unrelated to
 percent-encoding by name:
 
-| Function | Used for (outside `percent_encoding`) |
+| Function | Used for (outside `internal/percent_encoding`) |
 | :--- | :--- |
-| `string_to_chars` | Random-access char iteration in `host`, `url`, `urlpattern` |
+| `string_to_chars` | Random-access char iteration in `idna`, `url`, `urlpattern` |
 | `split_on_char` | IPv4 label splitting in `host`; domain label splitting in `idna` |
 | `hex_digit_value` | IPv4/IPv6 hex parsing in `host` |
 
