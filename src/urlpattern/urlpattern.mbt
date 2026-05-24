@@ -506,25 +506,17 @@ pub fn UrlPattern::exec_init(
     _ => return None
   }
   let proto_str = proto_input
-  let protocol = match match_component(self.protocol, proto_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let protocol = match_component(self.protocol, proto_input)
+  guard protocol is Some(_) else { return None }
   let username_input = canonicalize_userinfo(init.username.unwrap_or(""))
-  let username = match match_component(self.username, username_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let username = match_component(self.username, username_input)
+  guard username is Some(_) else { return None }
   let password_input = canonicalize_password(init.password.unwrap_or(""))
-  let password = match match_component(self.password, password_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let password = match_component(self.password, password_input)
+  guard password is Some(_) else { return None }
   let hostname_input = canonicalize_hostname(init.hostname.unwrap_or(""))
-  let hostname = match match_component(self.hostname, hostname_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let hostname = match_component(self.hostname, hostname_input)
+  guard hostname is Some(_) else { return None }
   let raw_port = init.port.unwrap_or("")
   let port_input = if raw_port != "" {
     let p = canonicalize_port(raw_port, proto_str)
@@ -537,10 +529,8 @@ pub fn UrlPattern::exec_init(
   } else {
     ""
   }
-  let port = match match_component(self.port, port_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let port = match_component(self.port, port_input)
+  guard port is Some(_) else { return None }
   let raw_pathname = init.pathname.unwrap_or("")
   let pathname_input = if proto_str == "" ||
     proto_str == "http" ||
@@ -553,20 +543,14 @@ pub fn UrlPattern::exec_init(
   } else {
     raw_pathname
   }
-  let pathname = match match_component(self.pathname, pathname_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let pathname = match_component(self.pathname, pathname_input)
+  guard pathname is Some(_) else { return None }
   let search_input = canonicalize_search(init.search.unwrap_or(""))
-  let search = match match_component(self.search, search_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let search = match_component(self.search, search_input)
+  guard search is Some(_) else { return None }
   let hash_input = canonicalize_hash(init.hash.unwrap_or(""))
-  let hash = match match_component(self.hash, hash_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let hash = match_component(self.hash, hash_input)
+  guard hash is Some(_) else { return None }
 
   Some({
     inputs: [Init(init)],
