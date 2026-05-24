@@ -1,4 +1,7 @@
 ///|
+let max_port : Int = 65535
+
+///|
 priv enum ComponentKind {
   Protocol
   Username
@@ -71,7 +74,7 @@ fn is_literal_port_out_of_range(s : String) -> Bool {
   let mut n = 0
   for c in s {
     n = n * 10 + (c.to_int() - '0'.to_int())
-    if n > 65535 {
+    if n > max_port {
       return true
     }
   }
