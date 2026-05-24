@@ -1,7 +1,7 @@
 ///|
 fn load_generate_testdata() -> Array[Json] raise {
   let content = @fs.read_file_to_string(
-    "resources/urlpattern/urlpattern-generate-test-data.json",
+    "wpt/urlpattern/resources/urlpattern-generate-test-data.json",
   )
   let json = @json.parse(content)
   match json {
