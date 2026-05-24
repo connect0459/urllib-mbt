@@ -114,6 +114,27 @@ pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
 }
 
 ///|
+fn push_utf8_bytes(c : Char, bytes : Array[Int]) -> Unit {
+  let raw_cp = c.to_int()
+  let cp = if raw_cp >= 0xD800 && raw_cp <= 0xDFFF { 0xFFFD } else { raw_cp }
+  if cp <= 0x7F {
+    bytes.push(cp)
+  } else if cp <= 0x7FF {
+    bytes.push(0xC0 | (cp >> 6))
+    bytes.push(0x80 | (cp & 0x3F))
+  } else if cp <= 0xFFFF {
+    bytes.push(0xE0 | (cp >> 12))
+    bytes.push(0x80 | ((cp >> 6) & 0x3F))
+    bytes.push(0x80 | (cp & 0x3F))
+  } else {
+    bytes.push(0xF0 | (cp >> 18))
+    bytes.push(0x80 | ((cp >> 12) & 0x3F))
+    bytes.push(0x80 | ((cp >> 6) & 0x3F))
+    bytes.push(0x80 | (cp & 0x3F))
+  }
+}
+
+///|
 fn write_percent_encoded_byte(byte : Int, buf : StringBuilder) -> Unit {
   let hi = (byte >> 4) & 0xF
   let lo = byte & 0xF
@@ -256,9 +277,7 @@ pub fn percent_decode(input : String) -> String {
         _ => ()
       }
     }
-    for byte in char_to_utf8_bytes(c) {
-      bytes.push(byte)
-    }
+    push_utf8_bytes(c, bytes)
     i = i + 1
   }
   utf8_bytes_to_string(bytes)
