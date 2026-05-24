@@ -473,15 +473,10 @@ fn match_component(
             let raw = sv.to_owned()
             let (pre, suf) = component.group_strips[idx]
             let stripped = if pre.length() > 0 || suf.length() > 0 {
-              let chars = @pe.string_to_chars(raw)
               let start = pre.length()
-              let end = chars.length() - suf.length()
+              let end = raw.length() - suf.length()
               if start <= end {
-                let buf = StringBuilder::new()
-                for ch in chars[start:end] {
-                  buf.write_char(ch)
-                }
-                buf.to_string()
+                raw[start:end].to_owned()
               } else {
                 raw
               }
@@ -729,31 +724,16 @@ fn canonicalize_port(port : String, protocol : String) -> String {
 ///|
 fn normalize_path_dots(path : String) -> String {
   let segments : Array[String] = []
-  let chars = @pe.string_to_chars(path)
-  let mut i = 0
-  let n = chars.length()
-  while i < n {
-    if chars[i] == '/' {
-      i += 1
-      continue
-    }
-    let seg_start = i
-    while i < n && chars[i] != '/' {
-      i += 1
-    }
-    let buf = StringBuilder::new()
-    for ch in chars[seg_start:i] {
-      buf.write_char(ch)
-    }
-    let seg = buf.to_string()
-    if seg == "." {
+  for seg in path.split("/") {
+    let s = seg.to_owned()
+    if s == "" || s == "." {
       ()
-    } else if seg == ".." {
+    } else if s == ".." {
       if segments.length() > 0 {
         segments.pop() |> ignore
       }
     } else {
-      segments.push(seg)
+      segments.push(s)
     }
   }
   "/" + segments.join("/")
