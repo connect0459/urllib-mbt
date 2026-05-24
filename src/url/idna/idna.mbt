@@ -96,8 +96,7 @@ fn is_arabic_nonjoining(cp : Int) -> Bool {
 
 ///|
 fn validate_contextj(cps : Array[Int]) -> Unit raise IdnaParseError {
-  for idx = 0; idx < cps.length(); idx = idx + 1 {
-    let cp = cps[idx]
+  for idx, cp in cps {
     if cp == 0x200D {
       if idx == 0 || !is_virama(cps[idx - 1]) {
         raise IdnaParseError("ZWJ requires preceding virama")

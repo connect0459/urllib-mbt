@@ -69,10 +69,7 @@ fn punycode_array_insert(arr : Array[Int], pos : Int, val : Int) -> Unit {
 
 ///|
 fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
-  let chars : Array[Char] = []
-  for c in input {
-    chars.push(c)
-  }
+  let chars = @pe.string_to_chars(input)
   let n_input = chars.length()
   if n_input == 0 {
     raise IdnaParseError("punycode: empty input")
@@ -82,14 +79,14 @@ fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
   let mut i = 0
   let mut bias = punycode_initial_bias
   let mut basic_end = -1
-  for idx = 0; idx < n_input; idx = idx + 1 {
-    if chars[idx] == '-' {
+  for idx, c in chars {
+    if c == '-' {
       basic_end = idx
     }
   }
   let copy_end = if basic_end > 0 { basic_end } else { 0 }
-  for idx = 0; idx < copy_end; idx = idx + 1 {
-    let cp = chars[idx].to_int()
+  for c in chars[0:copy_end] {
+    let cp = c.to_int()
     if cp > 0x7E {
       raise IdnaParseError("punycode: non-ASCII before delimiter")
     }
