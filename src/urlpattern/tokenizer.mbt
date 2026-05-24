@@ -93,8 +93,8 @@ fn tokenize(
         continue
       }
       let buf = StringBuilder::new()
-      for j = name_start; j < i; j = j + 1 {
-        buf.write_char(chars[j])
+      for ch in chars[name_start:i] {
+        buf.write_char(ch)
       }
       tokens.push({ kind: Name, value: buf.to_string(), index: tok_index })
       continue
@@ -136,8 +136,8 @@ fn tokenize(
         continue
       }
       let buf = StringBuilder::new()
-      for k = regexp_start; k < j - 1; k = k + 1 {
-        buf.write_char(chars[k])
+      for ch in chars[regexp_start:j - 1] {
+        buf.write_char(ch)
       }
       tokens.push({ kind: Regexp, value: buf.to_string(), index: tok_index })
       i = j
