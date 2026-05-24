@@ -8,10 +8,10 @@ let nonchar_low_start : Int = 0xFDD0
 let nonchar_low_end : Int = 0xFDEF
 
 ///|
-let nonchar_plane_fffe : Int = 0xFFFE
+let nonchar_suffix_fffe : Int = 0xFFFE
 
 ///|
-let nonchar_plane_ffff : Int = 0xFFFF
+let nonchar_suffix_ffff : Int = 0xFFFF
 
 ///|
 let no_break_space : Int = 0x00A0
@@ -313,8 +313,8 @@ fn nfc_compose(cps : Array[Int]) -> Array[Int] {
 fn is_idna_forbidden_cp(cp : Int) -> Bool {
   cp == replacement_char ||
   (cp >= nonchar_low_start && cp <= nonchar_low_end) ||
-  (cp & 0xFFFF) == nonchar_plane_fffe ||
-  (cp & 0xFFFF) == nonchar_plane_ffff ||
+  (cp & 0xFFFF) == nonchar_suffix_fffe ||
+  (cp & 0xFFFF) == nonchar_suffix_ffff ||
   cp == no_break_space ||
   cp == ideographic_space ||
   cp == 0x1680 ||
