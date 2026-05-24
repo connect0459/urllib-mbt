@@ -1,4 +1,31 @@
 ///|
+let replacement_char : Int = 0xFFFD
+
+///|
+let nonchar_low_start : Int = 0xFDD0
+
+///|
+let nonchar_low_end : Int = 0xFDEF
+
+///|
+let nonchar_plane_sentinel_lower : Int = 0xFFFE
+
+///|
+let nonchar_plane_sentinel_upper : Int = 0xFFFF
+
+///|
+let no_break_space : Int = 0x00A0
+
+///|
+let ideographic_space : Int = 0x3000
+
+///|
+let surrogate_start : Int = 0xD800
+
+///|
+let surrogate_end : Int = 0xDFFF
+
+///|
 pub suberror IdnaParseError {
   IdnaParseError(String)
 }
@@ -290,15 +317,15 @@ fn nfc_compose(cps : Array[Int]) -> Array[Int] {
 
 ///|
 fn is_idna_forbidden_cp(cp : Int) -> Bool {
-  cp == 0xFFFD ||
-  (cp >= 0xFDD0 && cp <= 0xFDEF) ||
-  (cp & 0xFFFF) == 0xFFFE ||
-  (cp & 0xFFFF) == 0xFFFF ||
-  cp == 0x00A0 ||
-  cp == 0x3000 ||
+  cp == replacement_char ||
+  (cp >= nonchar_low_start && cp <= nonchar_low_end) ||
+  (cp & 0xFFFF) == nonchar_plane_sentinel_lower ||
+  (cp & 0xFFFF) == nonchar_plane_sentinel_upper ||
+  cp == no_break_space ||
+  cp == ideographic_space ||
   cp == 0x1680 ||
   (cp >= 0x80 && cp <= 0x9F) ||
-  (cp >= 0xD800 && cp <= 0xDFFF) ||
+  (cp >= surrogate_start && cp <= surrogate_end) ||
   (cp >= 0x202A && cp <= 0x202E) ||
   (cp >= 0x2066 && cp <= 0x2069) ||
   cp == 0x06DD ||

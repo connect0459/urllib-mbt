@@ -1,4 +1,22 @@
 ///|
+let unicode_id_non_ascii_start : Int = 0x80
+
+///|
+let unicode_id_bmp_max : Int = 0xD7FF
+
+///|
+let unicode_id_supplementary_start : Int = 0x10000
+
+///|
+let unicode_id_supplementary_end : Int = 0x1DFFF
+
+///|
+let unicode_variation_selector_start : Int = 0xE0100
+
+///|
+let unicode_variation_selector_end : Int = 0xE01EF
+
+///|
 priv enum PartType {
   FixedText
   Regexp
@@ -190,8 +208,8 @@ fn is_valid_id_start(c : Char) -> Bool {
   (c >= 'a' && c <= 'z') ||
   (c >= 'A' && c <= 'Z') ||
   c == '_' ||
-  (cp >= 0x80 && cp < 0xD800) ||
-  (cp >= 0x10000 && cp <= 0x1DFFF)
+  (cp >= unicode_id_non_ascii_start && cp <= unicode_id_bmp_max) ||
+  (cp >= unicode_id_supplementary_start && cp <= unicode_id_supplementary_end)
 }
 
 ///|
@@ -201,9 +219,12 @@ fn is_valid_id_continue(c : Char) -> Bool {
   (c >= 'A' && c <= 'Z') ||
   (c >= '0' && c <= '9') ||
   c == '_' ||
-  (cp >= 0x80 && cp < 0xD800) ||
-  (cp >= 0x10000 && cp <= 0x1DFFF) ||
-  (cp >= 0xE0100 && cp <= 0xE01EF)
+  (cp >= unicode_id_non_ascii_start && cp <= unicode_id_bmp_max) ||
+  (cp >= unicode_id_supplementary_start && cp <= unicode_id_supplementary_end) ||
+  (
+    cp >= unicode_variation_selector_start &&
+    cp <= unicode_variation_selector_end
+  )
 }
 
 ///|

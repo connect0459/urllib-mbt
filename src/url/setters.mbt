@@ -79,7 +79,7 @@ fn parse_setter_port(s : String, scheme : String) -> SetterPort {
     if c >= '0' && c <= '9' {
       val = val * 10 + (c.to_int() - '0'.to_int())
       has_digits = true
-      if val > 65535 {
+      if val > max_port {
         return Unchanged
       }
     } else {

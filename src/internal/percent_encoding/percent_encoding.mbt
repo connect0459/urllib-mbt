@@ -1,4 +1,22 @@
 ///|
+let utf8_1byte_max : Int = 0x7F
+
+///|
+let utf8_2byte_max : Int = 0x7FF
+
+///|
+let utf8_3byte_max : Int = 0xFFFF
+
+///|
+let surrogate_start : Int = 0xD800
+
+///|
+let surrogate_end : Int = 0xDFFF
+
+///|
+let replacement_char : Int = 0xFFFD
+
+///|
 pub fn strip_leading_char(s : String, c : Char) -> String {
   match s.get_char(0) {
     Some(head) if head == c => s[1:].to_owned()
@@ -101,14 +119,18 @@ pub fn percent_encode_byte(byte : Int) -> String {
 /// match the WHATWG "UTF-8 encode" algorithm applied to USVStrings.
 pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
   let raw_cp = c.to_int()
-  let cp = if raw_cp >= 0xD800 && raw_cp <= 0xDFFF { 0xFFFD } else { raw_cp }
+  let cp = if raw_cp >= surrogate_start && raw_cp <= surrogate_end {
+    replacement_char
+  } else {
+    raw_cp
+  }
   let result : Array[Int] = []
-  if cp <= 0x7F {
+  if cp <= utf8_1byte_max {
     result.push(cp)
-  } else if cp <= 0x7FF {
+  } else if cp <= utf8_2byte_max {
     result.push(0xC0 | (cp >> 6))
     result.push(0x80 | (cp & 0x3F))
-  } else if cp <= 0xFFFF {
+  } else if cp <= utf8_3byte_max {
     result.push(0xE0 | (cp >> 12))
     result.push(0x80 | ((cp >> 6) & 0x3F))
     result.push(0x80 | (cp & 0x3F))
@@ -124,13 +146,17 @@ pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
 ///|
 fn push_utf8_bytes(c : Char, bytes : Array[Int]) -> Unit {
   let raw_cp = c.to_int()
-  let cp = if raw_cp >= 0xD800 && raw_cp <= 0xDFFF { 0xFFFD } else { raw_cp }
-  if cp <= 0x7F {
+  let cp = if raw_cp >= surrogate_start && raw_cp <= surrogate_end {
+    replacement_char
+  } else {
+    raw_cp
+  }
+  if cp <= utf8_1byte_max {
     bytes.push(cp)
-  } else if cp <= 0x7FF {
+  } else if cp <= utf8_2byte_max {
     bytes.push(0xC0 | (cp >> 6))
     bytes.push(0x80 | (cp & 0x3F))
-  } else if cp <= 0xFFFF {
+  } else if cp <= utf8_3byte_max {
     bytes.push(0xE0 | (cp >> 12))
     bytes.push(0x80 | ((cp >> 6) & 0x3F))
     bytes.push(0x80 | (cp & 0x3F))
@@ -154,13 +180,17 @@ fn write_percent_encoded_byte(byte : Int, buf : StringBuilder) -> Unit {
 ///|
 fn write_percent_encoded_char(c : Char, buf : StringBuilder) -> Unit {
   let raw_cp = c.to_int()
-  let cp = if raw_cp >= 0xD800 && raw_cp <= 0xDFFF { 0xFFFD } else { raw_cp }
-  if cp <= 0x7F {
+  let cp = if raw_cp >= surrogate_start && raw_cp <= surrogate_end {
+    replacement_char
+  } else {
+    raw_cp
+  }
+  if cp <= utf8_1byte_max {
     write_percent_encoded_byte(cp, buf)
-  } else if cp <= 0x7FF {
+  } else if cp <= utf8_2byte_max {
     write_percent_encoded_byte(0xC0 | (cp >> 6), buf)
     write_percent_encoded_byte(0x80 | (cp & 0x3F), buf)
-  } else if cp <= 0xFFFF {
+  } else if cp <= utf8_3byte_max {
     write_percent_encoded_byte(0xE0 | (cp >> 12), buf)
     write_percent_encoded_byte(0x80 | ((cp >> 6) & 0x3F), buf)
     write_percent_encoded_byte(0x80 | (cp & 0x3F), buf)
@@ -328,7 +358,7 @@ pub fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
         (bytes[i + 3] & 0x3F)
       (cp, 4)
     } else {
-      (0xFFFD, 1)
+      (replacement_char, 1)
     }
     buf.write_char(Int::unsafe_to_char(cp))
     i = i + advance
