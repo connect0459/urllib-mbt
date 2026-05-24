@@ -1,4 +1,19 @@
 ///|
+let nonchar_low_start : Int = 0xFDD0
+
+///|
+let nonchar_low_end : Int = 0xFDEF
+
+///|
+let no_break_space : Int = 0x00A0
+
+///|
+let ideographic_space : Int = 0x3000
+
+///|
+let replacement_char : Int = 0xFFFD
+
+///|
 pub enum Host {
   Domain(String)
   Ipv4(UInt)
@@ -193,7 +208,7 @@ fn is_forbidden_host_cp(cp : Int) -> Bool {
 
 ///|
 fn is_unicode_nonchar(cp : Int) -> Bool {
-  (cp >= 0xFDD0 && cp <= 0xFDEF) ||
+  (cp >= nonchar_low_start && cp <= nonchar_low_end) ||
   (cp & 0xFFFF) == 0xFFFE ||
   (cp & 0xFFFF) == 0xFFFF
 }
@@ -205,11 +220,11 @@ fn domain_has_forbidden_char(domain : String) -> Bool {
     if cp <= 0x1F ||
       cp == 0x7F ||
       is_forbidden_host_cp(cp) ||
-      cp == 0x25 ||
-      cp == 0xFFFD ||
+      cp == '%'.to_int() ||
+      cp == replacement_char ||
       is_unicode_nonchar(cp) ||
-      cp == 0x00A0 ||
-      cp == 0x3000 {
+      cp == no_break_space ||
+      cp == ideographic_space {
       return true
     }
   }
