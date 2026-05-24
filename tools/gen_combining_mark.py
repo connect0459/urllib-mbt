@@ -5,6 +5,12 @@ for use by the V6 leading-combining-mark check in IDNA validation.
 Usage: python3 tools/gen_combining_mark.py
 """
 import unicodedata
+
+
+def output_path() -> str:
+    return 'src/internal/idna/combining_mark.mbt'
+
+
 ranges = []
 start = None
 end = None
@@ -24,7 +30,7 @@ for cp in range(0, 0x110000):
 if start is not None:
     ranges.append((start, end))
 
-with open('src/internal/idna/combining_mark.mbt', 'w') as f:
+with open(output_path(), 'w') as f:
     f.write('// AUTO-GENERATED FILE — do not edit by hand.\n')
     f.write(f'// Unicode {unicodedata.unidata_version}: Mark (Mn|Mc|Me) ranges.\n')
     f.write('\n')
