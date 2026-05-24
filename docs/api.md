@@ -474,8 +474,11 @@ pub struct UrlPatternComponentResult {
 }
 ```
 
-`groups` maps capture-group names to their matched values. A `Some(None)` entry
-means the group participated in the match but captured an empty string.
+`groups` maps capture-group names to their matched values. Reading via
+`groups.get(name)`, a `Some(None)` result means the named group did not
+participate in the match (mirrors WPT's expected `null`); a
+`Some(Some(""))` result means the group participated and captured an
+empty string.
 
 ---
 
