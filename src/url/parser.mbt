@@ -366,6 +366,10 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             buf.reset()
             let creds = if at_sign_seen { "%40" + raw_creds } else { raw_creds }
             at_sign_seen = true
+            let username_buf = StringBuilder::new()
+            let password_buf = StringBuilder::new()
+            username_buf.write_string(url.username)
+            password_buf.write_string(url.password)
             for ch in creds {
               if ch == ':' && !password_token_seen {
                 password_token_seen = true
@@ -373,11 +377,13 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
               }
               let enc = @pe.percent_encode_userinfo(ch.to_string())
               if password_token_seen {
-                url.password = url.password + enc
+                password_buf.write_string(enc)
               } else {
-                url.username = url.username + enc
+                username_buf.write_string(enc)
               }
             }
+            url.username = username_buf.to_string()
+            url.password = password_buf.to_string()
           }
           None | Some('/') | Some('?') | Some('#') => {
             let host_str = buf.to_string()
