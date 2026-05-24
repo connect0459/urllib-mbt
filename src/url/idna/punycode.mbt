@@ -56,18 +56,6 @@ fn punycode_digit_to_char(d : Int) -> Char {
 }
 
 ///|
-fn punycode_array_insert(arr : Array[Int], pos : Int, val : Int) -> Unit {
-  arr.push(val)
-  let n = arr.length()
-  let mut j = n - 1
-  while j > pos {
-    arr[j] = arr[j - 1]
-    j = j - 1
-  }
-  arr[pos] = val
-}
-
-///|
 fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
   let chars = @pe.string_to_chars(input)
   let n_input = chars.length()
@@ -128,7 +116,7 @@ fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
     if n >= 0xD800 && n <= 0xDFFF {
       raise IdnaParseError("punycode: surrogate code point")
     }
-    punycode_array_insert(output, i, n)
+    output.insert(i, n)
     i = i + 1
   }
   output
