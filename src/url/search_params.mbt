@@ -2,7 +2,7 @@
 /// A mutable list of name/value string pairs used to encode
 /// `application/x-www-form-urlencoded` data.
 pub struct UrlSearchParams {
-  mut list : Array[(String, String)]
+  priv mut list : Array[(String, String)]
 }
 
 ///|

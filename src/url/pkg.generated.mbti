@@ -93,7 +93,7 @@ pub enum UrlPath {
 } derive(@debug.Debug)
 
 pub struct UrlSearchParams {
-  mut list : Array[(String, String)]
+  // private fields
 }
 pub fn UrlSearchParams::append(Self, String, String) -> Unit
 pub fn UrlSearchParams::delete(Self, String) -> Unit
