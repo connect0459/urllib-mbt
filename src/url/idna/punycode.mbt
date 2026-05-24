@@ -33,15 +33,14 @@ fn punycode_adapt(delta : Int, numpoints : Int, firsttime : Bool) -> Int {
 
 ///|
 fn punycode_digit_value(c : Char) -> Int raise IdnaParseError {
-  let cp = c.to_int()
-  if cp >= 'a'.to_int() && cp <= 'z'.to_int() {
-    return cp - 'a'.to_int()
+  if c >= 'a' && c <= 'z' {
+    return c.to_int() - 'a'.to_int()
   }
-  if cp >= 'A'.to_int() && cp <= 'Z'.to_int() {
-    return cp - 'A'.to_int()
+  if c >= 'A' && c <= 'Z' {
+    return c.to_int() - 'A'.to_int()
   }
-  if cp >= '0'.to_int() && cp <= '9'.to_int() {
-    return cp - '0'.to_int() + 26
+  if c >= '0' && c <= '9' {
+    return c.to_int() - '0'.to_int() + 26
   }
   raise IdnaParseError("invalid punycode digit")
 }
