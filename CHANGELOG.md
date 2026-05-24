@@ -99,7 +99,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `generate` — reconstructs a URL string from a pattern and captured group values
 - `compare_component` — specificity ordering for route-priority comparisons
 
-<!-- TODO at v0.2.0 release: update the [Unreleased] link below to compare/v0.2.0...HEAD once the tag exists. -->
-[Unreleased]: https://github.com/connect0459/urllib.mbt/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/connect0459/urllib.mbt/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/connect0459/urllib.mbt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/connect0459/urllib.mbt/releases/tag/v0.1.0
