@@ -95,11 +95,12 @@ fn parse_setter_port(s : String, scheme : String) -> SetterPort {
 
 ///|
 fn truncate_host_value(s : String, is_special : Bool) -> String {
-  let chars = @pe.string_to_chars(s)
-  for i, c in chars {
+  let buf = StringBuilder::new()
+  for c in s {
     if c == '/' || c == '?' || c == '#' || (is_special && c == '\\') {
-      return s[0:i].to_owned()
+      return buf.to_string()
     }
+    buf.write_char(c)
   }
   s
 }
@@ -140,21 +141,20 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
   if stripped.is_empty() {
     return self
   }
-  let chars = @pe.string_to_chars(stripped)
-  let n = chars.length()
-  if !is_ascii_alpha(chars[0]) {
-    return self
+  match stripped.get_char(0) {
+    Some(c) if is_ascii_alpha(c) => ()
+    _ => return self
   }
   let buf = StringBuilder::new()
-  let mut i = 0
-  while i < n && chars[i] != ':' {
-    let c = chars[i]
+  for c in stripped {
+    if c == ':' {
+      break
+    }
     if is_ascii_alphanumeric(c) || c == '+' || c == '-' || c == '.' {
       buf.write_char(ascii_lowercase_char(c))
     } else {
       return self
     }
-    i = i + 1
   }
   let new_scheme = buf.to_string()
   let old_special = self.is_special()
@@ -257,32 +257,21 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     }
     return { ..self, path: new_path }
   }
-  let chars = @pe.string_to_chars(stripped)
-  let n = chars.length()
   let segs : Array[String] = []
-  let buf = StringBuilder::new()
-  let mut i = 0
-  if i < n {
-    let c = chars[i]
+  let seg_buf = StringBuilder::new()
+  let path_input = match stripped.get_char(0) {
+    Some(c) if c == '/' || (is_special && c == '\\') => stripped[1:]
+    _ => stripped
+  }
+  for c in path_input {
     if c == '/' || (is_special && c == '\\') {
-      i = i + 1
+      apply_path_seg(segs, seg_buf.to_string(), self.scheme, false)
+      seg_buf.reset()
+    } else {
+      seg_buf.write_char(c)
     }
   }
-  while i <= n {
-    let c : Char? = if i < n { Some(chars[i]) } else { None }
-    let is_sep = c == Some('/') || (is_special && c == Some('\\')) || c == None
-    if is_sep {
-      let seg = buf.to_string()
-      buf.reset()
-      apply_path_seg(segs, seg, self.scheme, c == None)
-      if c == None {
-        break
-      }
-    } else if c is Some(ch) {
-      buf.write_char(ch)
-    }
-    i = i + 1
-  }
+  apply_path_seg(segs, seg_buf.to_string(), self.scheme, true)
   { ..self, path: UrlPath::Segments(segs) }
 }
 
