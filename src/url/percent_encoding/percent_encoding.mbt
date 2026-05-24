@@ -30,49 +30,39 @@ fn is_c0(cp : Int) -> Bool {
 
 ///|
 fn in_fragment_set(cp : Int) -> Bool {
-  is_c0(cp) ||
-  cp == 0x20 ||
-  cp == 0x22 ||
-  cp == 0x3C ||
-  cp == 0x3E ||
-  cp == 0x60
+  is_c0(cp) || cp == ' ' || cp == '"' || cp == '<' || cp == '>' || cp == '`'
 }
 
 ///|
 fn in_query_set(cp : Int) -> Bool {
-  is_c0(cp) ||
-  cp == 0x20 ||
-  cp == 0x22 ||
-  cp == 0x23 ||
-  cp == 0x3C ||
-  cp == 0x3E
+  is_c0(cp) || cp == ' ' || cp == '"' || cp == '#' || cp == '<' || cp == '>'
 }
 
 ///|
 fn in_special_query_set(cp : Int) -> Bool {
-  in_query_set(cp) || cp == 0x27
+  in_query_set(cp) || cp == '\''
 }
 
 ///|
 fn in_path_set(cp : Int) -> Bool {
   in_query_set(cp) ||
-  cp == 0x3F ||
-  cp == 0x5E ||
-  cp == 0x60 ||
-  cp == 0x7B ||
-  cp == 0x7D
+  cp == '?' ||
+  cp == '^' ||
+  cp == '`' ||
+  cp == '{' ||
+  cp == '}'
 }
 
 ///|
 fn in_userinfo_set(cp : Int) -> Bool {
   in_path_set(cp) ||
-  cp == 0x2F ||
-  cp == 0x3A ||
-  cp == 0x3B ||
-  cp == 0x3D ||
-  cp == 0x40 ||
-  (cp >= 0x5B && cp <= 0x5E) ||
-  cp == 0x7C
+  cp == '/' ||
+  cp == ':' ||
+  cp == ';' ||
+  cp == '=' ||
+  cp == '@' ||
+  (cp >= '[' && cp <= '^') ||
+  cp == '|'
 }
 
 ///|
