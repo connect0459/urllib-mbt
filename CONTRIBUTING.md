@@ -32,7 +32,7 @@ pre-commit run --all-files
 
 | Command | Purpose |
 | :--- | :--- |
-| `moon test` | Run all tests (native backend) |
+| `moon test` | Run all tests |
 | `moon test --target wasm-gc` | Run tests on a specific backend |
 | `moon fmt` | Format all source files |
 | `moon check` | Type-check without building |
