@@ -358,7 +358,7 @@ pub fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
         (bytes[i + 3] & 0x3F)
       (cp, 4)
     } else {
-      (0xFFFD, 1)
+      (replacement_char, 1)
     }
     buf.write_char(Int::unsafe_to_char(cp))
     i = i + advance
