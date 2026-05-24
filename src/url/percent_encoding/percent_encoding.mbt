@@ -114,14 +114,42 @@ pub fn char_to_utf8_bytes(c : Char) -> Array[Int] {
 }
 
 ///|
+fn write_percent_encoded_byte(byte : Int, buf : StringBuilder) -> Unit {
+  let hi = (byte >> 4) & 0xF
+  let lo = byte & 0xF
+  buf.write_char('%')
+  buf.write_char(to_hex_upper(hi))
+  buf.write_char(to_hex_upper(lo))
+}
+
+///|
+fn write_percent_encoded_char(c : Char, buf : StringBuilder) -> Unit {
+  let raw_cp = c.to_int()
+  let cp = if raw_cp >= 0xD800 && raw_cp <= 0xDFFF { 0xFFFD } else { raw_cp }
+  if cp <= 0x7F {
+    write_percent_encoded_byte(cp, buf)
+  } else if cp <= 0x7FF {
+    write_percent_encoded_byte(0xC0 | (cp >> 6), buf)
+    write_percent_encoded_byte(0x80 | (cp & 0x3F), buf)
+  } else if cp <= 0xFFFF {
+    write_percent_encoded_byte(0xE0 | (cp >> 12), buf)
+    write_percent_encoded_byte(0x80 | ((cp >> 6) & 0x3F), buf)
+    write_percent_encoded_byte(0x80 | (cp & 0x3F), buf)
+  } else {
+    write_percent_encoded_byte(0xF0 | (cp >> 18), buf)
+    write_percent_encoded_byte(0x80 | ((cp >> 12) & 0x3F), buf)
+    write_percent_encoded_byte(0x80 | ((cp >> 6) & 0x3F), buf)
+    write_percent_encoded_byte(0x80 | (cp & 0x3F), buf)
+  }
+}
+
+///|
 fn percent_encode(input : String, in_encode_set : (Int) -> Bool) -> String {
   let buf = StringBuilder::new()
   for c in input {
     let cp = c.to_int()
     if in_encode_set(cp) {
-      for byte in char_to_utf8_bytes(c) {
-        buf.write_string(percent_encode_byte(byte))
-      }
+      write_percent_encoded_char(c, buf)
     } else {
       buf.write_char(c)
     }
