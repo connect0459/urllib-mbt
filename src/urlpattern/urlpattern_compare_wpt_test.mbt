@@ -19,9 +19,13 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       Object(obj) => obj
       _ => continue
     }
-    let component = match entry.get("component") {
+    let component_str = match entry.get("component") {
       Some(String(s)) => s
       _ => continue
+    }
+    let component = match parse_component_name(component_str) {
+      Some(c) => c
+      None => continue
     }
     let left_json = match entry.get("left") {
       Some(j) => j
@@ -38,7 +42,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
     let left = build_pattern_from_json(left_json) catch {
       e => {
         println(
-          "FAIL (build left): Component=\{component} Left=\{Json::stringify(left_json)}: \{e}",
+          "FAIL (build left): Component=\{component_str} Left=\{Json::stringify(left_json)}: \{e}",
         )
         failed += 4
         continue
@@ -47,7 +51,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
     let right = build_pattern_from_json(right_json) catch {
       e => {
         println(
-          "FAIL (build right): Component=\{component} Right=\{Json::stringify(right_json)}: \{e}",
+          "FAIL (build right): Component=\{component_str} Right=\{Json::stringify(right_json)}: \{e}",
         )
         failed += 4
         continue
@@ -65,7 +69,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       passed += 1
     } else {
       println(
-        "FAIL: Component=\{component} Left=\{Json::stringify(left_json)} Right=\{Json::stringify(right_json)}",
+        "FAIL: Component=\{component_str} Left=\{Json::stringify(left_json)} Right=\{Json::stringify(right_json)}",
       )
       println("  expected: \{expected}, got: \{r1}")
       failed += 1
@@ -75,7 +79,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       passed += 1
     } else {
       println(
-        "FAIL (reverse): Component=\{component} expected: \{rev_expected}, got: \{r2}",
+        "FAIL (reverse): Component=\{component_str} expected: \{rev_expected}, got: \{r2}",
       )
       failed += 1
     }
@@ -84,7 +88,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       passed += 1
     } else {
       println(
-        "FAIL (left self): Component=\{component} expected: 0, got: \{r3}",
+        "FAIL (left self): Component=\{component_str} expected: 0, got: \{r3}",
       )
       failed += 1
     }
@@ -93,7 +97,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       passed += 1
     } else {
       println(
-        "FAIL (right self): Component=\{component} expected: 0, got: \{r4}",
+        "FAIL (right self): Component=\{component_str} expected: 0, got: \{r4}",
       )
       failed += 1
     }

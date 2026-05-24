@@ -86,7 +86,22 @@ pub impl Show for UrlPatternError with fn output(self, logger) {
 }
 
 ///|
-priv struct UrlPatternComponent {
+/// Identifies one of the eight URL components a `UrlPattern` operates on.
+/// Used by `UrlPattern::compare_component` and `UrlPattern::generate` to
+/// select which part of the pattern to act on.
+pub(all) enum UrlPatternComponent {
+  Protocol
+  Username
+  Password
+  Hostname
+  Port
+  Pathname
+  Search
+  Hash
+} derive(Eq, Debug)
+
+///|
+priv struct CompiledComponent {
   pattern : String
   regex : @string.Regex
   group_names : Array[String]
@@ -99,12 +114,12 @@ priv struct UrlPatternComponent {
 ///|
 /// A compiled WHATWG URL pattern that matches and extracts named groups from URLs.
 pub struct UrlPattern {
-  priv protocol : UrlPatternComponent
-  priv username : UrlPatternComponent
-  priv password : UrlPatternComponent
-  priv hostname : UrlPatternComponent
-  priv port : UrlPatternComponent
-  priv pathname : UrlPatternComponent
-  priv search : UrlPatternComponent
-  priv hash : UrlPatternComponent
+  priv protocol : CompiledComponent
+  priv username : CompiledComponent
+  priv password : CompiledComponent
+  priv hostname : CompiledComponent
+  priv port : CompiledComponent
+  priv pathname : CompiledComponent
+  priv search : CompiledComponent
+  priv hash : CompiledComponent
 }
