@@ -5,10 +5,10 @@ let unicode_id_non_ascii_start : Int = 0x80
 let unicode_surrogate_start : Int = 0xD800
 
 ///|
-let unicode_id_supplementary_end : Int = 0x1DFFF
+let unicode_id_supplementary_start : Int = 0x10000
 
 ///|
-let unicode_id_supplementary_start : Int = 0x10000
+let unicode_id_supplementary_end : Int = 0x1DFFF
 
 ///|
 let unicode_variation_selector_start : Int = 0xE0100
