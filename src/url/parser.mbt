@@ -109,10 +109,10 @@ fn preprocess_url_input(input : String) -> String {
     end = end - 1
   }
   let buf = StringBuilder::new()
-  for i = start; i < end; i = i + 1 {
-    let cp = chars[i].to_int()
+  for c in chars[start:end] {
+    let cp = c.to_int()
     if cp != 0x09 && cp != 0x0A && cp != 0x0D {
-      buf.write_char(chars[i])
+      buf.write_char(c)
     }
   }
   buf.to_string()

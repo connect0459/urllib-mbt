@@ -97,20 +97,12 @@ fn parse_setter_port(s : String, scheme : String) -> SetterPort {
 ///|
 fn truncate_host_value(s : String, is_special : Bool) -> String {
   let chars = @pe.string_to_chars(s)
-  let n = chars.length()
-  let mut end = n
-  for i = 0; i < n; i = i + 1 {
-    let c = chars[i]
+  for i, c in chars {
     if c == '/' || c == '?' || c == '#' || (is_special && c == '\\') {
-      end = i
-      break
+      return s[0:i].to_owned()
     }
   }
-  if end == n {
-    s
-  } else {
-    s[0:end].to_owned()
-  }
+  s
 }
 
 ///|
