@@ -100,6 +100,7 @@ fn find_ipv6_compress(pieces : Array[UInt]) -> Int? {
 fn serialize_ipv6(pieces : Array[UInt]) -> String {
   let buf = StringBuilder::new()
   let compress = find_ipv6_compress(pieces)
+  let last = pieces.length() - 1
   let mut ignore0 = false
   for i, piece in pieces {
     if ignore0 && piece == 0U {
@@ -115,7 +116,7 @@ fn serialize_ipv6(pieces : Array[UInt]) -> String {
       continue
     }
     buf.write_string(uint_to_lower_hex(piece))
-    if i != 7 {
+    if i != last {
       buf.write_char(':')
     }
   }
