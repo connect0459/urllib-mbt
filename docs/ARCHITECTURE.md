@@ -32,10 +32,10 @@ outside the module.
 
 ## `internal/percent_encoding` as shared low-level substrate
 
-`percent_encoding` contains three functions that are unrelated to
+`internal/percent_encoding` contains three functions that are unrelated to
 percent-encoding by name:
 
-| Function | Used for (outside `percent_encoding`) |
+| Function | Used for (outside `internal/percent_encoding`) |
 | :--- | :--- |
 | `string_to_chars` | Random-access char iteration in `host`, `url`, `urlpattern` |
 | `split_on_char` | IPv4 label splitting in `host`; domain label splitting in `idna` |
