@@ -119,24 +119,49 @@ fn preprocess_url_input(input : String) -> String {
 }
 
 ///|
-fn ascii_lowercase(s : String) -> String {
-  let buf = StringBuilder::new()
-  for c in s {
-    buf.write_char(ascii_lowercase_char(c))
+fn is_2e_at(s : String, at : Int) -> Bool {
+  if s.get_char(at).unwrap_or('\u{0}') != '%' {
+    return false
   }
-  buf.to_string()
+  if s.get_char(at + 1).unwrap_or('\u{0}') != '2' {
+    return false
+  }
+  let c2 = s.get_char(at + 2).unwrap_or('\u{0}')
+  c2 == 'e' || c2 == 'E'
 }
 
 ///|
 fn is_dot_segment(s : String) -> Bool {
-  let low = ascii_lowercase(s)
-  low == ".." || low == ".%2e" || low == "%2e." || low == "%2e%2e"
+  let n = s.length()
+  if n == 2 {
+    s.get_char(0).unwrap_or('\u{0}') == '.' &&
+    s.get_char(1).unwrap_or('\u{0}') == '.'
+  } else if n == 4 {
+    let c0 = s.get_char(0).unwrap_or('\u{0}')
+    if c0 == '.' {
+      is_2e_at(s, 1)
+    } else if c0 == '%' {
+      is_2e_at(s, 0) && s.get_char(3).unwrap_or('\u{0}') == '.'
+    } else {
+      false
+    }
+  } else if n == 6 {
+    is_2e_at(s, 0) && is_2e_at(s, 3)
+  } else {
+    false
+  }
 }
 
 ///|
 fn is_single_dot(s : String) -> Bool {
-  let low = ascii_lowercase(s)
-  low == "." || low == "%2e"
+  let n = s.length()
+  if n == 1 {
+    s.get_char(0).unwrap_or('\u{0}') == '.'
+  } else if n == 3 {
+    is_2e_at(s, 0)
+  } else {
+    false
+  }
 }
 
 ///|
