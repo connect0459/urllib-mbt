@@ -535,10 +535,11 @@ pub fn Url::to_file_path(self : Url) -> String raise UrlParseError {
 /// ```
 pub fn from_directory_path(path : String) -> Url raise UrlParseError {
   let url = from_file_path(path)
-  if url.pathname().has_suffix("/") {
+  let p = url.pathname()
+  if p.has_suffix("/") {
     url
   } else {
-    url.set_pathname(url.pathname() + "/")
+    url.set_pathname(p + "/")
   }
 }
 

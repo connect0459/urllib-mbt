@@ -56,16 +56,16 @@ fn uint_to_lower_hex(n : UInt) -> String {
   if n == 0U {
     return "0"
   }
-  let chars : Array[Char] = []
-  let mut val = n
-  while val > 0U {
-    let idx = val.reinterpret_as_int() & 0xF
-    chars.push(nibble_to_lower_hex(idx))
-    val = val >> 4
-  }
   let buf = StringBuilder::new()
-  for c in chars.rev_iter() {
-    buf.write_char(c)
+  let mut shift = 28
+  let mut leading = true
+  while shift >= 0 {
+    let nibble = (n >> shift).reinterpret_as_int() & 0xF
+    if nibble != 0 || !leading {
+      buf.write_char(nibble_to_lower_hex(nibble))
+      leading = false
+    }
+    shift = shift - 4
   }
   buf.to_string()
 }
@@ -217,8 +217,16 @@ fn domain_has_forbidden_char(domain : String) -> Bool {
 }
 
 ///|
-fn all_hex_digits_from(chars : Array[Char], from : Int) -> Bool {
-  chars[from:].all(fn(c) { @pe.hex_digit_value(c) is Some(_) })
+fn all_hex_from_str(s : String, from : Int) -> Bool {
+  let n = s.length()
+  let mut i = from
+  while i < n {
+    if @pe.hex_digit_value(s.get_char(i).unwrap_or('\u{0}')) is None {
+      return false
+    }
+    i = i + 1
+  }
+  true
 }
 
 ///|
@@ -240,15 +248,21 @@ fn ends_in_number(input : String) -> Bool {
   if last_label.is_empty() {
     return false
   }
-  let label_chars = @pe.string_to_chars(last_label)
-  let n = label_chars.length()
-  if label_chars.all(fn(c) { c >= '0' && c <= '9' }) {
+  let n = last_label.length()
+  let mut all_decimal = n > 0
+  for c in last_label {
+    if c < '0' || c > '9' {
+      all_decimal = false
+      break
+    }
+  }
+  if all_decimal {
     return true
   }
-  if n >= 2 &&
-    label_chars[0] == '0' &&
-    (label_chars[1] == 'x' || label_chars[1] == 'X') {
-    return all_hex_digits_from(label_chars, 2)
+  let c0 = last_label.get_char(0).unwrap_or('\u{0}')
+  let c1 = last_label.get_char(1).unwrap_or('\u{0}')
+  if n >= 2 && c0 == '0' && (c1 == 'x' || c1 == 'X') {
+    return all_hex_from_str(last_label, 2)
   }
   false
 }

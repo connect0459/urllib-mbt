@@ -8,6 +8,16 @@ fn strip_leading_char(s : String, c : Char) -> String {
 
 ///|
 fn strip_tab_newline(s : String) -> String {
+  let mut needs_strip = false
+  for c in s {
+    if c == '\t' || c == '\n' || c == '\r' {
+      needs_strip = true
+      break
+    }
+  }
+  if !needs_strip {
+    return s
+  }
   let buf = StringBuilder::new()
   for c in s {
     if c != '\t' && c != '\n' && c != '\r' {

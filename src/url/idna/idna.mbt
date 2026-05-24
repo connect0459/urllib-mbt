@@ -366,16 +366,18 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
       continue
     }
     let mut has_non_ascii = false
-    let cps : Array[Int] = []
     for c in label {
-      let cp = c.to_int()
-      cps.push(cp)
-      if cp > 0x7F {
+      if c.to_int() > 0x7F {
         has_non_ascii = true
+        break
       }
     }
-    let cps = if has_non_ascii { nfc_compose(cps) } else { cps }
     if has_non_ascii {
+      let cps : Array[Int] = []
+      for c in label {
+        cps.push(c.to_int())
+      }
+      let cps = nfc_compose(cps)
       if label.has_prefix("xn--") {
         raise IdnaParseError("invalid ACE label: non-ASCII in xn-- label")
       }
