@@ -502,10 +502,8 @@ pub fn UrlPattern::exec_init(
 ) -> UrlPatternResult? {
   let init = apply_base_url(init, false) catch { _ => return None }
   let proto_raw = init.protocol.unwrap_or("")
-  let proto_input = try? canonicalize_protocol_for_pattern(proto_raw)
-  let proto_input = match proto_input {
-    Err(_) => return None
-    Ok(s) => s
+  let proto_input = canonicalize_protocol_for_pattern(proto_raw) catch {
+    _ => return None
   }
   let proto_str = proto_input
   let protocol = match match_component(self.protocol, proto_input) {
@@ -588,11 +586,8 @@ fn canonicalize_hostname(input : String) -> String {
   if input == "" {
     return ""
   }
-  let base = try? @url.parse("https://dummy.test")
-  match base {
-    Err(_) => input
-    Ok(u) => u.set_hostname(input).hostname()
-  }
+  let u = @url.parse("https://dummy.test") catch { _ => return input }
+  u.set_hostname(input).hostname()
 }
 
 ///|
@@ -600,11 +595,8 @@ fn canonicalize_userinfo(input : String) -> String {
   if input == "" {
     return ""
   }
-  let base = try? @url.parse("https://x/")
-  match base {
-    Err(_) => input
-    Ok(u) => u.set_username(input).username()
-  }
+  let u = @url.parse("https://x/") catch { _ => return input }
+  u.set_username(input).username()
 }
 
 ///|
@@ -612,11 +604,8 @@ fn canonicalize_password(input : String) -> String {
   if input == "" {
     return ""
   }
-  let base = try? @url.parse("https://x/")
-  match base {
-    Err(_) => input
-    Ok(u) => u.set_password(input).password()
-  }
+  let u = @url.parse("https://x/") catch { _ => return input }
+  u.set_password(input).password()
 }
 
 ///|
@@ -630,19 +619,14 @@ fn canonicalize_pathname(input : String) -> String {
   } else {
     "https://x/-" + input
   }
-  let parsed = try? @url.parse(full)
-  match parsed {
-    Err(_) => input
-    Ok(url) => {
-      let p = url.pathname()
-      if leading_slash {
-        p
-      } else if p.length() < 2 {
-        input
-      } else {
-        p[2:].to_owned()
-      }
-    }
+  let url = @url.parse(full) catch { _ => return input }
+  let p = url.pathname()
+  if leading_slash {
+    p
+  } else if p.length() < 2 {
+    input
+  } else {
+    p[2:].to_owned()
   }
 }
 
@@ -655,11 +639,8 @@ fn canonicalize_search(input : String) -> String {
   if stripped == "" {
     return ""
   }
-  let parsed = try? @url.parse("https://x/?" + stripped)
-  match parsed {
-    Err(_) => stripped
-    Ok(url) => strip_leading_char(url.search(), '?')
-  }
+  let url = @url.parse("https://x/?" + stripped) catch { _ => return stripped }
+  strip_leading_char(url.search(), '?')
 }
 
 ///|
@@ -671,11 +652,8 @@ fn canonicalize_hash(input : String) -> String {
   if stripped == "" {
     return ""
   }
-  let parsed = try? @url.parse("https://x/#" + stripped)
-  match parsed {
-    Err(_) => stripped
-    Ok(url) => strip_leading_char(url.hash(), '#')
-  }
+  let url = @url.parse("https://x/#" + stripped) catch { _ => return stripped }
+  strip_leading_char(url.hash(), '#')
 }
 
 ///|
@@ -890,40 +868,35 @@ pub fn UrlPattern::exec_url(
   self : UrlPattern,
   url_str : String,
 ) -> UrlPatternResult? {
-  let parsed = try? @url.parse(url_str)
-  match parsed {
-    Err(_) => None
-    Ok(url) => {
-      let scheme = url.scheme()
-      let search_raw = url.search()
-      let hash_raw = url.hash()
-      let init = {
-        protocol: Some(scheme),
-        username: Some(url.username()),
-        password: Some(url.password()),
-        hostname: Some(url.hostname()),
-        port: Some(url.port_str()),
-        pathname: Some(url.pathname()),
-        search: Some(strip_leading_char(search_raw, '?')),
-        hash: Some(strip_leading_char(hash_raw, '#')),
-        base_url: None,
-      }
-      match self.exec_init(init) {
-        None => None
-        Some(r) =>
-          Some({
-            inputs: [Str(url_str)],
-            protocol: r.protocol,
-            username: r.username,
-            password: r.password,
-            hostname: r.hostname,
-            port: r.port,
-            pathname: r.pathname,
-            search: r.search,
-            hash: r.hash,
-          })
-      }
-    }
+  let url = @url.parse(url_str) catch { _ => return None }
+  let scheme = url.scheme()
+  let search_raw = url.search()
+  let hash_raw = url.hash()
+  let init = {
+    protocol: Some(scheme),
+    username: Some(url.username()),
+    password: Some(url.password()),
+    hostname: Some(url.hostname()),
+    port: Some(url.port_str()),
+    pathname: Some(url.pathname()),
+    search: Some(strip_leading_char(search_raw, '?')),
+    hash: Some(strip_leading_char(hash_raw, '#')),
+    base_url: None,
+  }
+  match self.exec_init(init) {
+    None => None
+    Some(r) =>
+      Some({
+        inputs: [Str(url_str)],
+        protocol: r.protocol,
+        username: r.username,
+        password: r.password,
+        hostname: r.hostname,
+        port: r.port,
+        pathname: r.pathname,
+        search: r.search,
+        hash: r.hash,
+      })
   }
 }
 
