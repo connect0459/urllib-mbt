@@ -412,11 +412,7 @@ fn str_first_char(s : String) -> Char? {
 
 ///|
 fn str_last_char(s : String) -> Char? {
-  let mut last : Char? = None
-  for c in s {
-    last = Some(c)
-  }
-  last
+  s.get_char(s.length() - 1)
 }
 
 ///|
