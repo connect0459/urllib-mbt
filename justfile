@@ -5,7 +5,7 @@ setup:
 
 # Regenerate combining mark table from the system Unicode database
 gen-combining-mark:
-    python3 tools/gen_combining_mark.py > src/internal/idna/combining_mark.mbt
+    python3 tools/gen_combining_mark.py
 
 # Regenerate IDNA mapping tables from IdnaMappingTable.txt
 # Usage: just gen-idna                         (reads /tmp/IdnaMappingTable.txt)
