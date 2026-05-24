@@ -445,7 +445,6 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
       }
       let mut numbers_seen = 0
       while pointer < n {
-        let mut ipv4_piece : UInt? = None
         if numbers_seen > 0 {
           if chars[pointer] != '.' {
             raise HostParseError("invalid IPv6: expected dot in IPv4")
@@ -455,28 +454,22 @@ fn parse_ipv6(input : String) -> Array[UInt] raise HostParseError {
         if pointer >= n || chars[pointer] < '0' || chars[pointer] > '9' {
           raise HostParseError("invalid IPv6: expected digit in IPv4")
         }
+        let mut ipv4_val : UInt = 0U
+        let mut first_digit = true
         while pointer < n && chars[pointer] >= '0' && chars[pointer] <= '9' {
           let digit = (chars[pointer].to_int() - '0'.to_int()).reinterpret_as_uint()
-          ipv4_piece = match ipv4_piece {
-            None => Some(digit)
-            Some(v) => {
-              if v == 0U {
-                raise HostParseError("invalid IPv6: leading zero in IPv4")
-              }
-              let new_val = v * 10U + digit
-              if new_val > 255U {
-                raise HostParseError("invalid IPv6: IPv4 octet > 255")
-              }
-              Some(new_val)
-            }
+          if !first_digit && ipv4_val == 0U {
+            raise HostParseError("invalid IPv6: leading zero in IPv4")
           }
+          let new_val = ipv4_val * 10U + digit
+          if new_val > 255U {
+            raise HostParseError("invalid IPv6: IPv4 octet > 255")
+          }
+          ipv4_val = new_val
+          first_digit = false
           pointer = pointer + 1
         }
-        let p = match ipv4_piece {
-          Some(v) => v
-          None => panic()
-        }
-        pieces[piece_index] = pieces[piece_index] * 0x100U + p
+        pieces[piece_index] = pieces[piece_index] * 0x100U + ipv4_val
         numbers_seen = numbers_seen + 1
         if numbers_seen == 2 || numbers_seen == 4 {
           piece_index = piece_index + 1
