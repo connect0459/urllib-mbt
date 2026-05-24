@@ -1,7 +1,7 @@
 ///|
 fn load_compare_testdata() -> Array[Json] raise {
   let content = @fs.read_file_to_string(
-    "resources/urlpattern/urlpattern-compare-test-data.json",
+    "wpt/urlpattern/resources/urlpattern-compare-test-data.json",
   )
   match @json.parse(content) {
     Array(a) => a

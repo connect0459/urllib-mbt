@@ -1,6 +1,6 @@
 ///|
 fn load_urltestdata() -> Array[Json] raise {
-  let content = @fs.read_file_to_string("resources/url/urltestdata.json")
+  let content = @fs.read_file_to_string("wpt/url/resources/urltestdata.json")
   let json = @json.parse(content)
   match json {
     Array(a) => a

@@ -8,7 +8,7 @@ fn to_repr_idna(s : String?) -> String {
 
 ///|
 test "WPT IdnaTestV2: domain-to-ascii cases" {
-  let content = @fs.read_file_to_string("resources/url/IdnaTestV2.json")
+  let content = @fs.read_file_to_string("wpt/url/resources/IdnaTestV2.json")
   let json = @json.parse(content)
   let items = match json {
     Array(a) => a

@@ -2,7 +2,7 @@
 fn load_setter_cases(
   prop : String,
 ) -> Array[(String, String, Array[(String, String)])] raise {
-  let content = @fs.read_file_to_string("resources/url/setters_tests.json")
+  let content = @fs.read_file_to_string("wpt/url/resources/setters_tests.json")
   let json = @json.parse(content)
   let root = match json {
     Object(o) => o
