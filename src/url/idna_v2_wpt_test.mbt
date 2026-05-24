@@ -53,7 +53,7 @@ test "WPT IdnaTestV2: domain-to-ascii cases" {
   let total = cases.length()
   let passed = total - failures.length()
   let n = if failures.length() < 10 { failures.length() } else { 10 }
-  for i = 0; i < n; i = i + 1 {
+  for i in 0..<n {
     println(failures[i])
   }
   println("WPT IdnaTestV2: \{passed}/\{total} passed")

@@ -40,7 +40,7 @@ test "WPT toascii: domain-to-ascii cases" {
     }
   }
   let n = if failures.length() < 10 { failures.length() } else { 10 }
-  for i = 0; i < n; i = i + 1 {
+  for i in 0..<n {
     println(failures[i])
   }
   println(
