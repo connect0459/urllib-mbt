@@ -14,6 +14,12 @@ let ideographic_space : Int = 0x3000
 let replacement_char : Int = 0xFFFD
 
 ///|
+let nonchar_plane_fffe : Int = 0xFFFE
+
+///|
+let nonchar_plane_ffff : Int = 0xFFFF
+
+///|
 pub enum Host {
   Domain(String)
   Ipv4(UInt)
@@ -209,8 +215,8 @@ fn is_forbidden_host_cp(cp : Int) -> Bool {
 ///|
 fn is_unicode_nonchar(cp : Int) -> Bool {
   (cp >= nonchar_low_start && cp <= nonchar_low_end) ||
-  (cp & 0xFFFF) == 0xFFFE ||
-  (cp & 0xFFFF) == 0xFFFF
+  (cp & 0xFFFF) == nonchar_plane_fffe ||
+  (cp & 0xFFFF) == nonchar_plane_ffff
 }
 
 ///|
