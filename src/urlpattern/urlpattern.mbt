@@ -18,13 +18,8 @@ fn canonicalize_protocol_for_pattern(
   if input == "" {
     return ""
   }
-  let chars = @pe.string_to_chars(input)
-  let stripped = if chars.length() > 0 && chars[chars.length() - 1] == ':' {
-    let buf = StringBuilder::new()
-    for j = 0; j < chars.length() - 1; j = j + 1 {
-      buf.write_char(chars[j])
-    }
-    buf.to_string()
+  let stripped = if input.has_suffix(":") {
+    input[0:input.length() - 1].to_owned()
   } else {
     input
   }
@@ -673,17 +668,10 @@ fn canonicalize_pathname(input : String) -> String {
       let p = url.pathname()
       if leading_slash {
         p
+      } else if p.length() < 2 {
+        input
       } else {
-        let chars = @pe.string_to_chars(p)
-        if chars.length() < 2 {
-          input
-        } else {
-          let buf = StringBuilder::new()
-          for j = 2; j < chars.length(); j = j + 1 {
-            buf.write_char(chars[j])
-          }
-          buf.to_string()
-        }
+        p[2:].to_owned()
       }
     }
   }
