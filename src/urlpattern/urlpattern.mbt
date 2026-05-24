@@ -159,6 +159,28 @@ fn encode_hostname_value(
 }
 
 ///|
+fn encode_part_str(
+  s : String,
+  kind : ComponentKind,
+  ipv6_open : Bool,
+) -> (String, Bool) raise UrlPatternError {
+  if kind == Hostname {
+    let encoded = encode_hostname_value(s, ipv6_open)
+    let mut new_open = ipv6_open
+    for c in s {
+      if c == '[' {
+        new_open = true
+      } else if c == ']' {
+        new_open = false
+      }
+    }
+    (encoded, new_open)
+  } else {
+    (apply_encode_for_component(s, kind), ipv6_open)
+  }
+}
+
+///|
 fn encode_parts(
   raw_parts : Array[Part],
   kind : ComponentKind,
@@ -168,19 +190,8 @@ fn encode_parts(
   for part in raw_parts {
     match part.kind {
       FixedText => {
-        let enc = if kind == Hostname {
-          let v = encode_hostname_value(part.value, ipv6_open)
-          for c in part.value {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          v
-        } else {
-          apply_encode_for_component(part.value, kind)
-        }
+        let (enc, new_open) = encode_part_str(part.value, kind, ipv6_open)
+        ipv6_open = new_open
         result.push({
           kind: FixedText,
           value: enc,
@@ -190,76 +201,30 @@ fn encode_parts(
           suffix: part.suffix,
         })
       }
-      Regexp => {
-        for c in part.value {
-          if c.to_int() > 0x7F {
-            raise UrlPatternError(
-              "regexp value contains non-ASCII character '\{c}'",
-            )
-          }
-        }
-        let enc_prefix = if kind == Hostname {
-          let p = encode_hostname_value(part.prefix, ipv6_open)
-          for c in part.prefix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
+      Regexp | SegmentWildcard | FullWildcard => {
+        match part.kind {
+          Regexp =>
+            for c in part.value {
+              if c.to_int() > 0x7F {
+                raise UrlPatternError(
+                  "regexp value contains non-ASCII character '\{c}'",
+                )
+              }
             }
-          }
-          p
-        } else {
-          apply_encode_for_component(part.prefix, kind)
+          _ => ()
         }
-        let enc_suffix = if kind == Hostname {
-          let s = encode_hostname_value(part.suffix, ipv6_open)
-          for c in part.suffix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          s
-        } else {
-          apply_encode_for_component(part.suffix, kind)
-        }
-        result.push({
-          kind: Regexp,
-          value: part.value,
-          modifier: part.modifier,
-          name: part.name,
-          prefix: enc_prefix,
-          suffix: enc_suffix,
-        })
-      }
-      SegmentWildcard | FullWildcard => {
-        let enc_prefix = if kind == Hostname {
-          let p = encode_hostname_value(part.prefix, ipv6_open)
-          for c in part.prefix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          p
-        } else {
-          apply_encode_for_component(part.prefix, kind)
-        }
-        let enc_suffix = if kind == Hostname {
-          let s = encode_hostname_value(part.suffix, ipv6_open)
-          for c in part.suffix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          s
-        } else {
-          apply_encode_for_component(part.suffix, kind)
-        }
+        let (enc_prefix, after_prefix) = encode_part_str(
+          part.prefix,
+          kind,
+          ipv6_open,
+        )
+        ipv6_open = after_prefix
+        let (enc_suffix, after_suffix) = encode_part_str(
+          part.suffix,
+          kind,
+          ipv6_open,
+        )
+        ipv6_open = after_suffix
         result.push({
           kind: part.kind,
           value: part.value,
