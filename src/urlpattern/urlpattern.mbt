@@ -1028,16 +1028,8 @@ pub fn UrlPattern::generate(
   component : String,
   groups : Map[String, String],
 ) -> String? {
-  let comp = match component {
-    "protocol" => self.protocol
-    "username" => self.username
-    "password" => self.password
-    "hostname" => self.hostname
-    "port" => self.port
-    "pathname" => self.pathname
-    "search" => self.search
-    "hash" => self.hash
-    _ => return None
+  guard get_urlpattern_component(self, component) is Some(comp) else {
+    return None
   }
   generate_component_string(comp.parts, comp.kind, groups)
 }
