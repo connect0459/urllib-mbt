@@ -80,8 +80,12 @@ println(p.test_url("https://example.com/books/42"))  // true
 match p.exec_url("https://example.com/books/42") {
   Some(result) =>
     match result.pathname {
-      Some(pr) => println(pr.groups.get("id"))  // Some(Some("42"))
-      None     => ()
+      Some(pr) =>
+        match pr.groups.get("id") {
+          Some(Some(id)) => println(id)  // "42"
+          _              => ()
+        }
+      None => ()
     }
   None => ()
 }
