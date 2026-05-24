@@ -11,6 +11,21 @@ fn load_generate_testdata() -> Array[Json] raise {
 }
 
 ///|
+fn parse_component_name(s : String) -> UrlPatternComponent? {
+  match s {
+    "protocol" => Some(Protocol)
+    "username" => Some(Username)
+    "password" => Some(Password)
+    "hostname" => Some(Hostname)
+    "port" => Some(Port)
+    "pathname" => Some(Pathname)
+    "search" => Some(Search)
+    "hash" => Some(Hash)
+    _ => None
+  }
+}
+
+///|
 fn build_pattern_from_json(pattern_json : Json) -> UrlPattern raise {
   match pattern_json {
     String(s) => UrlPattern::from_string(s, None)
@@ -37,6 +52,7 @@ test "WPT URLPattern: generate URL component from pattern and groups" {
   let data = load_generate_testdata()
   let mut passed = 0
   let mut failed = 0
+  let mut skipped = 0
   for entry_json in data {
     let entry = match entry_json {
       Object(obj) => obj
@@ -46,9 +62,16 @@ test "WPT URLPattern: generate URL component from pattern and groups" {
       Some(j) => j
       None => continue
     }
-    let component = match entry.get("component") {
+    let component_str = match entry.get("component") {
       Some(String(s)) => s
       _ => continue
+    }
+    let component = match parse_component_name(component_str) {
+      Some(c) => c
+      None => {
+        skipped += 1
+        continue
+      }
     }
     let groups_json = match entry.get("groups") {
       Some(Object(g)) => g
@@ -69,7 +92,7 @@ test "WPT URLPattern: generate URL component from pattern and groups" {
     let pattern = build_pattern_from_json(pattern_json) catch {
       e => {
         println(
-          "FAIL (build): Pattern=\{Json::stringify(pattern_json)} Component=\{component}: \{e}",
+          "FAIL (build): Pattern=\{Json::stringify(pattern_json)} Component=\{component_str}: \{e}",
         )
         failed += 1
         continue
@@ -80,7 +103,7 @@ test "WPT URLPattern: generate URL component from pattern and groups" {
       passed += 1
     } else {
       println(
-        "FAIL: Pattern=\{Json::stringify(pattern_json)} Component=\{component}",
+        "FAIL: Pattern=\{Json::stringify(pattern_json)} Component=\{component_str}",
       )
       let expected_str = match expected {
         None => "None"
@@ -95,7 +118,9 @@ test "WPT URLPattern: generate URL component from pattern and groups" {
       failed += 1
     }
   }
-  println("WPT URLPattern generate: \{passed}/\{passed + failed} passed")
+  println(
+    "WPT URLPattern generate: \{passed}/\{passed + failed} passed (\{skipped} skipped)",
+  )
   if failed > 0 {
     fail("\{failed} generate test(s) failed")
   }

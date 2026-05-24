@@ -229,7 +229,7 @@ fn compile_component(
   policy : TokenizePolicy,
   kind : ComponentKind,
   ignore_case? : Bool = false,
-) -> UrlPatternComponent raise UrlPatternError {
+) -> CompiledComponent raise UrlPatternError {
   let raw_parts = parse_pattern_to_parts(pattern, options, policy)
   let parts = encode_parts(raw_parts, kind)
   let has_regexp_groups = parts.any(fn(p) { p.kind == Regexp })
@@ -407,7 +407,7 @@ pub fn UrlPattern::from_init(
 
 ///|
 fn match_component(
-  component : UrlPatternComponent,
+  component : CompiledComponent,
   input : String,
 ) -> UrlPatternComponentResult? {
   match component.regex.execute(input) {
@@ -986,7 +986,7 @@ fn generate_component_string(
 /// `groups` into the compiled pattern; returns `None` when a required group is
 /// absent or a wildcard value contains a delimiter character.
 ///
-/// - `component` : One of `"protocol"`, `"hostname"`, `"pathname"`, etc.
+/// - `component` : Which URL component to generate.
 /// - `groups` : Map of named group names to their string values.
 ///
 /// ### Example
@@ -995,17 +995,15 @@ fn generate_component_string(
 /// test {
 ///   let p = try! UrlPattern::from_string("https://example.com/users/:id", None)
 ///   let groups : Map[String, String] = { "id": "42" }
-///   inspect(p.generate("pathname", groups) == Some("/users/42"), content="true")
+///   inspect(p.generate(Pathname, groups) == Some("/users/42"), content="true")
 /// }
 /// ```
 pub fn UrlPattern::generate(
   self : UrlPattern,
-  component : String,
+  component : UrlPatternComponent,
   groups : Map[String, String],
 ) -> String? {
-  guard get_urlpattern_component(self, component) is Some(comp) else {
-    return None
-  }
+  let comp = get_urlpattern_component(self, component)
   generate_component_string(comp.parts, comp.kind, groups)
 }
 
@@ -1158,18 +1156,17 @@ fn compare_pattern_part_lists(left : Array[Part], right : Array[Part]) -> Int {
 ///|
 fn get_urlpattern_component(
   pattern : UrlPattern,
-  component : String,
-) -> UrlPatternComponent? {
+  component : UrlPatternComponent,
+) -> CompiledComponent {
   match component {
-    "protocol" => Some(pattern.protocol)
-    "username" => Some(pattern.username)
-    "password" => Some(pattern.password)
-    "hostname" => Some(pattern.hostname)
-    "port" => Some(pattern.port)
-    "pathname" => Some(pattern.pathname)
-    "search" => Some(pattern.search)
-    "hash" => Some(pattern.hash)
-    _ => None
+    Protocol => pattern.protocol
+    Username => pattern.username
+    Password => pattern.password
+    Hostname => pattern.hostname
+    Port => pattern.port
+    Pathname => pattern.pathname
+    Search => pattern.search
+    Hash => pattern.hash
   }
 }
 
@@ -1177,20 +1174,12 @@ fn get_urlpattern_component(
 /// Compares the specificity of two patterns for a given `component`.
 /// Returns `1` if `left` is more specific, `-1` if `right` is more specific,
 /// and `0` if they are equally specific.
-///
-/// - `component` : One of `"protocol"`, `"hostname"`, `"pathname"`, etc.
 pub fn UrlPattern::compare_component(
-  component : String,
+  component : UrlPatternComponent,
   left : UrlPattern,
   right : UrlPattern,
 ) -> Int {
-  let lc = match get_urlpattern_component(left, component) {
-    Some(c) => c
-    None => return 0
-  }
-  let rc = match get_urlpattern_component(right, component) {
-    Some(c) => c
-    None => return 0
-  }
+  let lc = get_urlpattern_component(left, component)
+  let rc = get_urlpattern_component(right, component)
   compare_pattern_part_lists(lc.parts, rc.parts)
 }
