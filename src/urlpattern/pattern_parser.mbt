@@ -161,17 +161,13 @@ fn ParserCtx::extract_prefix_from_pending(self : ParserCtx) -> String {
         return ""
       }
       let pf = self.pending_fixed
-      if pf.length() > 0 {
-        let chars = @pe.string_to_chars(pf)
-        if chars[chars.length() - 1] == pc {
+      match str_last_char(pf) {
+        Some(last) if last == pc => {
           self.pending_fixed = pf[0:pf.length() - 1].to_owned()
           self.pending_escaped = false
           pc.to_string()
-        } else {
-          ""
         }
-      } else {
-        ""
+        _ => ""
       }
     }
   }
@@ -412,11 +408,7 @@ fn str_first_char(s : String) -> Char? {
 
 ///|
 fn str_last_char(s : String) -> Char? {
-  let mut last : Char? = None
-  for c in s {
-    last = Some(c)
-  }
-  last
+  s.get_char(s.length() - 1)
 }
 
 ///|

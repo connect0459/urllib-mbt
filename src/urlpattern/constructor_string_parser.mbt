@@ -68,10 +68,7 @@ fn Csp::get_safe_token(self : Csp, index : Int) -> Token {
 
 ///|
 fn str_first_char_eq(s : String, c : Char) -> Bool {
-  for ch in s {
-    return ch == c
-  }
-  false
+  s.get_char(0) == Some(c)
 }
 
 ///|

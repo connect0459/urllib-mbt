@@ -159,6 +159,28 @@ fn encode_hostname_value(
 }
 
 ///|
+fn encode_part_str(
+  s : String,
+  kind : ComponentKind,
+  ipv6_open : Bool,
+) -> (String, Bool) raise UrlPatternError {
+  if kind == Hostname {
+    let encoded = encode_hostname_value(s, ipv6_open)
+    let mut new_open = ipv6_open
+    for c in s {
+      if c == '[' {
+        new_open = true
+      } else if c == ']' {
+        new_open = false
+      }
+    }
+    (encoded, new_open)
+  } else {
+    (apply_encode_for_component(s, kind), ipv6_open)
+  }
+}
+
+///|
 fn encode_parts(
   raw_parts : Array[Part],
   kind : ComponentKind,
@@ -168,19 +190,8 @@ fn encode_parts(
   for part in raw_parts {
     match part.kind {
       FixedText => {
-        let enc = if kind == Hostname {
-          let v = encode_hostname_value(part.value, ipv6_open)
-          for c in part.value {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          v
-        } else {
-          apply_encode_for_component(part.value, kind)
-        }
+        let (enc, new_open) = encode_part_str(part.value, kind, ipv6_open)
+        ipv6_open = new_open
         result.push({
           kind: FixedText,
           value: enc,
@@ -190,76 +201,30 @@ fn encode_parts(
           suffix: part.suffix,
         })
       }
-      Regexp => {
-        for c in part.value {
-          if c.to_int() > 0x7F {
-            raise UrlPatternError(
-              "regexp value contains non-ASCII character '\{c}'",
-            )
-          }
-        }
-        let enc_prefix = if kind == Hostname {
-          let p = encode_hostname_value(part.prefix, ipv6_open)
-          for c in part.prefix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
+      Regexp | SegmentWildcard | FullWildcard => {
+        match part.kind {
+          Regexp =>
+            for c in part.value {
+              if c.to_int() > 0x7F {
+                raise UrlPatternError(
+                  "regexp value contains non-ASCII character '\{c}'",
+                )
+              }
             }
-          }
-          p
-        } else {
-          apply_encode_for_component(part.prefix, kind)
+          _ => ()
         }
-        let enc_suffix = if kind == Hostname {
-          let s = encode_hostname_value(part.suffix, ipv6_open)
-          for c in part.suffix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          s
-        } else {
-          apply_encode_for_component(part.suffix, kind)
-        }
-        result.push({
-          kind: Regexp,
-          value: part.value,
-          modifier: part.modifier,
-          name: part.name,
-          prefix: enc_prefix,
-          suffix: enc_suffix,
-        })
-      }
-      SegmentWildcard | FullWildcard => {
-        let enc_prefix = if kind == Hostname {
-          let p = encode_hostname_value(part.prefix, ipv6_open)
-          for c in part.prefix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          p
-        } else {
-          apply_encode_for_component(part.prefix, kind)
-        }
-        let enc_suffix = if kind == Hostname {
-          let s = encode_hostname_value(part.suffix, ipv6_open)
-          for c in part.suffix {
-            if c == '[' {
-              ipv6_open = true
-            } else if c == ']' {
-              ipv6_open = false
-            }
-          }
-          s
-        } else {
-          apply_encode_for_component(part.suffix, kind)
-        }
+        let (enc_prefix, after_prefix) = encode_part_str(
+          part.prefix,
+          kind,
+          ipv6_open,
+        )
+        ipv6_open = after_prefix
+        let (enc_suffix, after_suffix) = encode_part_str(
+          part.suffix,
+          kind,
+          ipv6_open,
+        )
+        ipv6_open = after_suffix
         result.push({
           kind: part.kind,
           value: part.value,
@@ -473,15 +438,10 @@ fn match_component(
             let raw = sv.to_owned()
             let (pre, suf) = component.group_strips[idx]
             let stripped = if pre.length() > 0 || suf.length() > 0 {
-              let chars = @pe.string_to_chars(raw)
               let start = pre.length()
-              let end = chars.length() - suf.length()
+              let end = raw.length() - suf.length()
               if start <= end {
-                let buf = StringBuilder::new()
-                for ch in chars[start:end] {
-                  buf.write_char(ch)
-                }
-                buf.to_string()
+                raw[start:end].to_owned()
               } else {
                 raw
               }
@@ -507,31 +467,21 @@ pub fn UrlPattern::exec_init(
 ) -> UrlPatternResult? {
   let init = apply_base_url(init, false) catch { _ => return None }
   let proto_raw = init.protocol.unwrap_or("")
-  let proto_input = try? canonicalize_protocol_for_pattern(proto_raw)
-  let proto_input = match proto_input {
-    Err(_) => return None
-    Ok(s) => s
+  let proto_input = canonicalize_protocol_for_pattern(proto_raw) catch {
+    _ => return None
   }
   let proto_str = proto_input
-  let protocol = match match_component(self.protocol, proto_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let protocol = match_component(self.protocol, proto_input)
+  guard protocol is Some(_) else { return None }
   let username_input = canonicalize_userinfo(init.username.unwrap_or(""))
-  let username = match match_component(self.username, username_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let username = match_component(self.username, username_input)
+  guard username is Some(_) else { return None }
   let password_input = canonicalize_password(init.password.unwrap_or(""))
-  let password = match match_component(self.password, password_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let password = match_component(self.password, password_input)
+  guard password is Some(_) else { return None }
   let hostname_input = canonicalize_hostname(init.hostname.unwrap_or(""))
-  let hostname = match match_component(self.hostname, hostname_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let hostname = match_component(self.hostname, hostname_input)
+  guard hostname is Some(_) else { return None }
   let raw_port = init.port.unwrap_or("")
   let port_input = if raw_port != "" {
     let p = canonicalize_port(raw_port, proto_str)
@@ -544,10 +494,8 @@ pub fn UrlPattern::exec_init(
   } else {
     ""
   }
-  let port = match match_component(self.port, port_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let port = match_component(self.port, port_input)
+  guard port is Some(_) else { return None }
   let raw_pathname = init.pathname.unwrap_or("")
   let pathname_input = if proto_str == "" ||
     proto_str == "http" ||
@@ -560,20 +508,14 @@ pub fn UrlPattern::exec_init(
   } else {
     raw_pathname
   }
-  let pathname = match match_component(self.pathname, pathname_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let pathname = match_component(self.pathname, pathname_input)
+  guard pathname is Some(_) else { return None }
   let search_input = canonicalize_search(init.search.unwrap_or(""))
-  let search = match match_component(self.search, search_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let search = match_component(self.search, search_input)
+  guard search is Some(_) else { return None }
   let hash_input = canonicalize_hash(init.hash.unwrap_or(""))
-  let hash = match match_component(self.hash, hash_input) {
-    None => return None
-    Some(r) => Some(r)
-  }
+  let hash = match_component(self.hash, hash_input)
+  guard hash is Some(_) else { return None }
 
   Some({
     inputs: [Init(init)],
@@ -593,11 +535,8 @@ fn canonicalize_hostname(input : String) -> String {
   if input == "" {
     return ""
   }
-  let base = try? @url.parse("https://dummy.test")
-  match base {
-    Err(_) => input
-    Ok(u) => u.set_hostname(input).hostname()
-  }
+  let u = @url.parse("https://dummy.test") catch { _ => return input }
+  u.set_hostname(input).hostname()
 }
 
 ///|
@@ -605,11 +544,8 @@ fn canonicalize_userinfo(input : String) -> String {
   if input == "" {
     return ""
   }
-  let base = try? @url.parse("https://x/")
-  match base {
-    Err(_) => input
-    Ok(u) => u.set_username(input).username()
-  }
+  let u = @url.parse("https://x/") catch { _ => return input }
+  u.set_username(input).username()
 }
 
 ///|
@@ -617,11 +553,8 @@ fn canonicalize_password(input : String) -> String {
   if input == "" {
     return ""
   }
-  let base = try? @url.parse("https://x/")
-  match base {
-    Err(_) => input
-    Ok(u) => u.set_password(input).password()
-  }
+  let u = @url.parse("https://x/") catch { _ => return input }
+  u.set_password(input).password()
 }
 
 ///|
@@ -635,19 +568,14 @@ fn canonicalize_pathname(input : String) -> String {
   } else {
     "https://x/-" + input
   }
-  let parsed = try? @url.parse(full)
-  match parsed {
-    Err(_) => input
-    Ok(url) => {
-      let p = url.pathname()
-      if leading_slash {
-        p
-      } else if p.length() < 2 {
-        input
-      } else {
-        p[2:].to_owned()
-      }
-    }
+  let url = @url.parse(full) catch { _ => return input }
+  let p = url.pathname()
+  if leading_slash {
+    p
+  } else if p.length() < 2 {
+    input
+  } else {
+    p[2:].to_owned()
   }
 }
 
@@ -660,11 +588,8 @@ fn canonicalize_search(input : String) -> String {
   if stripped == "" {
     return ""
   }
-  let parsed = try? @url.parse("https://x/?" + stripped)
-  match parsed {
-    Err(_) => stripped
-    Ok(url) => strip_leading_char(url.search(), '?')
-  }
+  let url = @url.parse("https://x/?" + stripped) catch { _ => return stripped }
+  strip_leading_char(url.search(), '?')
 }
 
 ///|
@@ -676,11 +601,8 @@ fn canonicalize_hash(input : String) -> String {
   if stripped == "" {
     return ""
   }
-  let parsed = try? @url.parse("https://x/#" + stripped)
-  match parsed {
-    Err(_) => stripped
-    Ok(url) => strip_leading_char(url.hash(), '#')
-  }
+  let url = @url.parse("https://x/#" + stripped) catch { _ => return stripped }
+  strip_leading_char(url.hash(), '#')
 }
 
 ///|
@@ -729,31 +651,16 @@ fn canonicalize_port(port : String, protocol : String) -> String {
 ///|
 fn normalize_path_dots(path : String) -> String {
   let segments : Array[String] = []
-  let chars = @pe.string_to_chars(path)
-  let mut i = 0
-  let n = chars.length()
-  while i < n {
-    if chars[i] == '/' {
-      i += 1
-      continue
-    }
-    let seg_start = i
-    while i < n && chars[i] != '/' {
-      i += 1
-    }
-    let buf = StringBuilder::new()
-    for ch in chars[seg_start:i] {
-      buf.write_char(ch)
-    }
-    let seg = buf.to_string()
-    if seg == "." {
+  for seg in path.split("/") {
+    let s = seg.to_owned()
+    if s == "" || s == "." {
       ()
-    } else if seg == ".." {
+    } else if s == ".." {
       if segments.length() > 0 {
         segments.pop() |> ignore
       }
     } else {
-      segments.push(seg)
+      segments.push(s)
     }
   }
   "/" + segments.join("/")
@@ -910,40 +817,35 @@ pub fn UrlPattern::exec_url(
   self : UrlPattern,
   url_str : String,
 ) -> UrlPatternResult? {
-  let parsed = try? @url.parse(url_str)
-  match parsed {
-    Err(_) => None
-    Ok(url) => {
-      let scheme = url.scheme()
-      let search_raw = url.search()
-      let hash_raw = url.hash()
-      let init = {
-        protocol: Some(scheme),
-        username: Some(url.username()),
-        password: Some(url.password()),
-        hostname: Some(url.hostname()),
-        port: Some(url.port_str()),
-        pathname: Some(url.pathname()),
-        search: Some(strip_leading_char(search_raw, '?')),
-        hash: Some(strip_leading_char(hash_raw, '#')),
-        base_url: None,
-      }
-      match self.exec_init(init) {
-        None => None
-        Some(r) =>
-          Some({
-            inputs: [Str(url_str)],
-            protocol: r.protocol,
-            username: r.username,
-            password: r.password,
-            hostname: r.hostname,
-            port: r.port,
-            pathname: r.pathname,
-            search: r.search,
-            hash: r.hash,
-          })
-      }
-    }
+  let url = @url.parse(url_str) catch { _ => return None }
+  let scheme = url.scheme()
+  let search_raw = url.search()
+  let hash_raw = url.hash()
+  let init = {
+    protocol: Some(scheme),
+    username: Some(url.username()),
+    password: Some(url.password()),
+    hostname: Some(url.hostname()),
+    port: Some(url.port_str()),
+    pathname: Some(url.pathname()),
+    search: Some(strip_leading_char(search_raw, '?')),
+    hash: Some(strip_leading_char(hash_raw, '#')),
+    base_url: None,
+  }
+  match self.exec_init(init) {
+    None => None
+    Some(r) =>
+      Some({
+        inputs: [Str(url_str)],
+        protocol: r.protocol,
+        username: r.username,
+        password: r.password,
+        hostname: r.hostname,
+        port: r.port,
+        pathname: r.pathname,
+        search: r.search,
+        hash: r.hash,
+      })
   }
 }
 
@@ -1126,16 +1028,8 @@ pub fn UrlPattern::generate(
   component : String,
   groups : Map[String, String],
 ) -> String? {
-  let comp = match component {
-    "protocol" => self.protocol
-    "username" => self.username
-    "password" => self.password
-    "hostname" => self.hostname
-    "port" => self.port
-    "pathname" => self.pathname
-    "search" => self.search
-    "hash" => self.hash
-    _ => return None
+  guard get_urlpattern_component(self, component) is Some(comp) else {
+    return None
   }
   generate_component_string(comp.parts, comp.kind, groups)
 }
