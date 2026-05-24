@@ -246,9 +246,9 @@ test "WPT setters-stripping: username" {
     let url = @url.parse(base_str)
     let new_url = url.set_username(setter_input)
     let prev_len = failures.length()
-    if new_url.username != exp_username {
+    if new_url.username() != exp_username {
       failures.push(
-        "FAIL username/username: got=\{new_url.username} want=\{exp_username}",
+        "FAIL username/username: got=\{new_url.username()} want=\{exp_username}",
       )
     }
     if new_url.href() != exp_href {
@@ -401,9 +401,9 @@ test "WPT setters-stripping: password" {
     let url = @url.parse(base_str)
     let new_url = url.set_password(setter_input)
     let prev_len = failures.length()
-    if new_url.password != exp_password {
+    if new_url.password() != exp_password {
       failures.push(
-        "FAIL password/password: got=\{new_url.password} want=\{exp_password}",
+        "FAIL password/password: got=\{new_url.password()} want=\{exp_password}",
       )
     }
     if new_url.href() != exp_href {

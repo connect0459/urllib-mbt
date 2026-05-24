@@ -35,14 +35,14 @@ pub impl Show for UrlParseError with fn output(self, logger) {
 /// An immutable parsed URL. All setter methods return a new `Url` value
 /// rather than modifying this one.
 pub struct Url {
-  scheme : String
-  username : String
-  password : String
-  host : Host?
-  port : Int?
-  path : UrlPath
-  query : String?
-  fragment : String?
+  priv scheme : String
+  priv username : String
+  priv password : String
+  priv host : Host?
+  priv port : Int?
+  priv path : UrlPath
+  priv query : String?
+  priv fragment : String?
 } derive(Eq, Debug)
 
 ///|
