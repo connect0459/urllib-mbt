@@ -21,7 +21,7 @@ implementation details and are not importable by consumers.
 | `parse` | `(String) -> Url raise UrlParseError` | Parse a URL string; raises on failure |
 | `parse_maybe` | `(String, Url?) -> Url?` | Infallible variant; returns `None` on failure |
 | `parse_with_base` | `(String, Url?) -> Url raise UrlParseError` | Parse with an explicit base URL |
-| `can_parse` | `(String, Url?) -> Bool` | Validity check without allocating a `Url` |
+| `can_parse` | `(String, Url?) -> Bool` | Returns `true` if the URL parses successfully |
 | `parse_with_params` | `(String, Array[(String, String)]) -> Url raise UrlParseError` | Parse and append query parameters |
 | `from_file_path` | `(String) -> Url raise UrlParseError` | Convert a filesystem path to a `file://` URL |
 | `from_directory_path` | `(String) -> Url raise UrlParseError` | Like `from_file_path` with a trailing `/`; usable as a base URL |
