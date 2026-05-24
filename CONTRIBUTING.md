@@ -42,7 +42,7 @@ Before opening a pull request:
 
 ```sh
 moon fmt && moon check && moon test && moon info
-git diff src/**/*.mbti  # review interface changes
+git diff -- '*.mbti'  # review interface changes
 ```
 
 ## Testing guidelines
