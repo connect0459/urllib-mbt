@@ -56,15 +56,15 @@ test "parse_maybe with base resolves relative URL" {
 }
 
 ///|
-test "to_json returns the href string" {
+test "to_json serializes URL as a JSON string value" {
   let url = @url.parse("https://example.com/")
-  assert_eq(url.to_json(), "https://example.com/")
+  @debug.assert_eq(url.to_json(), Json::string("https://example.com/"))
 }
 
 ///|
-test "to_json equals href for complex URL" {
+test "to_json JSON string value equals href for complex URL" {
   let url = @url.parse("http://user:pass@example.com:8080/path?query#hash")
-  assert_eq(url.to_json(), url.href())
+  @debug.assert_eq(url.to_json(), Json::string(url.href()))
 }
 
 ///|

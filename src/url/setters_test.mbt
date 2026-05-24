@@ -74,66 +74,66 @@ test "set_search preserves fragment" {
 ///|
 test "set_username sets username for http URL" {
   let url = @url.parse("http://example.net").set_username("me")
-  assert_eq(url.username, "me")
+  assert_eq(url.username(), "me")
   assert_eq(url.href(), "http://me@example.net/")
 }
 
 ///|
 test "set_username with empty string clears username" {
   let url = @url.parse("http://me@example.net").set_username("")
-  assert_eq(url.username, "")
+  assert_eq(url.username(), "")
   assert_eq(url.href(), "http://example.net/")
 }
 
 ///|
 test "set_username is no-op for file URL" {
   let url = @url.parse("file://test/").set_username("test")
-  assert_eq(url.username, "")
+  assert_eq(url.username(), "")
 }
 
 ///|
 test "set_username is no-op when no host" {
   let url = @url.parse("file:///home/you/index.html").set_username("me")
-  assert_eq(url.username, "")
+  assert_eq(url.username(), "")
   assert_eq(url.href(), "file:///home/you/index.html")
 }
 
 ///|
 test "set_username is no-op for opaque-path URL" {
   let url = @url.parse("mailto:you@example.net").set_username("me")
-  assert_eq(url.username, "")
+  assert_eq(url.username(), "")
 }
 
 ///|
 test "set_username percent-encodes value using userinfo set" {
   let url = @url.parse("http://example.net").set_username("/foo")
-  assert_eq(url.username, "%2Ffoo")
+  assert_eq(url.username(), "%2Ffoo")
 }
 
 ///|
 test "set_password sets password for http URL" {
   let url = @url.parse("http://example.net").set_password("secret")
-  assert_eq(url.password, "secret")
+  assert_eq(url.password(), "secret")
   assert_eq(url.href(), "http://:secret@example.net/")
 }
 
 ///|
 test "set_password with empty string clears password" {
   let url = @url.parse("http://:secret@example.net").set_password("")
-  assert_eq(url.password, "")
+  assert_eq(url.password(), "")
   assert_eq(url.href(), "http://example.net/")
 }
 
 ///|
 test "set_password is no-op for file URL" {
   let url = @url.parse("file://test/").set_password("test")
-  assert_eq(url.password, "")
+  assert_eq(url.password(), "")
 }
 
 ///|
 test "set_password is no-op when no host" {
   let url = @url.parse("unix:/run/foo.socket").set_password("secret")
-  assert_eq(url.password, "")
+  assert_eq(url.password(), "")
 }
 
 ///|
@@ -316,7 +316,7 @@ test "set_protocol with colon-only value is a no-op (empty new scheme)" {
 test "set_protocol on file URL with non-empty host converts to non-file scheme" {
   let url = @url.parse("file://host.example.com/path")
   let result = url.set_protocol("https")
-  assert_eq(result.scheme, "https")
+  assert_eq(result.scheme(), "https")
 }
 
 ///|

@@ -43,8 +43,8 @@ fn url_field(url : @url.Url, field : String) -> String {
   match field {
     "href" => url.href()
     "protocol" => url.protocol()
-    "username" => url.username
-    "password" => url.password
+    "username" => url.username()
+    "password" => url.password()
     "host" => url.host_str()
     "hostname" => url.hostname()
     "port" => url.port_str()

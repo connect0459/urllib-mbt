@@ -83,14 +83,14 @@ test "WPT URL getters: protocol, username, password, hostname, host, port, pathn
         "FAIL protocol: input=\{input} got=\{url.protocol()} want=\{exp_protocol}",
       )
     }
-    if url.username != exp_username {
+    if url.username() != exp_username {
       failures.push(
-        "FAIL username: input=\{input} got=\{url.username} want=\{exp_username}",
+        "FAIL username: input=\{input} got=\{url.username()} want=\{exp_username}",
       )
     }
-    if url.password != exp_password {
+    if url.password() != exp_password {
       failures.push(
-        "FAIL password: input=\{input} got=\{url.password} want=\{exp_password}",
+        "FAIL password: input=\{input} got=\{url.password()} want=\{exp_password}",
       )
     }
     if url.hostname() != exp_hostname {

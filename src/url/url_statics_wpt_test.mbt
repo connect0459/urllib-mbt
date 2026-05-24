@@ -49,7 +49,7 @@ test "WPT url-statics-parse: relative URL with base resolves correctly" {
 }
 
 ///|
-test "WPT url-tojson: to_json returns the URL href string" {
+test "WPT url-tojson: to_json serializes URL as JSON string value" {
   let url = @url.parse("https://example.com/")
-  assert_eq(url.to_json(), "https://example.com/")
+  @debug.assert_eq(url.to_json(), Json::string("https://example.com/"))
 }

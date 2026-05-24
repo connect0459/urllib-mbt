@@ -1,9 +1,9 @@
 ///|
 test "basic http URL parses all components" {
   let url = @url.parse("http://user:pass@example.com:8080/path?query#hash")
-  assert_eq(url.scheme, "http")
-  assert_eq(url.username, "user")
-  assert_eq(url.password, "pass")
+  assert_eq(url.scheme(), "http")
+  assert_eq(url.username(), "user")
+  assert_eq(url.password(), "pass")
   assert_eq(url.hostname(), "example.com")
   assert_eq(url.port_str(), "8080")
   assert_eq(url.pathname(), "/path")
@@ -47,7 +47,7 @@ test "https default port 443 is omitted" {
 ///|
 test "scheme is lowercased" {
   let url = @url.parse("HTTP://example.com/")
-  assert_eq(url.scheme, "http")
+  assert_eq(url.scheme(), "http")
   assert_eq(url.protocol(), "http:")
 }
 
@@ -153,14 +153,14 @@ test "no base and no scheme raises error" {
 ///|
 test "opaque path for non-special scheme" {
   let url = @url.parse("data:text/plain,hello")
-  assert_eq(url.scheme, "data")
+  assert_eq(url.scheme(), "data")
   assert_eq(url.pathname(), "text/plain,hello")
 }
 
 ///|
 test "file URL parses path" {
   let url = @url.parse("file:///etc/passwd")
-  assert_eq(url.scheme, "file")
+  assert_eq(url.scheme(), "file")
   assert_eq(url.pathname(), "/etc/passwd")
   assert_eq(url.hostname(), "")
 }
@@ -174,8 +174,8 @@ test "percent-encoded path is preserved" {
 ///|
 test "user:pass@foo:21 URL" {
   let url = @url.parse("http://user:pass@foo:21/bar;par?b#c")
-  assert_eq(url.username, "user")
-  assert_eq(url.password, "pass")
+  assert_eq(url.username(), "user")
+  assert_eq(url.password(), "pass")
   assert_eq(url.hostname(), "foo")
   assert_eq(url.port_str(), "21")
   assert_eq(url.pathname(), "/bar;par")
@@ -528,7 +528,7 @@ test "hash returns empty string for empty-string fragment" {
 ///|
 test "parse: IPv6 host with empty port parses port as None" {
   let url = @url.parse("http://[::1]:/")
-  assert_true(url.port is None)
+  assert_true(url.port() is None)
   assert_eq(url.href(), "http://[::1]/")
 }
 

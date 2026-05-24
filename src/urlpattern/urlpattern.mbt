@@ -31,7 +31,7 @@ fn canonicalize_protocol_for_pattern(
   let parsed = @url.parse(stripped + "://dummy.test") catch {
     _ => raise UrlPatternError("invalid protocol: '\{input}'")
   }
-  parsed.scheme
+  parsed.scheme()
 }
 
 ///|
@@ -639,7 +639,7 @@ fn canonicalize_userinfo(input : String) -> String {
   let base = try? @url.parse("https://x/")
   match base {
     Err(_) => input
-    Ok(u) => u.set_username(input).username
+    Ok(u) => u.set_username(input).username()
   }
 }
 
@@ -651,7 +651,7 @@ fn canonicalize_password(input : String) -> String {
   let base = try? @url.parse("https://x/")
   match base {
     Err(_) => input
-    Ok(u) => u.set_password(input).password
+    Ok(u) => u.set_password(input).password()
   }
 }
 
@@ -851,14 +851,14 @@ fn apply_base_url(
   let protocol = if has_protocol {
     init.protocol
   } else {
-    Some(esc(base.scheme))
+    Some(esc(base.scheme()))
   }
   let username = if !for_pattern &&
     !has_protocol &&
     !has_hostname &&
     !has_port &&
     !has_username {
-    Some(base.username)
+    Some(base.username())
   } else {
     init.username
   }
@@ -868,7 +868,7 @@ fn apply_base_url(
     !has_port &&
     !has_username &&
     !has_password {
-    Some(base.password)
+    Some(base.password())
   } else {
     init.password
   }
@@ -968,13 +968,13 @@ pub fn UrlPattern::exec_url(
   match parsed {
     Err(_) => None
     Ok(url) => {
-      let scheme = url.scheme
+      let scheme = url.scheme()
       let search_raw = url.search()
       let hash_raw = url.hash()
       let init = {
         protocol: Some(scheme),
-        username: Some(url.username),
-        password: Some(url.password),
+        username: Some(url.username()),
+        password: Some(url.password()),
         hostname: Some(url.hostname()),
         port: Some(url.port_str()),
         pathname: Some(url.pathname()),
