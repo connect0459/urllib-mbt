@@ -1,4 +1,19 @@
 ///|
+let utf16_bmp_max : Int = 0xFFFF
+
+///|
+let utf16_supplementary_offset : Int = 0x10000
+
+///|
+let utf16_high_surrogate_base : Int = 0xD800
+
+///|
+let utf16_low_surrogate_base : Int = 0xDC00
+
+///|
+let utf16_surrogate_mask : Int = 0x3FF
+
+///|
 /// A mutable list of name/value string pairs used to encode
 /// `application/x-www-form-urlencoded` data.
 pub struct UrlSearchParams {
@@ -345,12 +360,12 @@ fn is_url_form_safe(cp : Int) -> Bool {
 ///|
 fn char_to_utf16(c : Char) -> Array[Int] {
   let cp = c.to_int()
-  if cp <= 0xFFFF {
+  if cp <= utf16_bmp_max {
     [cp]
   } else {
-    let adj = cp - 0x10000
-    let high = 0xD800 + (adj >> 10)
-    let low = 0xDC00 + (adj & 0x3FF)
+    let adj = cp - utf16_supplementary_offset
+    let high = utf16_high_surrogate_base + (adj >> 10)
+    let low = utf16_low_surrogate_base + (adj & utf16_surrogate_mask)
     [high, low]
   }
 }
