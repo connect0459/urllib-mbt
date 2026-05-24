@@ -407,10 +407,7 @@ fn parse_pattern_to_parts(
 
 ///|
 fn str_first_char(s : String) -> Char? {
-  for c in s {
-    return Some(c)
-  }
-  None
+  s.get_char(0)
 }
 
 ///|

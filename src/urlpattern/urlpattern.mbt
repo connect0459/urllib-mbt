@@ -135,15 +135,7 @@ fn encode_hostname_value(
     }
     return buf.to_string()
   }
-  let first_char : Char? = {
-    let mut fc : Char? = None
-    for c in value {
-      fc = Some(c)
-      break
-    }
-    fc
-  }
-  if first_char == Some('[') {
+  if value.get_char(0) == Some('[') {
     for c in value {
       if !is_ipv6_literal_char(c) {
         raise UrlPatternError(
@@ -292,16 +284,7 @@ fn compile_component(
 ) -> UrlPatternComponent raise UrlPatternError {
   let raw_parts = parse_pattern_to_parts(pattern, options, policy)
   let parts = encode_parts(raw_parts, kind)
-  let has_regexp_groups = {
-    let mut hrg = false
-    for p in parts {
-      if p.kind == Regexp {
-        hrg = true
-        break
-      }
-    }
-    hrg
-  }
+  let has_regexp_groups = parts.any(fn(p) { p.kind == Regexp })
   let pat_str = generate_pattern_string(parts, options)
   let (regexp_str, group_names, group_strips) = generate_regexp(parts, options)
   let final_regexp_str = if ignore_case {
@@ -552,19 +535,10 @@ pub fn UrlPattern::exec_init(
   let raw_port = init.port.unwrap_or("")
   let port_input = if raw_port != "" {
     let p = canonicalize_port(raw_port, proto_str)
-    // If port has non-digit characters after canonicalization, it's invalid
-    let valid = {
-      let mut ok = true
-      for c in p {
-        if !(c >= '0' && c <= '9') {
-          ok = false
-          break
-        }
+    for c in p {
+      if c < '0' || c > '9' {
+        return None
       }
-      ok
-    }
-    if !valid {
-      return None
     }
     p
   } else {
@@ -782,15 +756,7 @@ fn normalize_path_dots(path : String) -> String {
       segments.push(seg)
     }
   }
-  let result = StringBuilder::new()
-  result.write_char('/')
-  for k = 0; k < segments.length(); k = k + 1 {
-    if k > 0 {
-      result.write_char('/')
-    }
-    result.write_string(segments[k])
-  }
-  result.to_string()
+  "/" + segments.join("/")
 }
 
 ///|
