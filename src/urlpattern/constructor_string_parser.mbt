@@ -170,8 +170,8 @@ fn Csp::make_component_string(self : Csp) -> String {
   let end_char_index = self.token_list[self.token_index].index
   let start_char_index = self.get_safe_token(self.component_start).index
   let buf = StringBuilder::new()
-  for i = start_char_index; i < end_char_index; i = i + 1 {
-    buf.write_char(self.input_chars[i])
+  for c in self.input_chars[start_char_index:end_char_index] {
+    buf.write_char(c)
   }
   buf.to_string()
 }

@@ -64,8 +64,8 @@ fn uint_to_lower_hex(n : UInt) -> String {
     val = val >> 4
   }
   let buf = StringBuilder::new()
-  for i = chars.length() - 1; i >= 0; i = i - 1 {
-    buf.write_char(chars[i])
+  for c in chars.rev_iter() {
+    buf.write_char(c)
   }
   buf.to_string()
 }
@@ -76,8 +76,8 @@ fn find_ipv6_compress(pieces : Array[UInt]) -> Int? {
   let mut best_len = 1
   let mut cur_start : Int? = None
   let mut cur_len = 0
-  for i = 0; i < 8; i = i + 1 {
-    if pieces[i] == 0U {
+  for i, piece in pieces {
+    if piece == 0U {
       if cur_start is None {
         cur_start = Some(i)
         cur_len = 1
@@ -100,9 +100,10 @@ fn find_ipv6_compress(pieces : Array[UInt]) -> Int? {
 fn serialize_ipv6(pieces : Array[UInt]) -> String {
   let buf = StringBuilder::new()
   let compress = find_ipv6_compress(pieces)
+  let last = pieces.length() - 1
   let mut ignore0 = false
-  for i = 0; i < 8; i = i + 1 {
-    if ignore0 && pieces[i] == 0U {
+  for i, piece in pieces {
+    if ignore0 && piece == 0U {
       continue
     }
     if ignore0 {
@@ -114,8 +115,8 @@ fn serialize_ipv6(pieces : Array[UInt]) -> String {
       ignore0 = true
       continue
     }
-    buf.write_string(uint_to_lower_hex(pieces[i]))
-    if i != 7 {
+    buf.write_string(uint_to_lower_hex(piece))
+    if i != last {
       buf.write_char(':')
     }
   }
@@ -217,12 +218,7 @@ fn domain_has_forbidden_char(domain : String) -> Bool {
 
 ///|
 fn all_hex_digits_from(chars : Array[Char], from : Int) -> Bool {
-  for i = from; i < chars.length(); i = i + 1 {
-    if @pe.hex_digit_value(chars[i]) is None {
-      return false
-    }
-  }
-  true
+  chars[from:].all(fn(c) { @pe.hex_digit_value(c) is Some(_) })
 }
 
 ///|
@@ -296,8 +292,7 @@ fn parse_ipv4(input : String) -> UInt raise HostParseError {
     raise HostParseError("invalid IPv4: last part too large")
   }
   let mut addr = last
-  for i = 0; i < n_parts - 1; i = i + 1 {
-    let octet = numbers[i]
+  for i, octet in numbers[0:n_parts - 1] {
     if octet > 255U {
       raise HostParseError("invalid IPv4: octet > 255")
     }

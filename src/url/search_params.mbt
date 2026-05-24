@@ -340,14 +340,12 @@ fn compare_utf16(a : String, b : String) -> Int {
   let ub = string_to_utf16_units(b)
   let la = ua.length()
   let lb = ub.length()
-  let len = if la < lb { la } else { lb }
-  let mut i = 0
-  while i < len {
+  let min_len = if la < lb { la } else { lb }
+  for i in 0..<min_len {
     let diff = ua[i] - ub[i]
     if diff != 0 {
       return diff
     }
-    i = i + 1
   }
-  ua.length() - ub.length()
+  la - lb
 }

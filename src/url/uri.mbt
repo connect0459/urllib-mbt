@@ -253,20 +253,22 @@ pub fn Url::make_relative(self : Url, other : Url) -> String? {
   }
   let (base_dir, base_filename) = dir_and_filename(base_segs)
   let (url_dir, url_filename) = dir_and_filename(url_segs)
-  let mut common_len = 0
-  while common_len < base_dir.length() &&
-        common_len < url_dir.length() &&
-        base_dir[common_len] == url_dir[common_len] {
-    common_len += 1
+  let common_len = for n = 0 {
+    if n >= base_dir.length() ||
+      n >= url_dir.length() ||
+      base_dir[n] != url_dir[n] {
+      break n
+    }
+    continue n + 1
   }
   let path_parts : Array[String] = []
-  for i = common_len; i < base_dir.length(); i = i + 1 {
-    if base_dir[i] != "" {
+  for seg in base_dir[common_len:] {
+    if seg != "" {
       path_parts.push("..")
     }
   }
-  for i = common_len; i < url_dir.length(); i = i + 1 {
-    path_parts.push(url_dir[i])
+  for seg in url_dir[common_len:] {
+    path_parts.push(seg)
   }
   let buf = StringBuilder::new()
   if path_parts.length() > 0 || base_filename != url_filename {
@@ -451,11 +453,10 @@ pub fn from_file_path(path : String) -> Url raise UrlParseError {
   let url_buf = StringBuilder::new()
   url_buf.write_string("file:///")
   let start = if is_win { 0 } else { 1 }
-  for i = start; i < raw_segs.length(); i = i + 1 {
-    if i > start {
+  for i, seg in raw_segs[start:] {
+    if i > 0 {
       url_buf.write_char('/')
     }
-    let seg = raw_segs[i]
     if is_win && i == 0 {
       url_buf.write_string(seg)
     } else {
@@ -503,11 +504,11 @@ pub fn Url::to_file_path(self : Url) -> String raise UrlParseError {
       if !is_win_drive {
         buf.write_char('/')
       }
-      for i = 0; i < segs.length(); i = i + 1 {
+      for i, seg in segs {
         if i > 0 {
           buf.write_char('/')
         }
-        buf.write_string(@pe.percent_decode(segs[i]))
+        buf.write_string(@pe.percent_decode(seg))
       }
       buf.to_string()
     }
@@ -563,14 +564,8 @@ pub fn Url::query_pairs(self : Url) -> Iter[(String, String)] {
 
 ///|
 fn dir_and_filename(segs : Array[String]) -> (Array[String], String) {
-  let n = segs.length()
-  if n == 0 {
-    ([], "")
-  } else {
-    let dir : Array[String] = []
-    for i = 0; i < n - 1; i = i + 1 {
-      dir.push(segs[i])
-    }
-    (dir, segs[n - 1])
+  match segs {
+    [] => ([], "")
+    [.. dir, last] => (dir.to_owned(), last)
   }
 }

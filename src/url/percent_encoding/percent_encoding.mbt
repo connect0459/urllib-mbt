@@ -30,49 +30,39 @@ fn is_c0(cp : Int) -> Bool {
 
 ///|
 fn in_fragment_set(cp : Int) -> Bool {
-  is_c0(cp) ||
-  cp == 0x20 ||
-  cp == 0x22 ||
-  cp == 0x3C ||
-  cp == 0x3E ||
-  cp == 0x60
+  is_c0(cp) || cp == ' ' || cp == '"' || cp == '<' || cp == '>' || cp == '`'
 }
 
 ///|
 fn in_query_set(cp : Int) -> Bool {
-  is_c0(cp) ||
-  cp == 0x20 ||
-  cp == 0x22 ||
-  cp == 0x23 ||
-  cp == 0x3C ||
-  cp == 0x3E
+  is_c0(cp) || cp == ' ' || cp == '"' || cp == '#' || cp == '<' || cp == '>'
 }
 
 ///|
 fn in_special_query_set(cp : Int) -> Bool {
-  in_query_set(cp) || cp == 0x27
+  in_query_set(cp) || cp == '\''
 }
 
 ///|
 fn in_path_set(cp : Int) -> Bool {
   in_query_set(cp) ||
-  cp == 0x3F ||
-  cp == 0x5E ||
-  cp == 0x60 ||
-  cp == 0x7B ||
-  cp == 0x7D
+  cp == '?' ||
+  cp == '^' ||
+  cp == '`' ||
+  cp == '{' ||
+  cp == '}'
 }
 
 ///|
 fn in_userinfo_set(cp : Int) -> Bool {
   in_path_set(cp) ||
-  cp == 0x2F ||
-  cp == 0x3A ||
-  cp == 0x3B ||
-  cp == 0x3D ||
-  cp == 0x40 ||
-  (cp >= 0x5B && cp <= 0x5E) ||
-  cp == 0x7C
+  cp == '/' ||
+  cp == ':' ||
+  cp == ';' ||
+  cp == '=' ||
+  cp == '@' ||
+  (cp >= '[' && cp <= '^') ||
+  cp == '|'
 }
 
 ///|
@@ -187,17 +177,10 @@ pub fn percent_encode_c0(input : String) -> String {
 /// Encodes `input` using the C0 set, additionally encoding a trailing space
 /// as `"%20"` (used at query/fragment stop boundaries in opaque paths).
 pub fn percent_encode_opaque_path_at_stop(input : String) -> String {
-  let n = input.length()
-  if n > 0 {
-    let last = input.get_char(n - 1).unwrap_or('\u{0000}')
-    if last == ' ' {
-      let prefix = input[0:n - 1].to_owned()
-      percent_encode(prefix, is_c0) + "%20"
-    } else {
-      percent_encode(input, is_c0)
-    }
+  if input.has_suffix(" ") {
+    percent_encode(input[0:input.length() - 1].to_owned(), is_c0) + "%20"
   } else {
-    ""
+    percent_encode(input, is_c0)
   }
 }
 
@@ -205,13 +188,12 @@ pub fn percent_encode_opaque_path_at_stop(input : String) -> String {
 /// Returns the numeric value of an ASCII hex digit (`0`–`9`, `a`–`f`, `A`–`F`),
 /// or `None` for any other character.
 pub fn hex_digit_value(c : Char) -> Int? {
-  let cp = c.to_int()
-  if cp >= '0'.to_int() && cp <= '9'.to_int() {
-    Some(cp - '0'.to_int())
-  } else if cp >= 'A'.to_int() && cp <= 'F'.to_int() {
-    Some(cp - 'A'.to_int() + 10)
-  } else if cp >= 'a'.to_int() && cp <= 'f'.to_int() {
-    Some(cp - 'a'.to_int() + 10)
+  if c >= '0' && c <= '9' {
+    Some(c.to_int() - '0'.to_int())
+  } else if c >= 'A' && c <= 'F' {
+    Some(c.to_int() - 'A'.to_int() + 10)
+  } else if c >= 'a' && c <= 'f' {
+    Some(c.to_int() - 'a'.to_int() + 10)
   } else {
     None
   }

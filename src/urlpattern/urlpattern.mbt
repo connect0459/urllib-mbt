@@ -18,13 +18,8 @@ fn canonicalize_protocol_for_pattern(
   if input == "" {
     return ""
   }
-  let chars = @pe.string_to_chars(input)
-  let stripped = if chars.length() > 0 && chars[chars.length() - 1] == ':' {
-    let buf = StringBuilder::new()
-    for j = 0; j < chars.length() - 1; j = j + 1 {
-      buf.write_char(chars[j])
-    }
-    buf.to_string()
+  let stripped = if input.has_suffix(":") {
+    input[0:input.length() - 1].to_owned()
   } else {
     input
   }
@@ -140,15 +135,7 @@ fn encode_hostname_value(
     }
     return buf.to_string()
   }
-  let first_char : Char? = {
-    let mut fc : Char? = None
-    for c in value {
-      fc = Some(c)
-      break
-    }
-    fc
-  }
-  if first_char == Some('[') {
+  if value.get_char(0) == Some('[') {
     for c in value {
       if !is_ipv6_literal_char(c) {
         raise UrlPatternError(
@@ -297,16 +284,7 @@ fn compile_component(
 ) -> UrlPatternComponent raise UrlPatternError {
   let raw_parts = parse_pattern_to_parts(pattern, options, policy)
   let parts = encode_parts(raw_parts, kind)
-  let has_regexp_groups = {
-    let mut hrg = false
-    for p in parts {
-      if p.kind == Regexp {
-        hrg = true
-        break
-      }
-    }
-    hrg
-  }
+  let has_regexp_groups = parts.any(fn(p) { p.kind == Regexp })
   let pat_str = generate_pattern_string(parts, options)
   let (regexp_str, group_names, group_strips) = generate_regexp(parts, options)
   let final_regexp_str = if ignore_case {
@@ -500,8 +478,8 @@ fn match_component(
               let end = chars.length() - suf.length()
               if start <= end {
                 let buf = StringBuilder::new()
-                for j = start; j < end; j = j + 1 {
-                  buf.write_char(chars[j])
+                for ch in chars[start:end] {
+                  buf.write_char(ch)
                 }
                 buf.to_string()
               } else {
@@ -557,19 +535,10 @@ pub fn UrlPattern::exec_init(
   let raw_port = init.port.unwrap_or("")
   let port_input = if raw_port != "" {
     let p = canonicalize_port(raw_port, proto_str)
-    // If port has non-digit characters after canonicalization, it's invalid
-    let valid = {
-      let mut ok = true
-      for c in p {
-        if !(c >= '0' && c <= '9') {
-          ok = false
-          break
-        }
+    for c in p {
+      if c < '0' || c > '9' {
+        return None
       }
-      ok
-    }
-    if !valid {
-      return None
     }
     p
   } else {
@@ -673,17 +642,10 @@ fn canonicalize_pathname(input : String) -> String {
       let p = url.pathname()
       if leading_slash {
         p
+      } else if p.length() < 2 {
+        input
       } else {
-        let chars = @pe.string_to_chars(p)
-        if chars.length() < 2 {
-          input
-        } else {
-          let buf = StringBuilder::new()
-          for j = 2; j < chars.length(); j = j + 1 {
-            buf.write_char(chars[j])
-          }
-          buf.to_string()
-        }
+        p[2:].to_owned()
       }
     }
   }
@@ -780,8 +742,8 @@ fn normalize_path_dots(path : String) -> String {
       i += 1
     }
     let buf = StringBuilder::new()
-    for j = seg_start; j < i; j = j + 1 {
-      buf.write_char(chars[j])
+    for ch in chars[seg_start:i] {
+      buf.write_char(ch)
     }
     let seg = buf.to_string()
     if seg == "." {
@@ -794,31 +756,15 @@ fn normalize_path_dots(path : String) -> String {
       segments.push(seg)
     }
   }
-  let result = StringBuilder::new()
-  result.write_char('/')
-  for k = 0; k < segments.length(); k = k + 1 {
-    if k > 0 {
-      result.write_char('/')
-    }
-    result.write_string(segments[k])
-  }
-  result.to_string()
+  "/" + segments.join("/")
 }
 
 ///|
 fn get_base_dir(pathname : String) -> String {
-  let chars = @pe.string_to_chars(pathname)
-  let mut last_slash = 0
-  for i = 0; i < chars.length(); i = i + 1 {
-    if chars[i] == '/' {
-      last_slash = i + 1
-    }
+  match pathname.rev_find("/") {
+    None => ""
+    Some(pos) => pathname[0:pos + 1].to_owned()
   }
-  let buf = StringBuilder::new()
-  for i = 0; i < last_slash; i = i + 1 {
-    buf.write_char(chars[i])
-  }
-  buf.to_string()
 }
 
 ///|
@@ -939,7 +885,7 @@ fn apply_base_url(
 ///|
 fn strip_leading_char(s : String, c : Char) -> String {
   match s.get_char(0) {
-    Some(head) if head == c => s[1:s.length()].to_owned()
+    Some(head) if head == c => s[1:].to_owned()
     _ => s
   }
 }
@@ -1199,7 +1145,7 @@ fn compare_str_lex(a : String, b : String) -> Int {
   let la = a.length()
   let lb = b.length()
   let n = if la < lb { la } else { lb }
-  for i = 0; i < n; i = i + 1 {
+  for i in 0..<n {
     let ca = a.unsafe_get(i).to_int()
     let cb = b.unsafe_get(i).to_int()
     if ca != cb {
@@ -1325,7 +1271,7 @@ fn compare_pattern_part_lists(left : Array[Part], right : Array[Part]) -> Int {
   let lm = merge_fixed_text_parts(left)
   let rm = merge_fixed_text_parts(right)
   let n = if lm.length() < rm.length() { lm.length() } else { rm.length() }
-  for i = 0; i < n; i = i + 1 {
+  for i in 0..<n {
     let r = compare_pattern_parts(lm[i], rm[i])
     if r != 0 {
       return r

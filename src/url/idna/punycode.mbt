@@ -33,15 +33,14 @@ fn punycode_adapt(delta : Int, numpoints : Int, firsttime : Bool) -> Int {
 
 ///|
 fn punycode_digit_value(c : Char) -> Int raise IdnaParseError {
-  let cp = c.to_int()
-  if cp >= 'a'.to_int() && cp <= 'z'.to_int() {
-    return cp - 'a'.to_int()
+  if c >= 'a' && c <= 'z' {
+    return c.to_int() - 'a'.to_int()
   }
-  if cp >= 'A'.to_int() && cp <= 'Z'.to_int() {
-    return cp - 'A'.to_int()
+  if c >= 'A' && c <= 'Z' {
+    return c.to_int() - 'A'.to_int()
   }
-  if cp >= '0'.to_int() && cp <= '9'.to_int() {
-    return cp - '0'.to_int() + 26
+  if c >= '0' && c <= '9' {
+    return c.to_int() - '0'.to_int() + 26
   }
   raise IdnaParseError("invalid punycode digit")
 }
@@ -56,23 +55,8 @@ fn punycode_digit_to_char(d : Int) -> Char {
 }
 
 ///|
-fn punycode_array_insert(arr : Array[Int], pos : Int, val : Int) -> Unit {
-  arr.push(val)
-  let n = arr.length()
-  let mut j = n - 1
-  while j > pos {
-    arr[j] = arr[j - 1]
-    j = j - 1
-  }
-  arr[pos] = val
-}
-
-///|
 fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
-  let chars : Array[Char] = []
-  for c in input {
-    chars.push(c)
-  }
+  let chars = @pe.string_to_chars(input)
   let n_input = chars.length()
   if n_input == 0 {
     raise IdnaParseError("punycode: empty input")
@@ -82,14 +66,14 @@ fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
   let mut i = 0
   let mut bias = punycode_initial_bias
   let mut basic_end = -1
-  for idx = 0; idx < n_input; idx = idx + 1 {
-    if chars[idx] == '-' {
+  for idx, c in chars {
+    if c == '-' {
       basic_end = idx
     }
   }
   let copy_end = if basic_end > 0 { basic_end } else { 0 }
-  for idx = 0; idx < copy_end; idx = idx + 1 {
-    let cp = chars[idx].to_int()
+  for c in chars[0:copy_end] {
+    let cp = c.to_int()
     if cp > 0x7E {
       raise IdnaParseError("punycode: non-ASCII before delimiter")
     }
@@ -131,7 +115,7 @@ fn punycode_decode(input : String) -> Array[Int] raise IdnaParseError {
     if n >= 0xD800 && n <= 0xDFFF {
       raise IdnaParseError("punycode: surrogate code point")
     }
-    punycode_array_insert(output, i, n)
+    output.insert(i, n)
     i = i + 1
   }
   output
