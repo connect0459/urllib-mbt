@@ -394,7 +394,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
       out.write_string(encoded)
     } else {
       if label.has_prefix("xn--") {
-        let suffix = label[4:label.length()].to_owned()
+        let suffix = label[4:].to_owned()
         if suffix.is_empty() {
           raise IdnaParseError("invalid ACE label: empty xn-- extension")
         }
@@ -410,10 +410,10 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
           raise IdnaParseError("decoded ACE label is not in NFC form (V2)")
         }
         if decoded.length() >= 4 &&
-          decoded[0] == 0x78 &&
-          decoded[1] == 0x6E &&
-          decoded[2] == 0x2D &&
-          decoded[3] == 0x2D {
+          decoded[0] == 'x' &&
+          decoded[1] == 'n' &&
+          decoded[2] == '-' &&
+          decoded[3] == '-' {
           raise IdnaParseError("decoded ACE label starts with xn-- (V4)")
         }
         if decoded.length() > 0 && is_combining_mark_table(decoded[0]) {
@@ -455,7 +455,7 @@ pub fn domain_to_unicode(domain : String) -> String raise IdnaParseError {
       out.write_char('.')
     }
     if label.has_prefix("xn--") {
-      let suffix = label[4:label.length()].to_owned()
+      let suffix = label[4:].to_owned()
       let cps = punycode_decode(suffix)
       for cp in cps {
         out.write_char(Int::unsafe_to_char(cp))
