@@ -5,7 +5,7 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
-        exclude: '.*/pkg\.generated\.mbti$'
+        exclude: '(moon\.pkg$|pkg\.generated\.mbti$)'
       - id: check-json
       - id: check-yaml
       - id: check-added-large-files
