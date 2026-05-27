@@ -1,6 +1,6 @@
 # Initialize WPT submodule (run once after clone)
 setup:
-    git submodule update --init --recursive
+    bash tools/setup_wpt.sh
     moon update
 
 # Regenerate combining mark table from the system Unicode database

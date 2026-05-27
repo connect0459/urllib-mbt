@@ -24,6 +24,9 @@ jobs:
         with:
           ref: ${{ inputs.tag || github.ref }}
 
+      - name: Setup WPT submodule (sparse, pinned)
+        run: bash tools/setup_wpt.sh
+
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@9199da0ab63ea0c0bab1dc15f03d76e17ed4f75f # v1.22
         with:
