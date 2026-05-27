@@ -3,15 +3,15 @@
 /// Each field is a pattern string for the corresponding URL component;
 /// `None` means "use the wildcard default".
 pub struct UrlPatternInit {
-  protocol : String?
-  username : String?
-  password : String?
-  hostname : String?
-  port : String?
-  pathname : String?
-  search : String?
-  hash : String?
-  base_url : String?
+  priv protocol : String?
+  priv username : String?
+  priv password : String?
+  priv hostname : String?
+  priv port : String?
+  priv pathname : String?
+  priv search : String?
+  priv hash : String?
+  priv base_url : String?
 } derive(Debug)
 
 ///|
@@ -53,24 +53,112 @@ pub enum UrlPatternInput {
 /// Match result for a single URL component: the matched input string and a
 /// map of named capture group names to their matched values.
 pub struct UrlPatternComponentResult {
-  input : String
-  groups : Map[String, String?]
+  priv input : String
+  priv groups : Map[String, String?]
 } derive(Debug)
+
+///|
+/// Returns the input string that was matched against this component's pattern.
+pub fn UrlPatternComponentResult::input(
+  self : UrlPatternComponentResult,
+) -> String {
+  self.input
+}
+
+///|
+/// Returns the map of named capture group names to their matched values.
+pub fn UrlPatternComponentResult::groups(
+  self : UrlPatternComponentResult,
+) -> Map[String, String?] {
+  self.groups
+}
 
 ///|
 /// Aggregate match result returned by `exec_url` and `exec_init`, containing
 /// per-component results for every URL component.
 pub struct UrlPatternResult {
-  inputs : Array[UrlPatternInput]
-  protocol : UrlPatternComponentResult?
-  username : UrlPatternComponentResult?
-  password : UrlPatternComponentResult?
-  hostname : UrlPatternComponentResult?
-  port : UrlPatternComponentResult?
-  pathname : UrlPatternComponentResult?
-  search : UrlPatternComponentResult?
-  hash : UrlPatternComponentResult?
+  priv inputs : Array[UrlPatternInput]
+  priv protocol : UrlPatternComponentResult?
+  priv username : UrlPatternComponentResult?
+  priv password : UrlPatternComponentResult?
+  priv hostname : UrlPatternComponentResult?
+  priv port : UrlPatternComponentResult?
+  priv pathname : UrlPatternComponentResult?
+  priv search : UrlPatternComponentResult?
+  priv hash : UrlPatternComponentResult?
 } derive(Debug)
+
+///|
+/// Returns the inputs array that was matched against this pattern.
+pub fn UrlPatternResult::inputs(
+  self : UrlPatternResult,
+) -> Array[UrlPatternInput] {
+  self.inputs
+}
+
+///|
+/// Returns the match result for the `protocol` component, or `None`.
+pub fn UrlPatternResult::protocol(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.protocol
+}
+
+///|
+/// Returns the match result for the `username` component, or `None`.
+pub fn UrlPatternResult::username(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.username
+}
+
+///|
+/// Returns the match result for the `password` component, or `None`.
+pub fn UrlPatternResult::password(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.password
+}
+
+///|
+/// Returns the match result for the `hostname` component, or `None`.
+pub fn UrlPatternResult::hostname(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.hostname
+}
+
+///|
+/// Returns the match result for the `port` component, or `None`.
+pub fn UrlPatternResult::port(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.port
+}
+
+///|
+/// Returns the match result for the `pathname` component, or `None`.
+pub fn UrlPatternResult::pathname(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.pathname
+}
+
+///|
+/// Returns the match result for the `search` component, or `None`.
+pub fn UrlPatternResult::search(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.search
+}
+
+///|
+/// Returns the match result for the `hash` component, or `None`.
+pub fn UrlPatternResult::hash(
+  self : UrlPatternResult,
+) -> UrlPatternComponentResult? {
+  self.hash
+}
 
 ///|
 /// Error raised when a `UrlPattern` cannot be constructed due to an invalid pattern.

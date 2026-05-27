@@ -6,9 +6,9 @@ test "exact pathname match succeeds" {
   let result = p.exec_init(UrlPatternInit::new(pathname=Some("/foo/bar")))
   assert_true(result is Some(_))
   guard result is Some(r) else { fail("expected match") }
-  guard r.pathname is Some(pr) else { fail("expected pathname result") }
-  assert_eq(pr.input, "/foo/bar")
-  assert_eq(pr.groups.length(), 0)
+  guard r.pathname() is Some(pr) else { fail("expected pathname result") }
+  assert_eq(pr.input(), "/foo/bar")
+  assert_eq(pr.groups().length(), 0)
 }
 
 ///|
@@ -26,9 +26,9 @@ test "wildcard pathname matches anything" {
   let result = p.exec_init(UrlPatternInit::new(pathname=Some("/foo/bar/baz")))
   assert_true(result is Some(_))
   guard result is Some(r) else { fail("expected match") }
-  guard r.pathname is Some(pr) else { fail("expected pathname result") }
-  assert_eq(pr.input, "/foo/bar/baz")
-  match pr.groups.get("0") {
+  guard r.pathname() is Some(pr) else { fail("expected pathname result") }
+  assert_eq(pr.input(), "/foo/bar/baz")
+  match pr.groups().get("0") {
     Some(Some(v)) => assert_eq(v, "/foo/bar/baz")
     _ => fail("expected group 0 = '/foo/bar/baz'")
   }
@@ -42,9 +42,9 @@ test "named group :bar captures segment" {
   let result = p.exec_init(UrlPatternInit::new(pathname=Some("/foo/hello")))
   assert_true(result is Some(_))
   guard result is Some(r) else { fail("expected match") }
-  guard r.pathname is Some(pr) else { fail("expected pathname result") }
-  assert_eq(pr.input, "/foo/hello")
-  match pr.groups.get("bar") {
+  guard r.pathname() is Some(pr) else { fail("expected pathname result") }
+  assert_eq(pr.input(), "/foo/hello")
+  match pr.groups().get("bar") {
     Some(Some(v)) => assert_eq(v, "hello")
     _ => fail("expected group bar = 'hello'")
   }
@@ -89,8 +89,8 @@ test "ignoreCase: named group captures uppercase input" {
   let result = p.exec_init(UrlPatternInit::new(pathname=Some("/FOO/HELLO")))
   assert_true(result is Some(_))
   guard result is Some(r) else { fail("expected match") }
-  guard r.pathname is Some(pr) else { fail("expected pathname result") }
-  match pr.groups.get("name") {
+  guard r.pathname() is Some(pr) else { fail("expected pathname result") }
+  match pr.groups().get("name") {
     Some(Some(v)) => assert_eq(v, "HELLO")
     _ => fail("expected group name = 'HELLO'")
   }
@@ -122,8 +122,8 @@ test "custom regexp group (.*) captures greedily" {
   let result = p.exec_init(UrlPatternInit::new(pathname=Some("/foo/bar/baz")))
   assert_true(result is Some(_))
   guard result is Some(r) else { fail("expected match") }
-  guard r.pathname is Some(pr) else { fail("expected pathname result") }
-  match pr.groups.get("0") {
+  guard r.pathname() is Some(pr) else { fail("expected pathname result") }
+  match pr.groups().get("0") {
     Some(Some(v)) => assert_eq(v, "bar/baz")
     _ => fail("expected group 0 = 'bar/baz'")
   }
@@ -184,12 +184,12 @@ test "optional FullWildcard tail group is None when input fully consumed" {
   assert_eq(p.get_pathname(), "*(.*)?")
   let result = p.exec_init(UrlPatternInit::new(pathname=Some("foobar")))
   guard result is Some(r) else { fail("expected match") }
-  guard r.pathname is Some(pr) else { fail("expected pathname result") }
-  match pr.groups.get("0") {
+  guard r.pathname() is Some(pr) else { fail("expected pathname result") }
+  match pr.groups().get("0") {
     Some(Some(v)) => assert_eq(v, "foobar")
     _ => fail("expected group 0 = 'foobar'")
   }
-  match pr.groups.get("1") {
+  match pr.groups().get("1") {
     Some(None) => ()
     Some(Some(v)) => fail("expected group 1 = None, got Some('\{v}')")
     None => fail("expected group 1 key to be present")

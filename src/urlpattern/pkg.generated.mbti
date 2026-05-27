@@ -47,20 +47,13 @@ pub(all) enum UrlPatternComponent {
 } derive(Eq, @debug.Debug)
 
 pub struct UrlPatternComponentResult {
-  input : String
-  groups : Map[String, String?]
+  // private fields
 } derive(@debug.Debug)
+pub fn UrlPatternComponentResult::groups(Self) -> Map[String, String?]
+pub fn UrlPatternComponentResult::input(Self) -> String
 
 pub struct UrlPatternInit {
-  protocol : String?
-  username : String?
-  password : String?
-  hostname : String?
-  port : String?
-  pathname : String?
-  search : String?
-  hash : String?
-  base_url : String?
+  // private fields
 } derive(@debug.Debug)
 pub fn UrlPatternInit::new(protocol? : String?, username? : String?, password? : String?, hostname? : String?, port? : String?, pathname? : String?, search? : String?, hash? : String?, base_url? : String?) -> Self
 
@@ -70,16 +63,17 @@ pub enum UrlPatternInput {
 } derive(@debug.Debug)
 
 pub struct UrlPatternResult {
-  inputs : Array[UrlPatternInput]
-  protocol : UrlPatternComponentResult?
-  username : UrlPatternComponentResult?
-  password : UrlPatternComponentResult?
-  hostname : UrlPatternComponentResult?
-  port : UrlPatternComponentResult?
-  pathname : UrlPatternComponentResult?
-  search : UrlPatternComponentResult?
-  hash : UrlPatternComponentResult?
+  // private fields
 } derive(@debug.Debug)
+pub fn UrlPatternResult::hash(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::hostname(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::inputs(Self) -> Array[UrlPatternInput]
+pub fn UrlPatternResult::password(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::pathname(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::port(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::protocol(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::search(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::username(Self) -> UrlPatternComponentResult?
 
 // Type aliases
 
