@@ -332,9 +332,9 @@ println(p.test_url("https://other.com/books/42"))     // false
 match p.exec_url("https://example.com/books/42") {
   None         => println("no match")
   Some(result) =>
-    match result.pathname {
+    match result.pathname() {
       Some(pr) =>
-        match pr.groups.get("id") {
+        match pr.groups().get("id") {
           Some(Some(v)) => println(v)  // "42"
           _             => println("no capture")
         }
@@ -394,17 +394,7 @@ let cmp = @urlpattern.UrlPattern::compare_component(
 ### `UrlPatternInit` type
 
 ```moonbit
-pub struct UrlPatternInit {
-  protocol : String?
-  username : String?
-  password : String?
-  hostname : String?
-  port     : String?
-  pathname : String?
-  search   : String?
-  hash     : String?
-  base_url : String?
-}
+pub struct UrlPatternInit { /* private fields */ }
 pub fn UrlPatternInit::new(
   protocol? : String?,
   username? : String?,
@@ -444,38 +434,44 @@ Used as the component selector in `compare_component` and `generate`.
 ### `UrlPatternResult` type
 
 ```moonbit
-pub struct UrlPatternResult {
-  inputs   : Array[UrlPatternInput]
-  protocol : UrlPatternComponentResult?
-  username : UrlPatternComponentResult?
-  password : UrlPatternComponentResult?
-  hostname : UrlPatternComponentResult?
-  port     : UrlPatternComponentResult?
-  pathname : UrlPatternComponentResult?
-  search   : UrlPatternComponentResult?
-  hash     : UrlPatternComponentResult?
-}
+pub struct UrlPatternResult { /* private fields */ }
 ```
 
-Returned by `exec_url` and `exec_init`. When the call returns `Some(result)`,
-every component field is `Some(...)` — `exec_init` matches and guards each
-component before constructing the result, so a mismatch on any single
-component aborts the whole call with `None`. The `Option` wrapper on each
-field exists only to keep room for forward-compatible component additions.
+Returned by `exec_url` and `exec_init`.
+
+| Method | Returns | Description |
+| :--- | :--- | :--- |
+| `inputs()` | `Array[UrlPatternInput]` | The inputs passed to the match call |
+| `protocol()` | `UrlPatternComponentResult?` | Protocol component match result |
+| `username()` | `UrlPatternComponentResult?` | Username component match result |
+| `password()` | `UrlPatternComponentResult?` | Password component match result |
+| `hostname()` | `UrlPatternComponentResult?` | Hostname component match result |
+| `port()` | `UrlPatternComponentResult?` | Port component match result |
+| `pathname()` | `UrlPatternComponentResult?` | Pathname component match result |
+| `search()` | `UrlPatternComponentResult?` | Search component match result |
+| `hash()` | `UrlPatternComponentResult?` | Hash component match result |
+
+When the call returns `Some(result)`, every component getter returns `Some(...)` —
+`exec_init` matches and guards each component before constructing the result, so
+a mismatch on any single component aborts the whole call with `None`. The
+`Option` wrapper on each getter exists only to keep room for forward-compatible
+component additions.
 
 ---
 
 ### `UrlPatternComponentResult` type
 
 ```moonbit
-pub struct UrlPatternComponentResult {
-  input  : String
-  groups : Map[String, String?]
-}
+pub struct UrlPatternComponentResult { /* private fields */ }
 ```
 
-`groups` maps capture-group names to their matched values. Reading via
-`groups.get(name)`, a `Some(None)` result means the named group did not
+| Method | Returns | Description |
+| :--- | :--- | :--- |
+| `input()` | `String` | The input string for this component |
+| `groups()` | `Map[String, String?]` | Capture-group name-to-value map |
+
+`groups()` maps capture-group names to their matched values. Reading via
+`groups().get(name)`, a `Some(None)` result means the named group did not
 participate in the match (mirrors WPT's expected `null`); a
 `Some(Some(""))` result means the group participated and captured an
 empty string.

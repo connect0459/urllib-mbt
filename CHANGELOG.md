@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-27
+
+### Changed
+
+- **urlpattern**: `UrlPatternInit`, `UrlPatternComponentResult`, and `UrlPatternResult` fields are now private; use getter methods to access values (`input()`, `groups()`, `protocol()`, `pathname()`, etc.)
+
+### Miscellaneous
+
+- **urlpattern**: add benchmark suite covering pattern compilation (`from_string`, `from_init`) and URL matching (`exec_url`, `test_url`)
+
 ## [0.2.0] - 2026-05-24
 
 ### Changed
@@ -99,6 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `generate` — reconstructs a URL string from a pattern and captured group values
 - `compare_component` — specificity ordering for route-priority comparisons
 
-[Unreleased]: https://github.com/connect0459/urllib.mbt/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/connect0459/urllib.mbt/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/connect0459/urllib.mbt/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/connect0459/urllib.mbt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/connect0459/urllib.mbt/releases/tag/v0.1.0

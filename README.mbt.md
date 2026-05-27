@@ -79,9 +79,9 @@ println(p.test_url("https://example.com/books/42"))  // true
 
 match p.exec_url("https://example.com/books/42") {
   Some(result) =>
-    match result.pathname {
+    match result.pathname() {
       Some(pr) =>
-        match pr.groups.get("id") {
+        match pr.groups().get("id") {
           Some(Some(id)) => println(id)  // "42"
           _              => ()
         }
