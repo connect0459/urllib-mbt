@@ -59,9 +59,9 @@ fn check_component_result(
     Some(String(s)) => s
     _ => return Some("'\{comp_name}': missing input")
   }
-  if result.input != exp_input {
+  if result.input() != exp_input {
     return Some(
-      "'\{comp_name}'.input: expected '\{exp_input}' got '\{result.input}'",
+      "'\{comp_name}'.input: expected '\{exp_input}' got '\{result.input()}'",
     )
   }
   let exp_groups = match expected_comp.get("groups") {
@@ -69,7 +69,7 @@ fn check_component_result(
     _ => return Some("'\{comp_name}': missing groups")
   }
   for name, exp_val in exp_groups {
-    let got = result.groups.get(name)
+    let got = result.groups().get(name)
     match (exp_val, got) {
       (Null, Some(None)) => ()
       (Null, Some(Some(_))) =>
@@ -276,14 +276,14 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
                 _ => continue
               }
               let comp_result : UrlPatternComponentResult? = match comp_name {
-                "protocol" => r.protocol
-                "username" => r.username
-                "password" => r.password
-                "hostname" => r.hostname
-                "port" => r.port
-                "pathname" => r.pathname
-                "search" => r.search
-                "hash" => r.hash
+                "protocol" => r.protocol()
+                "username" => r.username()
+                "password" => r.password()
+                "hostname" => r.hostname()
+                "port" => r.port()
+                "pathname" => r.pathname()
+                "search" => r.search()
+                "hash" => r.hash()
                 _ => None
               }
               match comp_result {
@@ -497,14 +497,14 @@ test "WPT URLPattern: string pattern constructor — expected_obj normalization 
             _ => continue
           }
           let comp_result : UrlPatternComponentResult? = match comp_name {
-            "protocol" => r.protocol
-            "username" => r.username
-            "password" => r.password
-            "hostname" => r.hostname
-            "port" => r.port
-            "pathname" => r.pathname
-            "search" => r.search
-            "hash" => r.hash
+            "protocol" => r.protocol()
+            "username" => r.username()
+            "password" => r.password()
+            "hostname" => r.hostname()
+            "port" => r.port()
+            "pathname" => r.pathname()
+            "search" => r.search()
+            "hash" => r.hash()
             _ => None
           }
           match comp_result {
@@ -813,14 +813,14 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
             _ => continue
           }
           let comp_result : UrlPatternComponentResult? = match comp_name {
-            "protocol" => r.protocol
-            "username" => r.username
-            "password" => r.password
-            "hostname" => r.hostname
-            "port" => r.port
-            "pathname" => r.pathname
-            "search" => r.search
-            "hash" => r.hash
+            "protocol" => r.protocol()
+            "username" => r.username()
+            "password" => r.password()
+            "hostname" => r.hostname()
+            "port" => r.port()
+            "pathname" => r.pathname()
+            "search" => r.search()
+            "hash" => r.hash()
             _ => None
           }
           match comp_result {
@@ -951,14 +951,14 @@ test "WPT URLPattern: simple init-to-init cases" {
             _ => continue
           }
           let comp_result : UrlPatternComponentResult? = match comp_name {
-            "protocol" => r.protocol
-            "username" => r.username
-            "password" => r.password
-            "hostname" => r.hostname
-            "port" => r.port
-            "pathname" => r.pathname
-            "search" => r.search
-            "hash" => r.hash
+            "protocol" => r.protocol()
+            "username" => r.username()
+            "password" => r.password()
+            "hostname" => r.hostname()
+            "port" => r.port()
+            "pathname" => r.pathname()
+            "search" => r.search()
+            "hash" => r.hash()
             _ => None
           }
           match comp_result {

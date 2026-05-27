@@ -787,8 +787,8 @@ fn apply_base_url(
 ///   let result = p.exec_url("https://example.com/users/42")
 ///   inspect(result is Some(_), content="true")
 ///   guard result is Some(r) else { fail("no match") }
-///   guard r.pathname is Some(pr) else { fail("no pathname") }
-///   inspect(pr.groups["id"] == Some("42"), content="true")
+///   guard r.pathname() is Some(pr) else { fail("no pathname") }
+///   inspect(pr.groups()["id"] == Some("42"), content="true")
 /// }
 /// ```
 pub fn UrlPattern::exec_url(
