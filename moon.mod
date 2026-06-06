@@ -16,7 +16,3 @@ license = "Apache-2.0"
 keywords = [ "url", "whatwg", "urlpattern", "parser", "idna" ]
 
 description = "WHATWG-compliant URL and URLPattern library for MoonBit"
-
-options(
-  source: "src",
-)
