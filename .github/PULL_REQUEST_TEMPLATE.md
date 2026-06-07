@@ -4,15 +4,15 @@
 
 ## Related Links
 
-- Issues:
-  - <!-- <https://github.com/connect0459/urllib.mbt/issues/xxx> -->
-- specs/WPT tests:
-  - <!-- URL or path -->
+- Issues
+  - <!-- <https://github.com/connect0459/urllib-mbt/issues/xxx> -->
+- PRs
+  - <!-- <https://github.com/connect0459/urllib-mbt/pull/xxx> -->
 
 ## [Required] Overview
 
 - Describe the problem being solved, its background, and what changes when this PR is merged.
-- Links to WHATWG specs, WPT test suites, or design documents are welcome.
+- Links to specs, design documents, or other references are welcome.
 
 ```txt
 It is difficult to review without knowing the specifications and background.
@@ -49,12 +49,12 @@ without this information.
 
 - Describe any test considerations beyond unit tests.
 - Note which backends were validated (js / wasm / wasm-gc / native).
-- If WPT test cases were added or updated, list them.
+- If external test cases were added or updated, list them.
 
-## Quality Checklist (Required)
+## [Required] Quality Checklist
 
-### Please check all items before merging
+**Please check all items before merging.**
 
 - [ ] **CI Workflow Execution**: Full quality check completed by manually running `Run workflow` in [Actions](../actions/workflows/ci.yml)
 
-> **Important**: Since this is a private repository, this checklist ensures quality. Please verify all items before requesting review.
+> **Important**: This checklist ensures quality. Please verify all items before requesting review.
