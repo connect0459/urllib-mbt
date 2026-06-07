@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           ref: ${{ inputs.tag || github.ref }}
+          persist-credentials: false
 
       - name: Setup WPT submodule (sparse, pinned)
         run: bash tools/setup_wpt.sh
