@@ -1,6 +1,6 @@
 name = "connect0459/urllib"
 
-version = "0.3.0"
+version = "0.4.0"
 
 import {
   "moonbitlang/x@0.4.45",
@@ -9,10 +9,10 @@ import {
 
 readme = "README.mbt.md"
 
-repository = "https://github.com/connect0459/urllib.mbt"
+repository = "https://github.com/connect0459/urllib-mbt"
 
 license = "Apache-2.0"
 
-keywords = [ "url", "whatwg", "urlpattern", "parser", "idna" ]
+keywords = [ "url", "whatwg", "urlpattern" ]
 
 description = "WHATWG-compliant URL and URLPattern library for MoonBit"
