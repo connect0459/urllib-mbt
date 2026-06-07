@@ -3,7 +3,7 @@ name = "connect0459/urllib"
 version = "0.3.0"
 
 import {
-  "moonbitlang/x@0.4.43",
+  "moonbitlang/x@0.4.45",
   "moonbitlang/quickcheck@0.14.0",
 }
 
