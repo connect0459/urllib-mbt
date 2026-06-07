@@ -9,7 +9,7 @@ import {
 
 readme = "README.mbt.md"
 
-repository = "https://github.com/connect0459/urllib.mbt"
+repository = "https://github.com/connect0459/urllib-mbt"
 
 license = "Apache-2.0"
 
