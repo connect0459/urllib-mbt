@@ -122,7 +122,7 @@ coverage for the URL and URLPattern standards.
 
 Each public package has a `README.mbt.md` with a key-types overview, usage
 examples, and a full API reference. Start with
-[`url`](./url/README.mbt.md) for the main entry point.
+[`url`](./url) for the main entry point.
 
 - [ARCHITECTURE.md](https://github.com/connect0459/urllib-mbt/blob/main/docs/ARCHITECTURE.md) : Architecture overview
 
