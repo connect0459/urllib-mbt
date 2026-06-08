@@ -1,0 +1,5 @@
+import {
+  "moonbitlang/core/debug",
+  "connect0459/urllib/url",
+  "connect0459/urllib/urlpattern",
+} for "test"

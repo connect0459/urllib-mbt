@@ -74,7 +74,7 @@ test {
 
 ### `UrlPattern` type
 
-```moonbit nocheck
+```mbt nocheck
 pub struct UrlPattern { /* private fields */ }
 ```
 
@@ -203,7 +203,7 @@ test {
 
 ### `UrlPatternInit` type
 
-```moonbit nocheck
+```mbt nocheck
 pub struct UrlPatternInit { /* private fields */ }
 pub fn UrlPatternInit::new(
   protocol? : String?,
@@ -224,7 +224,7 @@ All fields default to `None` (wildcard) when omitted.
 
 ### `UrlPatternComponent` enum
 
-```moonbit nocheck
+```mbt nocheck
 ///|
 pub(all) enum UrlPatternComponent {
   Protocol
@@ -244,7 +244,7 @@ Used as the component selector in `compare_component` and `generate`.
 
 ### `UrlPatternResult` type
 
-```moonbit nocheck
+```mbt nocheck
 pub struct UrlPatternResult { /* private fields */ }
 ```
 
@@ -272,7 +272,7 @@ component additions.
 
 ### `UrlPatternComponentResult` type
 
-```moonbit nocheck
+```mbt nocheck
 pub struct UrlPatternComponentResult { /* private fields */ }
 ```
 
@@ -291,7 +291,7 @@ empty string.
 
 ### `UrlPatternInput` type
 
-```moonbit nocheck
+```mbt nocheck
 ///|
 pub enum UrlPatternInput {
   Str(String)
@@ -305,7 +305,7 @@ Records which form of input was passed to `exec_url` or `exec_init`.
 
 ### `UrlPatternError` type
 
-```moonbit nocheck
+```mbt nocheck
 ///|
 pub suberror UrlPatternError {
   UrlPatternError(String)

@@ -25,7 +25,7 @@ moon add connect0459/urllib
 
 Then declare the packages you need in your `moon.pkg`:
 
-```text
+```mbt nocheck
 import {
   "connect0459/urllib/url",
   "connect0459/urllib/urlpattern",
@@ -36,67 +36,81 @@ import {
 
 ### URL Parsing
 
-```moonbit
-let url = try! @url.parse("https://user:pass@example.com:8080/path?q=1#frag")
+```mbt check
+///|
+test {
+  let url = @url.parse("https://user:pass@example.com:8080/path?q=1#frag")
+  assert_eq(url.href(), "https://user:pass@example.com:8080/path?q=1#frag")
+  assert_eq(url.hostname(), "example.com")
+  @debug.assert_eq(url.port(), Some(8080))
+  assert_eq(url.pathname(), "/path")
+  assert_eq(url.search(), "?q=1")
+  assert_eq(url.origin(), "https://example.com:8080")
 
-println(url.href())      // "https://user:pass@example.com:8080/path?q=1#frag"
-println(url.hostname())  // "example.com"
-println(url.port())      // Some(8080)
-println(url.pathname())  // "/path"
-println(url.search())    // "?q=1"
-println(url.origin())    // "https://example.com:8080"
+  // Infallible variant — returns None instead of raising
+  let opt = @url.parse_maybe("not a url", None)
+  @debug.assert_eq(opt, None)
 
-// Infallible variant — returns None instead of raising
-let opt = @url.parse_maybe("not a url", None)  // None
-
-// Resolve a relative URL
-let base     = try! @url.parse("https://example.com/a/b/c")
-let resolved = try! base.join("../d")
-println(resolved.href())  // "https://example.com/a/d"
+  // Resolve a relative URL
+  let base = @url.parse("https://example.com/a/b/c")
+  let resolved = base.join("../d")
+  assert_eq(resolved.href(), "https://example.com/a/d")
+}
 ```
 
 ### URLSearchParams
 
-```moonbit
-let params = @url.UrlSearchParams::from_string("a=1&b=2&a=3")
-println(params.get("a"))      // Some("1")
-println(params.get_all("a"))  // ["1", "3"]
+```mbt check
+///|
+test {
+  let params = @url.UrlSearchParams::from_string("a=1&b=2&a=3")
+  @debug.assert_eq(params.get("a"), Some("1"))
+  @debug.assert_eq(params.get_all("a"), ["1", "3"])
 
-params.append("c", "4")
-params.delete("b")
-params.set("a", "99")
-println(params.to_string())   // "a=99&c=4"
+  params.append("c", "4")
+  params.delete("b")
+  params.set("a", "99")
+  assert_eq(params.to_string(), "a=99&c=4")
+}
 ```
 
 ### URLPattern
 
-```moonbit
-let p = try! @urlpattern.UrlPattern::from_string(
-  "https://example.com/books/:id",
-  None,
-)
+```mbt check
+///|
+test {
+  let p = @urlpattern.UrlPattern::from_string(
+    "https://example.com/books/:id",
+    None,
+  )
+  assert_eq(p.test_url("https://example.com/books/42"), true)
 
-println(p.test_url("https://example.com/books/42"))  // true
-
-match p.exec_url("https://example.com/books/42") {
-  Some(result) =>
-    match result.pathname() {
-      Some(pr) =>
-        match pr.groups().get("id") {
-          Some(Some(id)) => println(id)  // "42"
-          _              => ()
-        }
-      None => ()
-    }
-  None => ()
+  match p.exec_url("https://example.com/books/42") {
+    Some(result) =>
+      match result.pathname() {
+        Some(pr) =>
+          match pr.groups().get("id") {
+            Some(Some(id)) => assert_eq(id, "42")
+            _ => assert_true(false)
+          }
+        None => assert_true(false)
+      }
+    None => assert_true(false)
+  }
 }
 ```
 
 ### IDNA
 
-```moonbit
-println(@url.domain_to_ascii("münchen.example"))          // "xn--mnchen-3ya.example"
-println(@url.domain_to_unicode("xn--mnchen-3ya.example")) // "münchen.example"
+```mbt check
+///|
+test {
+  assert_eq(@url.domain_to_ascii("münchen.example"), "xn--mnchen-3ya.example")
+  assert_eq(
+    @url.domain_to_unicode("xn--mnchen-3ya.example"),
+    "münchen.example",
+  )
+}
 ```
 
 ## Compliance
