@@ -34,11 +34,11 @@ test {
         Some(pr) =>
           match pr.groups().get("id") {
             Some(Some(id)) => assert_eq(id, "42")
-            _ => ()
+            _ => assert_true(false)
           }
-        None => ()
+        None => assert_true(false)
       }
-    None => ()
+    None => assert_true(false)
   }
 }
 ```
