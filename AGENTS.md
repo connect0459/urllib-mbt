@@ -60,8 +60,15 @@ This project may be released publicly. All of the following must be written in *
   - **`just verify`** — run the full CI-equivalent check across all four
     backends (`js`, `wasm`, `wasm-gc`, `native`) before opening a PR.
 
-- When a change affects the public API, update `docs/api.md` in the same
-  PR so documentation stays in sync with the implementation.
+- When a change affects the public API, update the documentation in the same PR
+  so it stays in sync with the implementation:
+  - **Per-package `README.mbt.md`** — the single documentation source for each
+    public package; update the API reference tables, key types, or examples as
+    needed.
+  - **`.mbti` interface file** (updated by `moon info`) — the authoritative formal
+    spec for signatures; run `moon info` and verify the diff is expected. The two
+    layers are complementary: `README.mbt.md` provides prose and examples,
+    `.mbti` provides the machine-readable ground truth.
 
 - Prefer `assert_eq` or `assert_true(pattern is Pattern(...))` for results that
   are stable or very unlikely to change. Use snapshot tests to record current

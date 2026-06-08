@@ -56,5 +56,7 @@ without this information.
 **Please check all items before merging.**
 
 - [ ] **CI Workflow Execution**: Full quality check completed by manually running `Run workflow` in [Actions](../actions/workflows/ci.yml)
+- [ ] **Code Comments**: Code comments and function/method-level doc-comments are in sync with the changes
+- [ ] **Reference Docs**: per-package `README.mbt.md` is updated for any public API change; run `moon info` to refresh `.mbti` and verify the signature diff is expected
 
 > **Important**: This checklist ensures quality. Please verify all items before requesting review.
