@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-05-22T04:16:07.604443+00:00'
+generated_at: '2026-06-08T07:09:47.434166+00:00'
 apm_version: 0.14.1
 dependencies:
 - repo_url: moonbitlang/skills
@@ -24,4 +24,4 @@ dependencies:
   - .claude/skills/moonbit-refactoring
   - .claude/skills/moonbit-spec-test-development
   - .claude/skills/ocaml2moonbit-migration
-  content_hash: sha256:607abf6a6529545bc70f8efa6934645d7b7693cf9d514365e3f19260140c424c
+  content_hash: sha256:f15d563179032074b4799bebac745f0acaab3033f8f6726ef7e9a97a6aec5d98
