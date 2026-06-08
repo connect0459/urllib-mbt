@@ -1,6 +1,7 @@
 # urllib-mbt
 
 [![CI](https://github.com/connect0459/urllib-mbt/actions/workflows/ci.yml/badge.svg)](https://github.com/connect0459/urllib-mbt/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-mooncakes.io-green)](https://mooncakes.io/docs/connect0459/urllib)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/connect0459/urllib-mbt/blob/main/LICENSE)
 
 A WHATWG-compliant URL parsing library for [MoonBit](https://moonbitlang.com).
