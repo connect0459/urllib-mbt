@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-06-08
+
+### Miscellaneous
+
+- **docs**: add mooncakes.io docs badge to README
+- **docs**: add per-package `README.mbt.md` as the single documentation source for each public package
+- **docs**: enable `README.mbt.md` doc-tests via root `moon.pkg`
+- **docs**: fix mooncakes.io path resolution for doc rendering
+- **chore**: update apm lock; reorder `import` block in `moon.mod`
+
 ## [0.4.0] - 2026-06-07
 
 ### Miscellaneous
@@ -120,7 +130,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `generate` — reconstructs a URL string from a pattern and captured group values
 - `compare_component` — specificity ordering for route-priority comparisons
 
-[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.0...HEAD>
+[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.1...HEAD>
+[0.4.1]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.0...v0.4.1>
 [0.4.0]: <https://github.com/connect0459/urllib-mbt/compare/v0.3.0...v0.4.0>
 [0.3.0]: <https://github.com/connect0459/urllib-mbt/compare/v0.2.0...v0.3.0>
 [0.2.0]: <https://github.com/connect0459/urllib-mbt/compare/v0.1.0...v0.2.0>
