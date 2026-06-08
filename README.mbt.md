@@ -106,7 +106,10 @@ coverage for the URL and URLPattern standards.
 
 ## Documentation
 
-- [API Reference](https://github.com/connect0459/urllib-mbt/blob/main/docs/api.md) : Full API reference
+Each public package has a `README.mbt.md` with a key-types overview, usage
+examples, and a full API reference. Start with
+[`url`](./url/README.mbt.md) for the main entry point.
+
 - [ARCHITECTURE.md](https://github.com/connect0459/urllib-mbt/blob/main/docs/ARCHITECTURE.md) : Architecture overview
 
 ## Contributing

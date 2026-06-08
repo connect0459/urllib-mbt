@@ -101,8 +101,12 @@ tidy(url): name UTF-16 surrogate pair encoding constants
 1. Fork the repository and create a branch: `feature/xxx`, `fix/xxx`, `docs/xxx`.
 2. Follow the Red → Green → Refactor cycle.
 3. Run `just verify` and commit any resulting diffs.
-4. If the change touches the public API, update `docs/api.md` so the
-   documentation reflects the new behaviour.
+4. If the change touches the public API, update documentation so it reflects
+   the new behaviour:
+   - **Per-package `README.mbt.md`** — the sole documentation source for each public
+     package; update the API reference tables, key types, or examples as needed.
+   - Run `moon info` and verify the `.mbti` diff is expected (it is the authoritative
+     formal spec for signatures).
 5. Open a pull request — the CI matrix tests `js`, `wasm`, `wasm-gc`, and `native`.
 
 ## Code style
