@@ -135,7 +135,7 @@ test {
 
 ### `Url` type
 
-```moonbit nocheck
+```mbt nocheck
 pub struct Url { /* private fields */ } derive(Eq, @debug.Debug)
 pub impl Show  for Url  // href()
 pub impl ToJson for Url // href()
@@ -263,7 +263,7 @@ test {
 
 ### `UrlParseError` type
 
-```moonbit nocheck
+```mbt nocheck
 ///|
 pub suberror UrlParseError {
   UrlParseError(String)
@@ -280,7 +280,7 @@ Raised by `parse`, `parse_with_base`, `parse_with_params`, `from_file_path`,
 
 ### `UrlSearchParams` type
 
-```moonbit nocheck
+```mbt nocheck
 pub struct UrlSearchParams { /* private fields */ }
 pub impl Show for UrlSearchParams
 ```
