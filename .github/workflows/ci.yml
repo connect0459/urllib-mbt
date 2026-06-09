@@ -46,11 +46,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [js, wasm, wasm-gc, native]
-    name: test (${{ matrix.target }})
     steps:
       - name: Checkout code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
@@ -70,8 +65,19 @@ jobs:
       - name: Update package registry
         run: moon update
 
-      - name: Check
-        run: moon check --target ${{ matrix.target }}
-
-      - name: Test
-        run: moon test --target ${{ matrix.target }}
+      # Targets run sequentially within one job (one toolchain setup) rather
+      # than as a matrix, trading a little wall-clock for fewer independent
+      # network setups. All targets run even if one fails (matching the former
+      # matrix `fail-fast: false`), and the job fails if any did.
+      - name: Check and test all targets
+        run: |
+          rc=0
+          for t in js wasm wasm-gc native; do
+            echo "::group::$t"
+            if ! (moon check --target "$t" && moon test --target "$t"); then
+              echo "::error::target $t failed (check/test)"
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $rc
