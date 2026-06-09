@@ -711,9 +711,11 @@ test "parse_with_params: empty params with no existing query preserves no query"
 
 ///|
 test "parse_with_params: invalid URL raises UrlParseError" {
-  assert_true(
-    (try? @url.parse_with_params("https://test:test", [("k", "v")])) is Err(_),
-  )
+  try @url.parse_with_params("https://test:test", [("k", "v")]) catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected UrlParseError")
+  }
 }
 
 // ===== Url::port_or_known_default =====
@@ -922,12 +924,20 @@ test "from_file_path produces file URL for root path" {
 
 ///|
 test "from_file_path raises for relative path" {
-  assert_true((try? @url.from_file_path("relative/path")) is Err(_))
+  try @url.from_file_path("relative/path") catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_file_path raises for empty path" {
-  assert_true((try? @url.from_file_path("")) is Err(_))
+  try @url.from_file_path("") catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
@@ -953,13 +963,21 @@ test "to_file_path returns Unix path for simple file URL" {
 ///|
 test "to_file_path raises for non-file scheme" {
   let url = @url.parse("https://example.com/path")
-  assert_true((try? url.to_file_path()) is Err(_))
+  try url.to_file_path() catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "to_file_path raises for file URL with non-local host" {
   let url = @url.parse("file://example.com/path")
-  assert_true((try? url.to_file_path()) is Err(_))
+  try url.to_file_path() catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
@@ -1017,12 +1035,20 @@ test "from_directory_path root path produces file:///" {
 
 ///|
 test "from_directory_path raises for relative path" {
-  assert_true((try? @url.from_directory_path("relative")) is Err(_))
+  try @url.from_directory_path("relative") catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_directory_path raises for empty path" {
-  assert_true((try? @url.from_directory_path("")) is Err(_))
+  try @url.from_directory_path("") catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|

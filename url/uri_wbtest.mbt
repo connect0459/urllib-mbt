@@ -128,5 +128,9 @@ test "to_file_path raises for file URL with opaque path" {
     query: None,
     fragment: None,
   }
-  assert_true((try? url.to_file_path()) is Err(_))
+  try url.to_file_path() catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
