@@ -39,7 +39,7 @@ jobs:
         run: moon fmt --check
 
       - name: Check packages
-        run: moon check
+        run: moon check --deny-warn
 
       - name: Verify generated interfaces are current
         run: moon info && git diff --exit-code
@@ -74,7 +74,7 @@ jobs:
           rc=0
           for t in js wasm wasm-gc native; do
             echo "::group::$t"
-            if ! (moon check --target "$t" && moon test --target "$t"); then
+            if ! (moon check --deny-warn --target "$t" && moon test --target "$t"); then
               echo "::error::target $t failed (check/test)"
               rc=1
             fi
