@@ -144,36 +144,54 @@ test "lone surrogates in pathname pattern encode as U+FFFD" {
 
 ///|
 test "from_init rejects pathname where percent-encoded percent yields unclosed paren" {
-  let result = try? UrlPattern::from_init(
-    UrlPatternInit::new(
-      protocol=Some("https"),
-      hostname=Some("example.org"),
-      pathname=Some("/%25("),
-    ),
-  )
-  assert_true(result is Err(_))
+  try
+    UrlPattern::from_init(
+      UrlPatternInit::new(
+        protocol=Some("https"),
+        hostname=Some("example.org"),
+        pathname=Some("/%25("),
+      ),
+    )
+  catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_init rejects pathname with two consecutive unclosed parens after encoded percent" {
-  let result = try? UrlPattern::from_init(
-    UrlPatternInit::new(
-      protocol=Some("https"),
-      hostname=Some("example.org"),
-      pathname=Some("/%25(("),
-    ),
-  )
-  assert_true(result is Err(_))
+  try
+    UrlPattern::from_init(
+      UrlPatternInit::new(
+        protocol=Some("https"),
+        hostname=Some("example.org"),
+        pathname=Some("/%25(("),
+      ),
+    )
+  catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_string raises when pattern string has no protocol and no base URL" {
-  assert_true((try? UrlPattern::from_string("(\\", None)) is Err(_))
+  try UrlPattern::from_string("(\\", None) catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_init with all fields absent succeeds with wildcard defaults" {
-  assert_true((try? UrlPattern::from_init(UrlPatternInit::new())) is Ok(_))
+  try UrlPattern::from_init(UrlPatternInit::new()) catch {
+    e => fail("expected Ok, got \{e}")
+  } noraise {
+    _ => ()
+  }
 }
 
 ///|
@@ -200,36 +218,42 @@ test "optional FullWildcard tail group is None when input fully consumed" {
 
 ///|
 test "from_init raises for pattern with trailing backslash" {
-  assert_true(
-    (try? UrlPattern::from_init(UrlPatternInit::new(pathname=Some("foo\\"))))
-    is Err(_),
-  )
+  try UrlPattern::from_init(UrlPatternInit::new(pathname=Some("foo\\"))) catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_init raises for pattern with bare colon" {
-  assert_true(
-    (try? UrlPattern::from_init(UrlPatternInit::new(pathname=Some(":"))))
-    is Err(_),
-  )
+  try UrlPattern::from_init(UrlPatternInit::new(pathname=Some(":"))) catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_init raises for named group with hyphen in name" {
-  assert_true(
-    (try? UrlPattern::from_init(UrlPatternInit::new(pathname=Some("/:foo-bar"))))
-    is Err(_),
-  )
+  try
+    UrlPattern::from_init(UrlPatternInit::new(pathname=Some("/:foo-bar")))
+  catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 ///|
 test "from_init raises for duplicate named group" {
-  assert_true(
-    (try? UrlPattern::from_init(
-      UrlPatternInit::new(pathname=Some("/:name/:name")),
-    ))
-    is Err(_),
-  )
+  try
+    UrlPattern::from_init(UrlPatternInit::new(pathname=Some("/:name/:name")))
+  catch {
+    _ => ()
+  } noraise {
+    _ => fail("expected error")
+  }
 }
 
 // ===== port normalization and exec_init edge cases =====
