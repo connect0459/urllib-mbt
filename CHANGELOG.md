@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-06-10
+
+### Miscellaneous
+
+- **docs**: fix broken relative package link in root `README.mbt.md` (#41)
+- **ci**: unify test matrix into a single sequential job; deny warnings in check steps (#42)
+- **test**: replace deprecated `try?` with `try/catch/noraise` (#43)
+
 ## [0.4.1] - 2026-06-08
 
 ### Miscellaneous
@@ -130,7 +138,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `generate` — reconstructs a URL string from a pattern and captured group values
 - `compare_component` — specificity ordering for route-priority comparisons
 
-[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.1...HEAD>
+---
+
+[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.2...HEAD>
+[0.4.2]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.1...v0.4.2>
 [0.4.1]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.0...v0.4.1>
 [0.4.0]: <https://github.com/connect0459/urllib-mbt/compare/v0.3.0...v0.4.0>
 [0.3.0]: <https://github.com/connect0459/urllib-mbt/compare/v0.2.0...v0.3.0>
