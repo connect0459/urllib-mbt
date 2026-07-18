@@ -75,9 +75,9 @@ test "WPT URLPattern: generate URL component from pattern and groups" {
     }
     let groups_json = match entry.get("groups") {
       Some(Object(g)) => g
-      _ => {}
+      _ => Map([])
     }
-    let groups : Map[String, String] = {}
+    let groups : Map[String, String] = Map([])
     for k, v in groups_json {
       match v {
         String(s) => groups[k] = s
