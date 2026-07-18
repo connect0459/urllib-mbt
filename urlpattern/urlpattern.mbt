@@ -416,7 +416,7 @@ fn match_component(
   match component.regex.execute(input) {
     None => None
     Some(m) => {
-      let groups : Map[String, String?] = {}
+      let groups : Map[String, String?] = Map([])
       for idx, name in component.group_names {
         let val = match m.group(idx + 1) {
           None => None
