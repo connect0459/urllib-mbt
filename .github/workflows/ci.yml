@@ -36,6 +36,7 @@ jobs:
             code:
               - '.github/workflows/ci.yml'
               - '.gitmodules'
+              - '**/*.mbt.md'
               - '**/*.mbti'
               - 'internal/**'
               - 'moon.mod'
@@ -91,6 +92,7 @@ jobs:
             code:
               - '.github/workflows/ci.yml'
               - '.gitmodules'
+              - '**/*.mbt.md'
               - '**/*.mbti'
               - 'internal/**'
               - 'moon.mod'
