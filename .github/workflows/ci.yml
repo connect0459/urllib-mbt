@@ -36,12 +36,14 @@ jobs:
             code:
               - '.github/workflows/ci.yml'
               - '.gitmodules'
+              - '**/*.mbti'
               - 'internal/**'
               - 'moon.mod'
               - 'moon.pkg'
               - 'tools/setup_wpt.sh'
               - 'url/**'
               - 'urlpattern/**'
+              - 'wpt'
 
       - name: Setup Moonbit
         if: steps.filter.outputs.code == 'true'
@@ -89,12 +91,14 @@ jobs:
             code:
               - '.github/workflows/ci.yml'
               - '.gitmodules'
+              - '**/*.mbti'
               - 'internal/**'
               - 'moon.mod'
               - 'moon.pkg'
               - 'tools/setup_wpt.sh'
               - 'url/**'
               - 'urlpattern/**'
+              - 'wpt'
 
       - name: Setup WPT submodule (sparse, pinned)
         if: steps.filter.outputs.code == 'true'
