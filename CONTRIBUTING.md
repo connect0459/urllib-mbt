@@ -4,6 +4,7 @@
 
 - [MoonBit toolchain](https://www.moonbitlang.com/download/) — `moon` CLI
 - [just](https://just.systems/) — task runner
+- [pre-commit](https://pre-commit.com/) — hook runner
 
 ## Setup
 
@@ -13,17 +14,11 @@ cd urllib-mbt
 just setup
 ```
 
-`just setup` initializes the WPT submodule (sparse checkout) and runs
-`moon update` to fetch package dependencies.
+`just setup` initializes the WPT submodule (sparse checkout), runs
+`moon update` to fetch package dependencies, and installs the pre-commit
+hooks (`pre-commit install`).
 
 ### pre-commit hooks
-
-Install [pre-commit](https://pre-commit.com/) and set up the hooks:
-
-```sh
-pip install pre-commit   # or: brew install pre-commit
-pre-commit install
-```
 
 To run all hooks manually:
 
