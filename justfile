@@ -2,6 +2,7 @@
 setup:
     bash tools/setup_wpt.sh
     moon update
+    pre-commit install
 
 # Regenerate combining mark table from the system Unicode database
 gen-combining-mark:
