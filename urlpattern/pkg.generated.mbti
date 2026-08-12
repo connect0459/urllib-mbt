@@ -78,4 +78,3 @@ pub fn UrlPatternResult::username(Self) -> UrlPatternComponentResult?
 // Type aliases
 
 // Traits
-

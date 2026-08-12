@@ -28,4 +28,3 @@ pub fn Host::empty_domain() -> Self
 // Type aliases
 
 // Traits
-
