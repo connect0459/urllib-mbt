@@ -95,9 +95,9 @@ jobs:
           fi
 
           # Append a Full Changelog comparison link, reusing the compare URL
-          # CHANGELOG.md's own reference-link section already tracks for this
-          # version (skipped for the very first release, which links to the
-          # tag itself rather than a compare view).
+          # that CHANGELOG.md's own reference-link section already records
+          # for this version (skipped for the very first release, which
+          # links to the tag itself rather than a compare view).
           COMPARE_URL="$(awk -v ver="$RELEASE_VERSION" '
             index($0, "[" ver "]: ") == 1 {
               sub(/^\[[^]]*\]: </, "")
