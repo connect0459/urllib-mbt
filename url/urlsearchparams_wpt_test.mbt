@@ -433,8 +433,8 @@ test "WPT urlsearchparams-sort: all parse-and-sort cases" {
     } else {
       if failed < 10 {
         println("FAIL sort: input=\{input}")
-        println("  expected=\{to_repr(expected)}")
-        println("  actual=\{to_repr(actual)}")
+        println("  expected=\{Repr(expected)}")
+        println("  actual=\{Repr(actual)}")
       }
       failed = failed + 1
     }

@@ -37,4 +37,3 @@ pub fn utf8_bytes_to_string(Array[Int]) -> String
 // Type aliases
 
 // Traits
-

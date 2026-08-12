@@ -26,6 +26,7 @@ moon add connect0459/urllib
 Then declare the packages you need in your `moon.pkg`:
 
 ```mbt nocheck
+///|
 import {
   "connect0459/urllib/url",
   "connect0459/urllib/urlpattern",

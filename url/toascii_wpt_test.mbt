@@ -35,7 +35,7 @@ test "WPT toascii: domain-to-ascii cases" {
     }
     if actual != expected {
       failures.push(
-        "FAIL toascii: input=\{input}\n  expected=\{to_repr(expected)}\n  actual=\{to_repr(actual)}",
+        "FAIL toascii: input=\{input}\n  expected=\{Repr(expected)}\n  actual=\{Repr(actual)}",
       )
     }
   }

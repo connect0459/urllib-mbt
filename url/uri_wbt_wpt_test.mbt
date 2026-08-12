@@ -56,13 +56,13 @@ test "WPT success cases: href round-trip" {
     }
     let url = @url.parse_with_base(input, base_url) catch {
       _ => {
-        failures.push("FAIL parse: input=\{input} base=\{to_repr(base_opt)}")
+        failures.push("FAIL parse: input=\{input} base=\{Repr(base_opt)}")
         continue
       }
     }
     if url.href() != expected_href {
       failures.push(
-        "FAIL: input=\{input} base=\{to_repr(base_opt)} got=\{url.href()} want=\{expected_href}",
+        "FAIL: input=\{input} base=\{Repr(base_opt)} got=\{url.href()} want=\{expected_href}",
       )
     }
   }
