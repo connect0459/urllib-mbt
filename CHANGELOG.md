@@ -27,6 +27,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-08-13
+
+### Fixed
+
+#### MoonBit toolchain compatibility
+
+- `urlpattern`: spell out an empty `Map` literal in `match_component` as
+  `Map([])` instead of the now-ambiguous bare `{}`, flagged as
+  `ambiguous_braces` by the latest MoonBit toolchain (#49)
+- test suites: replace deprecated bare `to_repr(x)` calls with `Repr(x)`,
+  no longer implicitly promoted by the latest MoonBit toolchain; adjust the
+  `mbt nocheck` import fence in README.mbt.md for the latest `moon fmt`;
+  bump pinned `moonbitlang/x` from 0.4.45 to 0.4.49; regenerate
+  `pkg.generated.mbti` for the latest `moon info` output (#55)
+
+### Miscellaneous
+
+- **docs**: add Contributor Covenant Code of Conduct v2.1 (#46)
+- **docs**: add SECURITY.md security policy (#48)
+- **docs**: add Type vs. Scope Precedence section (#50)
+- **docs**: reorder README badges to put repo badges before external ones
+  (#51)
+- **docs**: list pre-commit in Prerequisites and auto-install via
+  `just setup` (#54)
+- **ci**: clarify lint/test responsibilities and use `--target all` (#45)
+- **ci**: skip CI steps when no code-related files changed (#52)
+- **ci**: create GitHub Release from CHANGELOG.md on tag push, and append a
+  Full Changelog comparison link to the Release body (#56, #57)
+- **chore**: nest PR template and add release template (#53)
+
 ## [0.4.2] - 2026-06-10
 
 ### Miscellaneous
@@ -160,7 +190,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.2...HEAD>
+[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.3...HEAD>
+[0.4.3]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.2...v0.4.3>
 [0.4.2]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.1...v0.4.2>
 [0.4.1]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.0...v0.4.1>
 [0.4.0]: <https://github.com/connect0459/urllib-mbt/compare/v0.3.0...v0.4.0>
