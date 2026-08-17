@@ -1,8 +1,6 @@
 # `urlpattern` package
 
-URLPattern route matching for [MoonBit](https://moonbitlang.com). Implements the
-[URL Pattern Standard](https://urlpattern.spec.whatwg.org/) with full WPT (Web
-Platform Tests) coverage.
+URLPattern route matching for [MoonBit](https://moonbitlang.com). Implements the [URL Pattern Standard](https://urlpattern.spec.whatwg.org/) with full WPT (Web Platform Tests) coverage.
 
 ## Key types
 
@@ -262,11 +260,7 @@ Returned by `exec_url` and `exec_init`.
 | `search()` | `UrlPatternComponentResult?` | Search component match result |
 | `hash()` | `UrlPatternComponentResult?` | Hash component match result |
 
-When the call returns `Some(result)`, every component getter returns `Some(...)` —
-`exec_init` matches and guards each component before constructing the result, so
-a mismatch on any single component aborts the whole call with `None`. The
-`Option` wrapper on each getter exists only to keep room for forward-compatible
-component additions.
+When the call returns `Some(result)`, every component getter returns `Some(...)` — `exec_init` matches and guards each component before constructing the result, so a mismatch on any single component aborts the whole call with `None`. The `Option` wrapper on each getter exists only to keep room for forward-compatible component additions.
 
 ---
 
@@ -281,11 +275,7 @@ pub struct UrlPatternComponentResult { /* private fields */ }
 | `input()` | `String` | The input string for this component |
 | `groups()` | `Map[String, String?]` | Capture-group name-to-value map |
 
-`groups()` maps capture-group names to their matched values. Reading via
-`groups().get(name)`, a `Some(None)` result means the named group did not
-participate in the match (mirrors WPT's expected `null`); a
-`Some(Some(""))` result means the group participated and captured an
-empty string.
+`groups()` maps capture-group names to their matched values. Reading via `groups().get(name)`, a `Some(None)` result means the named group did not participate in the match (mirrors WPT's expected `null`); a `Some(Some(""))` result means the group participated and captured an empty string.
 
 ---
 

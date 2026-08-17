@@ -14,9 +14,7 @@ cd urllib-mbt
 just setup
 ```
 
-`just setup` initializes the WPT submodule (sparse checkout), runs
-`moon update` to fetch package dependencies, and installs the pre-commit
-hooks (`pre-commit install`).
+`just setup` initializes the WPT submodule (sparse checkout), runs `moon update` to fetch package dependencies, and installs the pre-commit hooks (`pre-commit install`).
 
 ### pre-commit hooks
 
@@ -37,8 +35,7 @@ pre-commit run --all-files
 | `moon info` | Regenerate `.mbti` interface files |
 | `just verify` | Run the full CI-equivalent check locally |
 
-The pre-commit hooks enforce formatting and lint checks on every commit. To
-run them manually across all files:
+The pre-commit hooks enforce formatting and lint checks on every commit. To run them manually across all files:
 
 ```sh
 pre-commit run --all-files
@@ -50,8 +47,7 @@ Before opening a pull request, run the full verification suite:
 just verify
 ```
 
-This mirrors the CI matrix: it checks all four backends (`js`, `wasm`,
-`wasm-gc`, `native`).
+This mirrors the CI matrix: it checks all four backends (`js`, `wasm`, `wasm-gc`, `native`).
 
 ## Testing guidelines
 
@@ -78,8 +74,7 @@ moon test --target native
 
 **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `tidy`, `test`, `chore`, `ci`, `perf`
 
-**Scope**: package name when the change targets a specific package (`url`,
-`urlpattern`); omit for project-wide changes.
+**Scope**: package name when the change targets a specific package (`url`, `urlpattern`); omit for project-wide changes.
 
 **Subject**: imperative mood, 72 characters max, no trailing period.
 
@@ -96,18 +91,14 @@ tidy(url): name UTF-16 surrogate pair encoding constants
 1. Fork the repository and create a branch: `feat/xxx`, `fix/xxx`, `docs/xxx`.
 2. Follow the Red → Green → Refactor cycle.
 3. Run `just verify` and commit any resulting diffs.
-4. If the change touches the public API, update documentation so it reflects
-   the new behaviour:
-   - **Per-package `README.mbt.md`** — the sole documentation source for each public
-     package; update the API reference tables, key types, or examples as needed.
-   - Run `moon info` and verify the `.mbti` diff is expected (it is the authoritative
-     formal spec for signatures).
+4. If the change touches the public API, update documentation so it reflects the new behaviour:
+   - **Per-package `README.mbt.md`** — the sole documentation source for each public package; update the API reference tables, key types, or examples as needed.
+   - Run `moon info` and verify the `.mbti` diff is expected (it is the authoritative formal spec for signatures).
 5. Open a pull request — the CI matrix tests `js`, `wasm`, `wasm-gc`, and `native`.
 
 ## Code style
 
 - No code comments unless the **why** is genuinely non-obvious.
 - Prefer immutability; avoid mutable state unless necessary.
-- Enforce layer boundaries: internal packages (`percent_encoding`, `idna`, `host`) are
-  not part of the public API and must not be re-exported.
+- Enforce layer boundaries: internal packages (`percent_encoding`, `idna`, `host`) are not part of the public API and must not be re-exported.
 - All user-facing strings (test names, error messages, doc comments) must be in **English**.

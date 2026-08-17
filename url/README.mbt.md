@@ -1,9 +1,6 @@
 # `url` package
 
-WHATWG URL parsing, mutation, and URLSearchParams for
-[MoonBit](https://moonbitlang.com). Implements the
-[URL Standard](https://url.spec.whatwg.org/) with full WPT (Web Platform Tests)
-coverage.
+WHATWG URL parsing, mutation, and URLSearchParams for [MoonBit](https://moonbitlang.com). Implements the [URL Standard](https://url.spec.whatwg.org/) with full WPT (Web Platform Tests) coverage.
 
 ## Key types
 
@@ -273,8 +270,7 @@ pub suberror UrlParseError {
 pub impl Show for UrlParseError
 ```
 
-Raised by `parse`, `parse_with_base`, `parse_with_params`, `from_file_path`,
-`from_directory_path`, `set_href`, `join`, and `to_file_path` on invalid input.
+Raised by `parse`, `parse_with_base`, `parse_with_params`, `from_file_path`, `from_directory_path`, `set_href`, `join`, and `to_file_path` on invalid input.
 
 ---
 
