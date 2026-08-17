@@ -6,9 +6,7 @@
 
 A WHATWG-compliant URL parsing library for [MoonBit](https://moonbitlang.com).
 
-Implements the [URL Standard](https://url.spec.whatwg.org/) and
-[URL Pattern Standard](https://urlpattern.spec.whatwg.org/) with full WPT
-(Web Platform Tests) coverage.
+Implements the [URL Standard](https://url.spec.whatwg.org/) and [URL Pattern Standard](https://urlpattern.spec.whatwg.org/) with full WPT (Web Platform Tests) coverage.
 
 ## Packages
 
@@ -116,14 +114,11 @@ test {
 
 ## Compliance
 
-Full [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt)
-coverage for the URL and URLPattern standards.
+Full [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt) coverage for the URL and URLPattern standards.
 
 ## Documentation
 
-Each public package has a `README.mbt.md` with a key-types overview, usage
-examples, and a full API reference. Start with
-`url` for the main entry point.
+Each public package has a `README.mbt.md` with a key-types overview, usage examples, and a full API reference. Start with `url` for the main entry point.
 
 - [ARCHITECTURE.md](https://github.com/connect0459/urllib-mbt/blob/main/docs/ARCHITECTURE.md) : Architecture overview
 
