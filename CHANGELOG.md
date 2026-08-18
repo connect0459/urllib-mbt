@@ -3,8 +3,7 @@
 <!--
 When cutting a new release, update THREE places in this file:
 
-1. Rename [Unreleased] to [X.Y.Z] with today's date (above), and add a fresh
-   empty [Unreleased] section above it.
+1. Rename [Unreleased] to [X.Y.Z] with today's date (above), and add a fresh empty [Unreleased] section above it.
 2. Update the reference links at the very bottom of this file:
     - Change [Unreleased] to compare the new tag against HEAD.
     - Add [X.Y.Z] comparing the new tag against the previous tag.

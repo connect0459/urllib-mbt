@@ -2,8 +2,7 @@
 
 ## Supported Versions
 
-Only the latest release on the `main` branch is actively maintained.
-Older versions do not receive security fixes.
+Only the latest release on the `main` branch is actively maintained. Older versions do not receive security fixes.
 
 | Version  | Supported |
 | :------- | :-------- |
