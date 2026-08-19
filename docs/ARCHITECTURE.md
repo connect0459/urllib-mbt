@@ -18,7 +18,7 @@ connect0459/urllib/internal/percent_encoding   no external deps  [internal]
         └── connect0459/urllib/urlpattern deps: @url, @host, @pe
 ```
 
-Packages marked `[internal]` live under `src/internal/` and are hidden from consumers via MoonBit's `internal` package convention. They are not importable outside the module.
+Packages marked `[internal]` live under `internal/` and are hidden from consumers via MoonBit's `internal` package convention. They are not importable outside the module.
 
 | Package | Visibility | Role |
 | :--- | :--- | :--- |
