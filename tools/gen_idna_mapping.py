@@ -14,11 +14,11 @@ import sys
 
 
 def status_output_path() -> str:
-    return 'src/internal/idna/idna_status.mbt'
+    return 'internal/idna/idna_status.mbt'
 
 
 def mapping_output_path() -> str:
-    return 'src/internal/idna/idna_mapping.mbt'
+    return 'internal/idna/idna_mapping.mbt'
 
 
 STATUS = {

@@ -8,7 +8,7 @@ import unicodedata
 
 
 def output_path() -> str:
-    return 'src/internal/idna/combining_mark.mbt'
+    return 'internal/idna/combining_mark.mbt'
 
 
 ranges = []
