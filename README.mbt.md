@@ -128,4 +128,4 @@ See [CONTRIBUTING.md](https://github.com/connect0459/urllib-mbt/blob/main/CONTRI
 
 ## License
 
-Apache-2.0
+[Apache-2.0](https://github.com/connect0459/urllib-mbt/blob/main/LICENSE)
