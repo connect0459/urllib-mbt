@@ -357,7 +357,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
   if domain.is_empty() {
     raise IdnaParseError("empty domain")
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in domain {
     let cp = c.to_int()
     let st = idna_status_code(cp)
@@ -384,7 +384,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
     raise IdnaParseError("empty domain")
   }
   let labels = @pe.split_on_char(mapped, '.')
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for i, label in labels {
     if i > 0 {
       out.write_char('.')
@@ -478,7 +478,7 @@ pub fn domain_to_ascii(domain : String) -> String raise IdnaParseError {
 pub fn domain_to_unicode(domain : String) -> String raise IdnaParseError {
   let ascii = domain_to_ascii(domain)
   let labels = @pe.split_on_char(ascii, '.')
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for i, label in labels {
     if i > 0 {
       out.write_char('.')

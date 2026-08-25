@@ -127,7 +127,7 @@ fn punycode_encode(input : Array[Int]) -> String raise IdnaParseError {
   if total == 0 {
     raise IdnaParseError("punycode: empty input")
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut n = punycode_initial_n
   let mut delta = 0
   let mut bias = punycode_initial_bias

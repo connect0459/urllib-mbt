@@ -40,7 +40,7 @@ fn canonicalize_hostname_for_pattern(
     return ""
   }
   // Strip C0 controls; truncate at #, /, \ (URL parsing would do the same)
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in input {
     let cp = c.to_int()
     if cp <= 0x1F || cp == 0x7F {
@@ -117,7 +117,7 @@ fn lower_ipv6_literal(value : String) -> String raise UrlPatternError {
       raise UrlPatternError("invalid character '\{c}' in IPv6 address literal")
     }
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in value {
     buf.write_char(
       if c >= 'A' && c <= 'F' {
@@ -596,7 +596,7 @@ fn canonicalize_port(port : String, protocol : String) -> String {
   if port == "" {
     return ""
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in port {
     if c != '\t' && c != '\n' && c != '\r' && c.to_int() != 12 {
       buf.write_char(c)
@@ -606,7 +606,7 @@ fn canonicalize_port(port : String, protocol : String) -> String {
   if trimmed == "" {
     return ""
   }
-  let digit_buf = StringBuilder::new()
+  let digit_buf = StringBuilder()
   for c in trimmed {
     if c >= '0' && c <= '9' {
       digit_buf.write_char(c)
@@ -944,7 +944,7 @@ fn generate_component_string(
   kind : ComponentKind,
   groups : Map[String, String],
 ) -> String? {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let delim = delimiter_for_kind(kind)
   for part in parts {
     match part.kind {

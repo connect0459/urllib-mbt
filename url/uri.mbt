@@ -194,7 +194,7 @@ pub fn Url::authority(self : Url) -> String {
   match self.host {
     None => ""
     Some(h) => {
-      let buf = StringBuilder::new()
+      let buf = StringBuilder()
       write_authority_components(buf, self, h)
       buf.to_string()
     }
@@ -270,7 +270,7 @@ pub fn Url::make_relative(self : Url, other : Url) -> String? {
   for seg in url_dir[common_len:] {
     path_parts.push(seg)
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   if path_parts.length() > 0 || base_filename != url_filename {
     if url_filename == "" {
       if path_parts.length() > 0 {
@@ -440,7 +440,7 @@ pub fn from_file_path(path : String) -> Url raise UrlParseError {
     raise UrlParseError("path is not absolute")
   }
   let raw_segs : Array[String] = []
-  let seg_buf = StringBuilder::new()
+  let seg_buf = StringBuilder()
   for c in path {
     if c == '/' || c == '\\' {
       raw_segs.push(seg_buf.to_string())
@@ -450,7 +450,7 @@ pub fn from_file_path(path : String) -> Url raise UrlParseError {
     }
   }
   raw_segs.push(seg_buf.to_string())
-  let url_buf = StringBuilder::new()
+  let url_buf = StringBuilder()
   url_buf.write_string("file:///")
   let start = if is_win { 0 } else { 1 }
   for i, seg in raw_segs[start:] {
@@ -500,7 +500,7 @@ pub fn Url::to_file_path(self : Url) -> String raise UrlParseError {
       let is_win_drive = first_decoded.length() == 2 &&
         is_ascii_alpha(c0) &&
         c1 == ':'
-      let buf = StringBuilder::new()
+      let buf = StringBuilder()
       if !is_win_drive {
         buf.write_char('/')
       }

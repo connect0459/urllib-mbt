@@ -53,7 +53,7 @@ fn unicode_escape_value(s : String, at : Int) -> Int? {
 /// well-formed character" intent without changing the fixture's structure.
 fn sanitize_unpaired_surrogates(text : String) -> String {
   let n = text.length()
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut i = 0
   while i < n {
     let c = text.get_char(i).unwrap_or('\u{0}')

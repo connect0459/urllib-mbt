@@ -194,7 +194,7 @@ pub fn UrlSearchParams::size(self : UrlSearchParams) -> Int {
 /// }
 /// ```
 pub fn UrlSearchParams::to_string(self : UrlSearchParams) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut first = true
   for pair in self.list {
     if !first {
@@ -330,7 +330,7 @@ fn url_form_decode(s : String) -> String {
 
 ///|
 fn url_form_encode(s : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     let cp = c.to_int()
     if cp == 0x20 {
