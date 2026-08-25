@@ -22,6 +22,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-08-25
+
+### Fixed
+
+#### MoonBit toolchain compatibility
+
+- multiple packages: replace deprecated `StringBuilder::new()` calls with the bare `StringBuilder()` constructor, no longer accepted under `--deny-warn` by the latest MoonBit toolchain (#71)
+
+#### moonbitlang/core compatibility
+
+- test suites: sanitize unpaired surrogates before parsing WPT JSON fixtures, required by moonbitlang/core's stricter `@json.parse` (#68)
+
+### Miscellaneous
+
+- **ci**: promote CHANGELOG heading levels in extracted release notes (#59)
+- **ci**: render the Full Changelog link as its own section and fix related label/formatting issues in extracted release notes (#60)
+- **ci**: replace inline changelog extraction with the extract-changelog action, later repointed at its renamed repository (#61, #66)
+- **docs**: unwrap hard-wrapped prose and list items across Markdown docs; drop the commit body 72-char wrap convention (#62, #63, #64)
+- **chore**: bump moonbitlang/x to 0.4.50 (#65)
+- **ci**: consolidate required checks into a single gate job (#67)
+- **docs**: drop stale `src/` prefix from package paths, then link the License section to the LICENSE file (#69, #70)
+- **chore**: flatten the PR template into a single file (#72)
+
 ## [0.4.3] - 2026-08-13
 
 ### Fixed
@@ -170,7 +193,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
-[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.3...HEAD>
+[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.4...HEAD>
+[0.4.4]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.3...v0.4.4>
 [0.4.3]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.2...v0.4.3>
 [0.4.2]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.1...v0.4.2>
 [0.4.1]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.0...v0.4.1>
