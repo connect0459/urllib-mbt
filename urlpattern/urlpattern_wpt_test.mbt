@@ -45,7 +45,7 @@ fn unicode_escape_value(s : String, at : Int) -> Int? {
 /// well-formed character" intent without changing the fixture's structure.
 fn sanitize_unpaired_surrogates(text : String) -> String {
   let n = text.length()
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut i = 0
   while i < n {
     let c = text.get_char(i).unwrap_or('\u{0}')
@@ -267,7 +267,7 @@ test "WPT URLPattern: components listed in exactly_empty_components compile to e
     "WPT URLPattern exactly_empty_components: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
   )
   if failures.length() > 0 {
-    let msg = StringBuilder::new()
+    let msg = StringBuilder()
     msg.write_string(
       "WPT URLPattern exactly_empty_components failures (\{failures.length()}):\n",
     )
@@ -411,7 +411,7 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
     "WPT URLPattern base URL resolution: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
   )
   if failures.length() > 0 {
-    let msg = StringBuilder::new()
+    let msg = StringBuilder()
     msg.write_string(
       "WPT URLPattern base URL resolution failures (\{failures.length()}):\n",
     )
@@ -635,7 +635,7 @@ test "WPT URLPattern: string pattern constructor — expected_obj normalization 
     "WPT URLPattern string pattern: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
   )
   if real_failures.length() > 0 {
-    let msg = StringBuilder::new()
+    let msg = StringBuilder()
     msg.write_string(
       "WPT URLPattern string pattern failures (\{real_failures.length()}):\n",
     )
@@ -727,7 +727,7 @@ test "WPT URLPattern: construction rejects invalid patterns" {
     "WPT URLPattern construction rejects: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
   )
   if failures.length() > 0 {
-    let msg = StringBuilder::new()
+    let msg = StringBuilder()
     msg.write_string(
       "WPT URLPattern invalid pattern rejection failures (\{failures.length()}):\n",
     )
@@ -942,7 +942,7 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
     "WPT URLPattern expected_obj: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
   )
   if failures.length() > 0 {
-    let msg = StringBuilder::new()
+    let msg = StringBuilder()
     msg.write_string(
       "WPT URLPattern expected_obj dict failures (\{failures.length()}):\n",
     )
@@ -1080,7 +1080,7 @@ test "WPT URLPattern: simple init-to-init cases" {
     "WPT URLPattern: \{passed}/\{passed + failures.length() + skipped} passed (\{skipped} skipped)",
   )
   if failures.length() > 0 {
-    let msg = StringBuilder::new()
+    let msg = StringBuilder()
     msg.write_string("WPT URLPattern failures (\{failures.length()}):\n")
     for f in failures {
       msg.write_string("  - \{f}\n")

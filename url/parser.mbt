@@ -117,7 +117,7 @@ fn preprocess_url_input(input : String) -> String {
       _ => break
     }
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in input[start:end] {
     let cp = c.to_int()
     if cp != 0x09 && cp != 0x0A && cp != 0x0D {
@@ -210,7 +210,7 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
   let chars = @pe.string_to_chars(stripped)
   let n = chars.length()
   let mut state = State::SchemeStart
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut pointer = 0
   let mut at_sign_seen = false
   let mut password_token_seen = false
@@ -375,8 +375,8 @@ pub fn parse_with_base(input : String, base : Url?) -> Url raise UrlParseError {
             buf.reset()
             let creds = if at_sign_seen { "%40" + raw_creds } else { raw_creds }
             at_sign_seen = true
-            let username_buf = StringBuilder::new()
-            let password_buf = StringBuilder::new()
+            let username_buf = StringBuilder()
+            let password_buf = StringBuilder()
             username_buf.write_string(url.username)
             password_buf.write_string(url.password)
             for ch in creds {

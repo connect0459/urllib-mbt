@@ -9,7 +9,7 @@ fn str_to_cps(s : String) -> Array[Int] {
 
 ///|
 fn cps_to_str(cps : Array[Int]) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for cp in cps {
     buf.write_char(Int::unsafe_to_char(cp))
   }

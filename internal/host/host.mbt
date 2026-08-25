@@ -77,7 +77,7 @@ fn uint_to_lower_hex(n : UInt) -> String {
   if n == 0U {
     return "0"
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let mut shift = 28
   let mut leading = true
   while shift >= 0 {
@@ -119,7 +119,7 @@ fn find_ipv6_compress(pieces : Array[UInt]) -> Int? {
 
 ///|
 fn serialize_ipv6(pieces : Array[UInt]) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let compress = find_ipv6_compress(pieces)
   let last = pieces.length() - 1
   let mut ignore0 = false

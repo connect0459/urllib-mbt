@@ -125,7 +125,7 @@ fn ParserCtx::try_consume_modifier(self : ParserCtx) -> Token? {
 
 ///|
 fn ParserCtx::consume_text(self : ParserCtx) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   while self.i < self.tokens.length() {
     match self.tokens[self.i].kind {
       Char | EscapedChar => {
@@ -452,7 +452,7 @@ fn generate_pattern_string(
   parts : Array[Part],
   options : CompileOptions,
 ) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let seg_wc = segment_wildcard_regexp_str(options)
   for i, part in parts {
     let prev : Part? = if i > 0 { Some(parts[i - 1]) } else { None }
@@ -591,7 +591,7 @@ fn generate_regexp(
   parts : Array[Part],
   options : CompileOptions,
 ) -> (String, Array[String], Array[(String, String)]) {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let names : Array[String] = []
   let strips : Array[(String, String)] = []
   buf.write_string("^")
@@ -693,7 +693,7 @@ fn modifier_to_string(m : PartModifier) -> String {
 
 ///|
 fn escape_regexp_string(s : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     if needs_regexp_escape(c) {
       buf.write_string("\\")
@@ -736,7 +736,7 @@ fn needs_regexp_escape(c : Char) -> Bool {
 
 ///|
 fn escape_pattern_string(s : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     match c {
       '+' | '*' | '?' | ':' | '{' | '}' | '(' | ')' | '\\' => {

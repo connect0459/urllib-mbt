@@ -53,7 +53,7 @@ fn write_authority_components(buf : StringBuilder, url : Url, h : Host) -> Unit 
 ///|
 /// Returns the full serialized URL string.
 pub fn Url::href(self : Url) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_string(self.scheme)
   buf.write_char(':')
   match self.host {
@@ -89,7 +89,7 @@ pub fn Url::href(self : Url) -> String {
 /// Returns the serialized origin of this URL, or `"null"` for opaque origins.
 pub fn Url::origin(self : Url) -> String {
   if is_special_scheme(self.scheme) && self.scheme != "file" {
-    let buf = StringBuilder::new()
+    let buf = StringBuilder()
     buf.write_string(self.scheme)
     buf.write_string("://")
     match self.host {
@@ -164,7 +164,7 @@ pub fn Url::pathname(self : Url) -> String {
           ""
         }
       } else {
-        let buf = StringBuilder::new()
+        let buf = StringBuilder()
         for seg in segs {
           buf.write_char('/')
           buf.write_string(seg)

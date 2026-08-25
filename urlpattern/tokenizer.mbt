@@ -92,7 +92,7 @@ fn tokenize(
         tokens.push({ kind: InvalidChar, value: ":", index: tok_index })
         continue
       }
-      let buf = StringBuilder::new()
+      let buf = StringBuilder()
       for ch in chars[name_start:i] {
         buf.write_char(ch)
       }
@@ -135,7 +135,7 @@ fn tokenize(
         i += 1
         continue
       }
-      let buf = StringBuilder::new()
+      let buf = StringBuilder()
       for ch in chars[regexp_start:j - 1] {
         buf.write_char(ch)
       }

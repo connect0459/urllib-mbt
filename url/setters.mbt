@@ -10,7 +10,7 @@ fn strip_tab_newline(s : String) -> String {
   if !needs_strip {
     return s
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     if c != '\t' && c != '\n' && c != '\r' {
       buf.write_char(c)
@@ -97,7 +97,7 @@ fn parse_setter_port(s : String, scheme : String) -> SetterPort {
 
 ///|
 fn truncate_host_value(s : String, is_special : Bool) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     if c == '/' || c == '?' || c == '#' || (is_special && c == '\\') {
       return buf.to_string()
@@ -147,7 +147,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
     Some(c) if is_ascii_alpha(c) => ()
     _ => return self
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in stripped {
     if c == ':' {
       break
@@ -260,7 +260,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     return { ..self, path: new_path }
   }
   let segs : Array[String] = []
-  let seg_buf = StringBuilder::new()
+  let seg_buf = StringBuilder()
   let path_input = match stripped.get_char(0) {
     Some(c) if c == '/' || (is_special && c == '\\') => stripped[1:]
     _ => stripped

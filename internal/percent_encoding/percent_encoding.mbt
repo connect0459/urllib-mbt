@@ -36,7 +36,7 @@ pub fn string_to_chars(s : String) -> Array[Char] {
 ///|
 pub fn split_on_char(s : String, sep : Char) -> Array[String] {
   let result : Array[String] = []
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     if c == sep {
       result.push(buf.to_string())
@@ -106,7 +106,7 @@ fn to_hex_upper(n : Int) -> Char {
 pub fn percent_encode_byte(byte : Int) -> String {
   let hi = (byte >> 4) & 0xF
   let lo = byte & 0xF
-  let buf = StringBuilder::new(size_hint=3)
+  let buf = StringBuilder(size_hint=3)
   buf.write_char('%')
   buf.write_char(to_hex_upper(hi))
   buf.write_char(to_hex_upper(lo))
@@ -204,7 +204,7 @@ fn write_percent_encoded_char(c : Char, buf : StringBuilder) -> Unit {
 
 ///|
 fn percent_encode(input : String, in_encode_set : (Int) -> Bool) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in input {
     let cp = c.to_int()
     if in_encode_set(cp) {
@@ -334,7 +334,7 @@ fn is_continuation(b : Int) -> Bool {
 /// Decodes a UTF-8 byte sequence to a `String`, replacing any invalid byte
 /// sequences with U+FFFD (replacement character).
 pub fn utf8_bytes_to_string(bytes : Array[Int]) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   let n = bytes.length()
   let mut i = 0
   while i < n {
