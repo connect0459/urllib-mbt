@@ -177,7 +177,7 @@ pub fn Url::set_protocol(self : Url, value : String) -> Url {
     Some(p) if special_scheme_default_port(new_scheme) == Some(p) => None
     p => p
   }
-  { ..self, scheme: new_scheme, port: new_port }
+  { ..self, scheme: new_scheme, port: new_port, }
 }
 
 ///|
@@ -186,7 +186,7 @@ pub fn Url::set_username(self : Url, value : String) -> Url {
   if !self.can_have_credentials() {
     return self
   }
-  { ..self, username: @pe.percent_encode_userinfo(value) }
+  { ..self, username: @pe.percent_encode_userinfo(value), }
 }
 
 ///|
@@ -195,7 +195,7 @@ pub fn Url::set_password(self : Url, value : String) -> Url {
   if !self.can_have_credentials() {
     return self
   }
-  { ..self, password: @pe.percent_encode_userinfo(value) }
+  { ..self, password: @pe.percent_encode_userinfo(value), }
 }
 
 ///|
@@ -206,7 +206,7 @@ pub fn Url::set_port(self : Url, value : String) -> Url {
     return self
   }
   if value.is_empty() {
-    return { ..self, port: None }
+    return { ..self, port: None, }
   }
   let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
@@ -214,7 +214,7 @@ pub fn Url::set_port(self : Url, value : String) -> Url {
   }
   match parse_setter_port(stripped, self.scheme) {
     Unchanged => self
-    Changed(new_port) => { ..self, port: new_port }
+    Changed(new_port) => { ..self, port: new_port, }
   }
 }
 
@@ -224,10 +224,10 @@ pub fn Url::set_port(self : Url, value : String) -> Url {
 pub fn Url::set_hash(self : Url, value : String) -> Url {
   let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
-    return { ..self, fragment: None }
+    return { ..self, fragment: None, }
   }
   let input = @pe.strip_leading_char(stripped, '#')
-  { ..self, fragment: Some(@pe.percent_encode_fragment(input)) }
+  { ..self, fragment: Some(@pe.percent_encode_fragment(input)), }
 }
 
 ///|
@@ -236,11 +236,11 @@ pub fn Url::set_hash(self : Url, value : String) -> Url {
 pub fn Url::set_search(self : Url, value : String) -> Url {
   let stripped = strip_tab_newline(value)
   if stripped.is_empty() {
-    return { ..self, query: None }
+    return { ..self, query: None, }
   }
   let input = @pe.strip_leading_char(stripped, '?')
   let encoded = @pe.percent_encode_query(input, self.is_special())
-  { ..self, query: Some(encoded) }
+  { ..self, query: Some(encoded), }
 }
 
 ///|
@@ -257,7 +257,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     } else {
       UrlPath::Segments([""])
     }
-    return { ..self, path: new_path }
+    return { ..self, path: new_path, }
   }
   let segs : Array[String] = []
   let seg_buf = StringBuilder()
@@ -274,7 +274,7 @@ pub fn Url::set_pathname(self : Url, value : String) -> Url {
     }
   }
   apply_path_seg(segs, seg_buf.to_string(), self.scheme, true)
-  { ..self, path: UrlPath::Segments(segs) }
+  { ..self, path: UrlPath::Segments(segs), }
 }
 
 ///|
@@ -324,7 +324,7 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
       _ => ()
     }
     if host_str == "" {
-      return { ..self, host: Some(@host.Host::empty_domain()) }
+      return { ..self, host: Some(@host.Host::empty_domain()), }
     }
   }
   if host_str == "" {
@@ -337,13 +337,13 @@ pub fn Url::set_host(self : Url, value : String) -> Url {
     None => return self
     Some(h) => h
   }
-  let url_with_host = { ..self, host: Some(new_host) }
+  let url_with_host = { ..self, host: Some(new_host), }
   match port_opt {
     None | Some("") => url_with_host
     Some(port_str) =>
       match parse_setter_port(port_str, self.scheme) {
         Unchanged => url_with_host
-        Changed(new_port) => { ..url_with_host, port: new_port }
+        Changed(new_port) => { ..url_with_host, port: new_port, }
       }
   }
 }
@@ -371,11 +371,11 @@ pub fn Url::set_hostname(self : Url, value : String) -> Url {
     }
   }
   if self.scheme == "file" && truncated == "" {
-    return { ..self, host: Some(@host.Host::empty_domain()) }
+    return { ..self, host: Some(@host.Host::empty_domain()), }
   }
   let new_host = match self.parse_and_normalize_host(truncated, is_special) {
     None => return self
     Some(h) => h
   }
-  { ..self, host: Some(new_host) }
+  { ..self, host: Some(new_host), }
 }
