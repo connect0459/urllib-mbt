@@ -38,7 +38,7 @@ fn tokenize(
     let c = chars[i]
     let tok_index = i
     if c == '*' {
-      tokens.push({ kind: Asterisk, value: "*", index: tok_index })
+      tokens.push({ kind: Asterisk, value: "*", index: tok_index, })
       i += 1
       continue
     }
@@ -70,12 +70,12 @@ fn tokenize(
       continue
     }
     if c == '{' {
-      tokens.push({ kind: Open, value: "{", index: tok_index })
+      tokens.push({ kind: Open, value: "{", index: tok_index, })
       i += 1
       continue
     }
     if c == '}' {
-      tokens.push({ kind: Close, value: "}", index: tok_index })
+      tokens.push({ kind: Close, value: "}", index: tok_index, })
       i += 1
       continue
     }
@@ -89,14 +89,14 @@ fn tokenize(
         if policy == Strict {
           raise UrlPatternError("tokenize: empty name after ':'")
         }
-        tokens.push({ kind: InvalidChar, value: ":", index: tok_index })
+        tokens.push({ kind: InvalidChar, value: ":", index: tok_index, })
         continue
       }
       let buf = StringBuilder()
       for ch in chars[name_start:i] {
         buf.write_char(ch)
       }
-      tokens.push({ kind: Name, value: buf.to_string(), index: tok_index })
+      tokens.push({ kind: Name, value: buf.to_string(), index: tok_index, })
       continue
     }
     if c == '(' {
@@ -131,7 +131,7 @@ fn tokenize(
         if policy == Strict {
           raise UrlPatternError("tokenize: unclosed regexp group")
         }
-        tokens.push({ kind: InvalidChar, value: "(", index: tok_index })
+        tokens.push({ kind: InvalidChar, value: "(", index: tok_index, })
         i += 1
         continue
       }
@@ -139,14 +139,14 @@ fn tokenize(
       for ch in chars[regexp_start:j - 1] {
         buf.write_char(ch)
       }
-      tokens.push({ kind: Regexp, value: buf.to_string(), index: tok_index })
+      tokens.push({ kind: Regexp, value: buf.to_string(), index: tok_index, })
       i = j
       continue
     }
-    tokens.push({ kind: Char, value: c.to_string(), index: tok_index })
+    tokens.push({ kind: Char, value: c.to_string(), index: tok_index, })
     i += 1
   }
-  tokens.push({ kind: End, value: "", index: n })
+  tokens.push({ kind: End, value: "", index: n, })
   tokens
 }
 

@@ -289,7 +289,7 @@ pub fn UrlPattern::from_string(
   }
   let init = match base_url {
     None => init
-    Some(b) => { ..init, base_url: Some(b) }
+    Some(b) => { ..init, base_url: Some(b), }
   }
   UrlPattern::from_init(init, ignore_case~)
 }
@@ -405,7 +405,7 @@ pub fn UrlPattern::from_init(
     Hash,
     ignore_case~,
   )
-  { protocol, username, password, hostname, port, pathname, search, hash }
+  { protocol, username, password, hostname, port, pathname, search, hash, }
 }
 
 ///|
@@ -439,7 +439,7 @@ fn match_component(
         }
         groups[name] = val
       }
-      Some({ input, groups })
+      Some({ input, groups, })
     }
   }
 }

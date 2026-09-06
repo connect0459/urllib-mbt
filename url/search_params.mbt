@@ -23,7 +23,7 @@ pub struct UrlSearchParams {
 ///|
 /// Creates an empty `UrlSearchParams` with no pairs.
 pub fn UrlSearchParams::new() -> UrlSearchParams {
-  { list: [] }
+  { list: [], }
 }
 
 ///|

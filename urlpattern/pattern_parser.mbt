@@ -49,7 +49,7 @@ priv struct CompileOptions {
 }
 
 ///|
-let default_options : CompileOptions = { delimiter: None, prefix_char: None }
+let default_options : CompileOptions = { delimiter: None, prefix_char: None, }
 
 ///|
 let hostname_options : CompileOptions = {
