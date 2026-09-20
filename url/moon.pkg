@@ -1,5 +1,4 @@
 import {
-  "moonbitlang/core/debug",
   "connect0459/urllib/internal/idna",
   "connect0459/urllib/internal/percent_encoding" @pe,
   "connect0459/urllib/internal/host",
@@ -9,6 +8,7 @@ import {
   "moonbitlang/x/fs",
   "moonbitlang/core/json",
   "moonbitlang/core/bench",
+  "moonbitlang/core/debug",
   "moonbitlang/quickcheck",
   "moonbitlang/quickcheck/modifiers" @qcmod,
 } for "test"
