@@ -22,6 +22,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-09-20
+
+### Fixed
+
+#### MoonBit toolchain compatibility
+
+- `url`, `urlpattern`: apply `moon fmt`'s newly-enforced trailing comma in single-line struct/record literals (#75)
+- `url`: move the `moonbitlang/core/debug` import into the package's `for "test"` block, since it was only referenced from test files but declared in the main import block, flagged as an unused package by `moon check --deny-warn` (#79)
+- `url`, `urlpattern`, `internal/host`: add explicit `pub extend T with Trait::{methods}` declarations for trait methods a `derive(Eq, Debug)` or `pub impl Trait for T` previously promoted implicitly, no longer accepted by the latest MoonBit toolchain (#79)
+- all packages' test files: qualify bare references to the enclosing package's own public symbols as `@pkg.Symbol`, no longer implicitly self-imported by the latest MoonBit toolchain (#79)
+
+### Miscellaneous
+
+- **ci**: skip the `lint`/`test` jobs at the job level (rather than per-step) when no relevant files changed, so GitHub reports them as skipped instead of a misleadingly green success (#74)
+- **chore**: refresh the pinned `markdownlint-cli2` pre-commit revision and regenerate `apm.lock.yaml` (#76)
+- **chore**: bump the pinned `moonbitlang/skills` revision in `apm.yml` and regenerate `apm.lock.yaml` (#77)
+- **ci**: pin workflow actions to their latest release hashes and enforce `shell: bash` on steps that lacked it (#78)
+
 ## [0.4.4] - 2026-08-25
 
 ### Fixed
@@ -193,7 +211,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
-[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.4...HEAD>
+[Unreleased]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.5...HEAD>
+[0.4.5]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.4...v0.4.5>
 [0.4.4]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.3...v0.4.4>
 [0.4.3]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.2...v0.4.3>
 [0.4.2]: <https://github.com/connect0459/urllib-mbt/compare/v0.4.1...v0.4.2>
