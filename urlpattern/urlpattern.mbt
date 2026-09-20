@@ -271,7 +271,10 @@ fn compile_component(
 ///
 /// ```mbt check
 /// test {
-///   let p = try! UrlPattern::from_string("https://example.com/api/:id", None)
+///   let p = try! @urlpattern.UrlPattern::from_string(
+///     "https://example.com/api/:id",
+///     None,
+///   )
 ///   inspect(p.test_url("https://example.com/api/42"), content="true")
 ///   inspect(p.test_url("https://other.com/api/42"), content="false")
 /// }
@@ -783,7 +786,10 @@ fn apply_base_url(
 ///
 /// ```mbt check
 /// test {
-///   let p = try! UrlPattern::from_string("https://example.com/users/:id", None)
+///   let p = try! @urlpattern.UrlPattern::from_string(
+///     "https://example.com/users/:id",
+///     None,
+///   )
 ///   let result = p.exec_url("https://example.com/users/42")
 ///   inspect(result is Some(_), content="true")
 ///   guard result is Some(r) else { fail("no match") }
@@ -894,12 +900,15 @@ pub fn UrlPattern::get_hash(self : UrlPattern) -> String {
 ///
 /// ```mbt check
 /// test {
-///   let with_group = try! UrlPattern::from_string(
+///   let with_group = try! @urlpattern.UrlPattern::from_string(
 ///     "https://example.com/(hi)",
 ///     None,
 ///   )
 ///   inspect(with_group.has_regexp_groups(), content="true")
-///   let wildcard = try! UrlPattern::from_string("https://example.com/*", None)
+///   let wildcard = try! @urlpattern.UrlPattern::from_string(
+///     "https://example.com/*",
+///     None,
+///   )
 ///   inspect(wildcard.has_regexp_groups(), content="false")
 /// }
 /// ```
@@ -996,7 +1005,10 @@ fn generate_component_string(
 ///
 /// ```mbt check
 /// test {
-///   let p = try! UrlPattern::from_string("https://example.com/users/:id", None)
+///   let p = try! @urlpattern.UrlPattern::from_string(
+///     "https://example.com/users/:id",
+///     None,
+///   )
 ///   let groups : Map[String, String] = { "id": "42" }
 ///   inspect(p.generate(Pathname, groups) == Some("/users/42"), content="true")
 /// }

@@ -14,6 +14,8 @@ pub fn serialize_host(Host) -> String
 pub suberror HostParseError {
   HostParseError(String)
 }
+pub fn HostParseError::output(Self, &Logger) -> Unit
+pub fn HostParseError::to_string(Self) -> String
 pub impl Show for HostParseError
 
 // Types and methods
@@ -24,6 +26,9 @@ pub enum Host {
   OpaqueHost(String)
 } derive(Eq, @debug.Debug)
 pub fn Host::empty_domain() -> Self
+pub fn Host::equal(Self, Self) -> Bool
+pub fn Host::not_equal(Self, Self) -> Bool
+pub fn Host::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

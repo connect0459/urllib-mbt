@@ -253,7 +253,10 @@ pub fn percent_encode_userinfo(input : String) -> String {
 ///
 /// ```mbt check
 /// test {
-///   inspect(percent_encode_c0("hello\nworld"), content="hello%0Aworld")
+///   inspect(
+///     @percent_encoding.percent_encode_c0("hello\nworld"),
+///     content="hello%0Aworld",
+///   )
 /// }
 /// ```
 pub fn percent_encode_c0(input : String) -> String {
@@ -294,8 +297,14 @@ pub fn hex_digit_value(c : Char) -> Int? {
 ///
 /// ```mbt check
 /// test {
-///   inspect(percent_decode("hello%20world"), content="hello world")
-///   inspect(percent_decode("%E4%B8%AD%E6%96%87"), content="中文")
+///   inspect(
+///     @percent_encoding.percent_decode("hello%20world"),
+///     content="hello world",
+///   )
+///   inspect(
+///     @percent_encoding.percent_decode("%E4%B8%AD%E6%96%87"),
+///     content="中文",
+///   )
 /// }
 /// ```
 pub fn percent_decode(input : String) -> String {

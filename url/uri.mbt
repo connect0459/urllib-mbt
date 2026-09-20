@@ -5,8 +5,8 @@
 ///
 /// ```mbt check
 /// test {
-///   inspect(can_parse("https://example.com", None), content="true")
-///   inspect(can_parse("not a url", None), content="false")
+///   inspect(@url.can_parse("https://example.com", None), content="true")
+///   inspect(@url.can_parse("not a url", None), content="false")
 /// }
 /// ```
 pub fn can_parse(url : String, base : Url?) -> Bool {
@@ -21,8 +21,11 @@ pub fn can_parse(url : String, base : Url?) -> Bool {
 ///
 /// ```mbt check
 /// test {
-///   inspect(parse_maybe("https://example.com", None) is Some(_), content="true")
-///   inspect(parse_maybe("not a url", None) is None, content="true")
+///   inspect(
+///     @url.parse_maybe("https://example.com", None) is Some(_),
+///     content="true",
+///   )
+///   inspect(@url.parse_maybe("not a url", None) is None, content="true")
 /// }
 /// ```
 pub fn parse_maybe(url : String, base : Url?) -> Url? {
@@ -36,6 +39,9 @@ pub fn parse_maybe(url : String, base : Url?) -> Url? {
 pub impl ToJson for Url with fn to_json(self : Url) -> Json {
   Json::string(self.href())
 }
+
+///|
+pub extend Url with ToJson::{to_json}
 
 ///|
 /// Returns `true` when the scheme is one of the WHATWG special schemes
@@ -63,7 +69,7 @@ pub fn Url::has_opaque_path(self : Url) -> Bool {
 ///
 /// ```mbt check
 /// test {
-///   let base = try! parse("https://example.com/a/b/")
+///   let base = try! @url.parse("https://example.com/a/b/")
 ///   inspect((try! base.join("../c")).href(), content="https://example.com/a/c")
 /// }
 /// ```
@@ -79,7 +85,7 @@ pub fn Url::join(self : Url, url : String) -> Url raise UrlParseError {
 ///
 /// ```mbt check
 /// test {
-///   let url = try! parse("https://example.com/?a=1&b=2")
+///   let url = try! @url.parse("https://example.com/?a=1&b=2")
 ///   inspect(url.search_params().get("a") == Some("1"), content="true")
 /// }
 /// ```
@@ -131,8 +137,8 @@ pub fn Url::path_segments(self : Url) -> Iter[String]? {
 ///
 /// ```mbt check
 /// test {
-///   inspect(domain_to_ascii("例え.jp"), content="xn--r8jz45g.jp")
-///   inspect(domain_to_ascii("EXAMPLE.COM"), content="example.com")
+///   inspect(@url.domain_to_ascii("例え.jp"), content="xn--r8jz45g.jp")
+///   inspect(@url.domain_to_ascii("EXAMPLE.COM"), content="example.com")
 /// }
 /// ```
 pub fn domain_to_ascii(domain : String) -> String {
@@ -149,8 +155,8 @@ pub fn domain_to_ascii(domain : String) -> String {
 ///
 /// ```mbt check
 /// test {
-///   inspect(domain_to_unicode("xn--r8jz45g.jp"), content="例え.jp")
-///   inspect(domain_to_unicode("example.com"), content="example.com")
+///   inspect(@url.domain_to_unicode("xn--r8jz45g.jp"), content="例え.jp")
+///   inspect(@url.domain_to_unicode("example.com"), content="example.com")
 /// }
 /// ```
 pub fn domain_to_unicode(domain : String) -> String {
@@ -392,7 +398,9 @@ pub fn Url::has_fragment(self : Url) -> Bool {
 ///
 /// ```mbt check
 /// test {
-///   let url = try! parse_with_params("https://example.net?k=v", [("lang", "rust")])
+///   let url = try! @url.parse_with_params("https://example.net?k=v", [
+///     ("lang", "rust"),
+///   ])
 ///   inspect(url.href(), content="https://example.net/?k=v&lang=rust")
 /// }
 /// ```
@@ -427,7 +435,7 @@ pub fn parse_with_params(
 ///
 /// ```mbt check
 /// test {
-///   let url = try! from_file_path("/usr/local/bin")
+///   let url = try! @url.from_file_path("/usr/local/bin")
 ///   inspect(url.href(), content="file:///usr/local/bin")
 /// }
 /// ```
@@ -476,7 +484,7 @@ pub fn from_file_path(path : String) -> Url raise UrlParseError {
 ///
 /// ```mbt check
 /// test {
-///   let url = try! parse("file:///usr/local/bin")
+///   let url = try! @url.parse("file:///usr/local/bin")
 ///   inspect(try! url.to_file_path(), content="/usr/local/bin")
 /// }
 /// ```
@@ -527,7 +535,7 @@ pub fn Url::to_file_path(self : Url) -> String raise UrlParseError {
 ///
 /// ```mbt check
 /// test {
-///   let dir = try! from_directory_path("/var/www")
+///   let dir = try! @url.from_directory_path("/var/www")
 ///   inspect(dir.href(), content="file:///var/www/")
 ///   let page = try! dir.join("index.html")
 ///   inspect(page.href(), content="file:///var/www/index.html")
@@ -554,7 +562,7 @@ pub fn from_directory_path(path : String) -> Url raise UrlParseError {
 ///
 /// ```mbt check
 /// test {
-///   let url = try! parse("https://example.com/?a=1&b=2")
+///   let url = try! @url.parse("https://example.com/?a=1&b=2")
 ///   let pairs = url.query_pairs().to_array()
 ///   inspect(pairs.length(), content="2")
 /// }

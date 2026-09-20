@@ -15,6 +15,9 @@ pub struct UrlPatternInit {
 } derive(Debug)
 
 ///|
+pub extend UrlPatternInit with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 /// Creates a `UrlPatternInit` with per-component pattern strings; all fields
 /// default to `None` (wildcard) when omitted.
 pub fn UrlPatternInit::new(
@@ -50,12 +53,20 @@ pub enum UrlPatternInput {
 } derive(Debug)
 
 ///|
+pub extend UrlPatternInput with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 /// Match result for a single URL component: the matched input string and a
 /// map of named capture group names to their matched values.
 pub struct UrlPatternComponentResult {
   priv input : String
   priv groups : Map[String, String?]
 } derive(Debug)
+
+///|
+pub extend UrlPatternComponentResult with @moonbitlang/core/debug.Debug::{
+  to_repr,
+}
 
 ///|
 /// Returns the input string that was matched against this component's pattern.
@@ -87,6 +98,9 @@ pub struct UrlPatternResult {
   priv search : UrlPatternComponentResult?
   priv hash : UrlPatternComponentResult?
 } derive(Debug)
+
+///|
+pub extend UrlPatternResult with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 /// Returns the inputs array that was matched against this pattern.
@@ -174,6 +188,9 @@ pub impl Show for UrlPatternError with fn output(self, logger) {
 }
 
 ///|
+pub extend UrlPatternError with Show::{to_string, output}
+
+///|
 /// Identifies one of the eight URL components a `UrlPattern` operates on.
 /// Used by `UrlPattern::compare_component` and `UrlPattern::generate` to
 /// select which part of the pattern to act on.
@@ -187,6 +204,12 @@ pub(all) enum UrlPatternComponent {
   Search
   Hash
 } derive(Eq, Debug)
+
+///|
+pub extend UrlPatternComponent with Eq::{not_equal, equal}
+
+///|
+pub extend UrlPatternComponent with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 priv struct CompiledComponent {
