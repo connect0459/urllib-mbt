@@ -28,6 +28,12 @@ pub enum Host {
 } derive(Eq, Debug)
 
 ///|
+pub extend Host with Eq::{not_equal, equal}
+
+///|
+pub extend Host with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 pub suberror HostParseError {
   HostParseError(String)
 }
@@ -38,6 +44,9 @@ pub impl Show for HostParseError with fn output(self, logger) {
     HostParseError(msg) => logger.write_string("HostParseError: " + msg)
   }
 }
+
+///|
+pub extend HostParseError with Show::{to_string, output}
 
 ///|
 pub fn Host::empty_domain() -> Host {

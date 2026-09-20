@@ -196,3 +196,6 @@ pub fn Url::hash(self : Url) -> String {
 pub impl Show for Url with fn output(self, logger) {
   logger.write_string(self.href())
 }
+
+///|
+pub extend Url with Show::{to_string, output}

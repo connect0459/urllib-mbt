@@ -2,24 +2,26 @@
 fn build_single_component_pattern(
   component : String,
   pattern : String,
-) -> UrlPattern raise {
+) -> @urlpattern.UrlPattern raise {
   let init = match component {
-    "protocol" => UrlPatternInit::new(protocol=Some(pattern))
-    "username" => UrlPatternInit::new(username=Some(pattern))
-    "password" => UrlPatternInit::new(password=Some(pattern))
-    "hostname" => UrlPatternInit::new(hostname=Some(pattern))
-    "port" => UrlPatternInit::new(port=Some(pattern))
-    "pathname" => UrlPatternInit::new(pathname=Some(pattern))
-    "search" => UrlPatternInit::new(search=Some(pattern))
-    "hash" => UrlPatternInit::new(hash=Some(pattern))
+    "protocol" => @urlpattern.UrlPatternInit::new(protocol=Some(pattern))
+    "username" => @urlpattern.UrlPatternInit::new(username=Some(pattern))
+    "password" => @urlpattern.UrlPatternInit::new(password=Some(pattern))
+    "hostname" => @urlpattern.UrlPatternInit::new(hostname=Some(pattern))
+    "port" => @urlpattern.UrlPatternInit::new(port=Some(pattern))
+    "pathname" => @urlpattern.UrlPatternInit::new(pathname=Some(pattern))
+    "search" => @urlpattern.UrlPatternInit::new(search=Some(pattern))
+    "hash" => @urlpattern.UrlPatternInit::new(hash=Some(pattern))
     _ => fail("unknown component: \{component}")
   }
-  UrlPattern::from_init(init)
+  @urlpattern.UrlPattern::from_init(init)
 }
 
 ///|
 test "WPT URLPattern: hasRegExpGroups - match-everything pattern has no regexp groups" {
-  let p = try! UrlPattern::from_init(UrlPatternInit::new())
+  let p = try! @urlpattern.UrlPattern::from_init(
+    @urlpattern.UrlPatternInit::new(),
+  )
   assert_false(p.has_regexp_groups())
 }
 
@@ -107,16 +109,16 @@ test "WPT URLPattern: hasRegExpGroups - regexp groups mixed with fixed text are 
 
 ///|
 test "WPT URLPattern: hasRegExpGroups - complex pathname without regexp has no regexp groups" {
-  let p = try! UrlPattern::from_init(
-    UrlPatternInit::new(pathname=Some("/a/:foo/:baz?/b/*")),
+  let p = try! @urlpattern.UrlPattern::from_init(
+    @urlpattern.UrlPatternInit::new(pathname=Some("/a/:foo/:baz?/b/*")),
   )
   assert_false(p.has_regexp_groups())
 }
 
 ///|
 test "WPT URLPattern: hasRegExpGroups - complex pathname with regexp has regexp groups" {
-  let p = try! UrlPattern::from_init(
-    UrlPatternInit::new(pathname=Some("/a/:foo/:baz([a-z]+)?/b/*")),
+  let p = try! @urlpattern.UrlPattern::from_init(
+    @urlpattern.UrlPatternInit::new(pathname=Some("/a/:foo/:baz([a-z]+)?/b/*")),
   )
   assert_true(p.has_regexp_groups())
 }

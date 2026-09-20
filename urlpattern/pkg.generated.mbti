@@ -11,6 +11,8 @@ import {
 pub suberror UrlPatternError {
   UrlPatternError(String)
 }
+pub fn UrlPatternError::output(Self, &Logger) -> Unit
+pub fn UrlPatternError::to_string(Self) -> String
 pub impl Show for UrlPatternError
 
 // Types and methods
@@ -45,22 +47,28 @@ pub(all) enum UrlPatternComponent {
   Search
   Hash
 } derive(Eq, @debug.Debug)
+pub fn UrlPatternComponent::equal(Self, Self) -> Bool
+pub fn UrlPatternComponent::not_equal(Self, Self) -> Bool
+pub fn UrlPatternComponent::to_repr(Self) -> @debug.Repr
 
 pub struct UrlPatternComponentResult {
   // private fields
 } derive(@debug.Debug)
 pub fn UrlPatternComponentResult::groups(Self) -> Map[String, String?]
 pub fn UrlPatternComponentResult::input(Self) -> String
+pub fn UrlPatternComponentResult::to_repr(Self) -> @debug.Repr
 
 pub struct UrlPatternInit {
   // private fields
 } derive(@debug.Debug)
 pub fn UrlPatternInit::new(protocol? : String?, username? : String?, password? : String?, hostname? : String?, port? : String?, pathname? : String?, search? : String?, hash? : String?, base_url? : String?) -> Self
+pub fn UrlPatternInit::to_repr(Self) -> @debug.Repr
 
 pub enum UrlPatternInput {
   Str(String)
   Init(UrlPatternInit)
 } derive(@debug.Debug)
+pub fn UrlPatternInput::to_repr(Self) -> @debug.Repr
 
 pub struct UrlPatternResult {
   // private fields
@@ -73,6 +81,7 @@ pub fn UrlPatternResult::pathname(Self) -> UrlPatternComponentResult?
 pub fn UrlPatternResult::port(Self) -> UrlPatternComponentResult?
 pub fn UrlPatternResult::protocol(Self) -> UrlPatternComponentResult?
 pub fn UrlPatternResult::search(Self) -> UrlPatternComponentResult?
+pub fn UrlPatternResult::to_repr(Self) -> @debug.Repr
 pub fn UrlPatternResult::username(Self) -> UrlPatternComponentResult?
 
 // Type aliases

@@ -124,8 +124,8 @@ fn extract_ignore_case(obj : Map[String, Json]) -> Bool {
 }
 
 ///|
-fn build_init_from_obj(obj : Map[String, Json]) -> UrlPatternInit {
-  UrlPatternInit::new(
+fn build_init_from_obj(obj : Map[String, Json]) -> @urlpattern.UrlPatternInit {
+  @urlpattern.UrlPatternInit::new(
     protocol=extract_str_opt(obj, "protocol"),
     username=extract_str_opt(obj, "username"),
     password=extract_str_opt(obj, "password"),
@@ -140,7 +140,7 @@ fn build_init_from_obj(obj : Map[String, Json]) -> UrlPatternInit {
 
 ///|
 fn check_component_result(
-  result : UrlPatternComponentResult,
+  result : @urlpattern.UrlPatternComponentResult,
   expected_comp : Map[String, Json],
   comp_name : String,
 ) -> String? {
@@ -181,7 +181,10 @@ fn check_component_result(
 }
 
 ///|
-fn get_component_pattern(pattern : UrlPattern, name : String) -> String? {
+fn get_component_pattern(
+  pattern : @urlpattern.UrlPattern,
+  name : String,
+) -> String? {
   match name {
     "protocol" => Some(pattern.get_protocol())
     "username" => Some(pattern.get_username())
@@ -234,7 +237,7 @@ test "WPT URLPattern: components listed in exactly_empty_components compile to e
       continue
     }
     let pat_init = build_init_from_obj(pat_obj)
-    let pattern = UrlPattern::from_init(pat_init) catch {
+    let pattern = @urlpattern.UrlPattern::from_init(pat_init) catch {
       err => {
         failures.push(
           "from_init failed: \{err} for pattern=\{Json::stringify(pattern_arr[0])}",
@@ -329,7 +332,7 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
       }
       String(input_str) => {
         let pat_init = build_init_from_obj(pat_obj)
-        let pattern = UrlPattern::from_init(pat_init) catch {
+        let pattern = @urlpattern.UrlPattern::from_init(pat_init) catch {
           err => {
             failures.push(
               "from_init failed: \{err} for pattern=\{Json::stringify(pattern_arr[0])}",
@@ -337,7 +340,7 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
             continue
           }
         }
-        let result : UrlPatternResult? = match
+        let result : @urlpattern.UrlPatternResult? = match
           @url.parse_maybe(base_str, None) {
           None => None
           Some(base_url) =>
@@ -364,7 +367,8 @@ test "WPT URLPattern: URL string resolved against a base URL matches the compile
                 Object(o) => o
                 _ => continue
               }
-              let comp_result : UrlPatternComponentResult? = match comp_name {
+              let comp_result : @urlpattern.UrlPatternComponentResult? = match
+                comp_name {
                 "protocol" => r.protocol()
                 "username" => r.username()
                 "password" => r.password()
@@ -459,7 +463,7 @@ test "WPT URLPattern: string pattern constructor — expected_obj normalization 
       skipped += 1
       continue
     }
-    let pattern = UrlPattern::from_string(pat_str, base_url_opt) catch {
+    let pattern = @urlpattern.UrlPattern::from_string(pat_str, base_url_opt) catch {
       err => {
         let exp_obj = item.get("expected_obj")
         if exp_obj is Some(String("error")) {
@@ -585,7 +589,8 @@ test "WPT URLPattern: string pattern constructor — expected_obj normalization 
             Object(o) => o
             _ => continue
           }
-          let comp_result : UrlPatternComponentResult? = match comp_name {
+          let comp_result : @urlpattern.UrlPatternComponentResult? = match
+            comp_name {
             "protocol" => r.protocol()
             "username" => r.username()
             "password" => r.password()
@@ -675,7 +680,7 @@ test "WPT URLPattern: construction rejects invalid patterns" {
           continue
         }
         let pat_init = build_init_from_obj(pat_obj)
-        try UrlPattern::from_init(pat_init) catch {
+        try @urlpattern.UrlPattern::from_init(pat_init) catch {
           _ => passed += 1
         } noraise {
           _ =>
@@ -708,7 +713,13 @@ test "WPT URLPattern: construction rejects invalid patterns" {
         } else {
           (None, false)
         }
-        try UrlPattern::from_string(pat_str, base_url_opt, ignore_case~) catch {
+        try
+          @urlpattern.UrlPattern::from_string(
+            pat_str,
+            base_url_opt,
+            ignore_case~,
+          )
+        catch {
           _ => passed += 1
         } noraise {
           _ =>
@@ -777,7 +788,10 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
           skipped += 1
           continue
         }
-        UrlPattern::from_init(build_init_from_obj(pat_obj), ignore_case~) catch {
+        @urlpattern.UrlPattern::from_init(
+          build_init_from_obj(pat_obj),
+          ignore_case~,
+        ) catch {
           err => {
             let msg = "\{err}"
             if msg.contains("Unsupported") ||
@@ -817,7 +831,7 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
           skipped += 1
           continue
         }
-        UrlPattern::from_string(pat_str, base_url_opt, ignore_case~) catch {
+        @urlpattern.UrlPattern::from_string(pat_str, base_url_opt, ignore_case~) catch {
           err => {
             let msg = "\{err}"
             if msg.contains("Unsupported") ||
@@ -901,7 +915,8 @@ test "WPT URLPattern: expected_obj dict — pattern normalization and match" {
             Object(o) => o
             _ => continue
           }
-          let comp_result : UrlPatternComponentResult? = match comp_name {
+          let comp_result : @urlpattern.UrlPatternComponentResult? = match
+            comp_name {
             "protocol" => r.protocol()
             "username" => r.username()
             "password" => r.password()
@@ -1002,7 +1017,7 @@ test "WPT URLPattern: simple init-to-init cases" {
       continue
     }
     let pat_init = build_init_from_obj(pat_obj)
-    let pattern = UrlPattern::from_init(pat_init, ignore_case~) catch {
+    let pattern = @urlpattern.UrlPattern::from_init(pat_init, ignore_case~) catch {
       err => {
         let msg = "\{err}"
         if msg.contains("Unsupported") || msg.contains("POSIX character class") {
@@ -1039,7 +1054,8 @@ test "WPT URLPattern: simple init-to-init cases" {
             Object(o) => o
             _ => continue
           }
-          let comp_result : UrlPatternComponentResult? = match comp_name {
+          let comp_result : @urlpattern.UrlPatternComponentResult? = match
+            comp_name {
             "protocol" => r.protocol()
             "username" => r.username()
             "password" => r.password()

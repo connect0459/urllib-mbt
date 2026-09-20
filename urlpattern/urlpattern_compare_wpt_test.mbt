@@ -64,7 +64,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
     } else {
       0
     }
-    let r1 = UrlPattern::compare_component(component, left, right)
+    let r1 = @urlpattern.UrlPattern::compare_component(component, left, right)
     if r1 == expected {
       passed += 1
     } else {
@@ -74,7 +74,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       println("  expected: \{expected}, got: \{r1}")
       failed += 1
     }
-    let r2 = UrlPattern::compare_component(component, right, left)
+    let r2 = @urlpattern.UrlPattern::compare_component(component, right, left)
     if r2 == rev_expected {
       passed += 1
     } else {
@@ -83,7 +83,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       )
       failed += 1
     }
-    let r3 = UrlPattern::compare_component(component, left, left)
+    let r3 = @urlpattern.UrlPattern::compare_component(component, left, left)
     if r3 == 0 {
       passed += 1
     } else {
@@ -92,7 +92,7 @@ test "WPT URLPattern: compare_component compares pattern specificity" {
       )
       failed += 1
     }
-    let r4 = UrlPattern::compare_component(component, right, right)
+    let r4 = @urlpattern.UrlPattern::compare_component(component, right, right)
     if r4 == 0 {
       passed += 1
     } else {

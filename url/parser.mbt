@@ -181,7 +181,7 @@ fn is_single_dot(s : String) -> Bool {
 /// ```mbt check
 /// test {
 ///   inspect(
-///     (try! parse("https://example.com/path")).href(),
+///     (try! @url.parse("https://example.com/path")).href(),
 ///     content="https://example.com/path",
 ///   )
 /// }
@@ -197,9 +197,9 @@ pub fn parse(input : String) -> Url raise UrlParseError {
 ///
 /// ```mbt check
 /// test {
-///   let base = try! parse("https://example.com/a/b")
+///   let base = try! @url.parse("https://example.com/a/b")
 ///   inspect(
-///     (try! parse_with_base("../c", Some(base))).href(),
+///     (try! @url.parse_with_base("../c", Some(base))).href(),
 ///     content="https://example.com/c",
 ///   )
 /// }

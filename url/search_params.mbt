@@ -54,7 +54,7 @@ fn parse_urlencoded(s : String) -> UrlSearchParams {
 ///
 /// ```mbt check
 /// test {
-///   let sp = UrlSearchParams::from_string("a=1&b=2")
+///   let sp = @url.UrlSearchParams::from_string("a=1&b=2")
 ///   inspect(sp.get("a") == Some("1"), content="true")
 ///   inspect(sp.get("b") == Some("2"), content="true")
 /// }
@@ -165,7 +165,7 @@ pub fn UrlSearchParams::set(
 ///
 /// ```mbt check
 /// test {
-///   let sp = UrlSearchParams::from_string("b=2&a=1")
+///   let sp = @url.UrlSearchParams::from_string("b=2&a=1")
 ///   sp.sort()
 ///   inspect(sp.to_string(), content="a=1&b=2")
 /// }
@@ -189,7 +189,7 @@ pub fn UrlSearchParams::size(self : UrlSearchParams) -> Int {
 ///
 /// ```mbt check
 /// test {
-///   let sp = UrlSearchParams::from_string("a=hello world&b=ok")
+///   let sp = @url.UrlSearchParams::from_string("a=hello world&b=ok")
 ///   inspect(sp.to_string(), content="a=hello+world&b=ok")
 /// }
 /// ```
@@ -214,6 +214,9 @@ pub impl Show for UrlSearchParams with fn output(self, logger) {
 }
 
 ///|
+pub extend UrlSearchParams with Show::{output}
+
+///|
 /// Returns an iterator over name/value pairs in list order.
 pub fn UrlSearchParams::iter(self : UrlSearchParams) -> Iter[(String, String)] {
   self.list.iter()
@@ -227,7 +230,7 @@ pub fn UrlSearchParams::iter(self : UrlSearchParams) -> Iter[(String, String)] {
 ///
 /// ```mbt check
 /// test {
-///   let sp = UrlSearchParams::from_string("a=1&b=2")
+///   let sp = @url.UrlSearchParams::from_string("a=1&b=2")
 ///   let pairs : Array[(String, String)] = []
 ///   for pair in sp.entries() {
 ///     pairs.push(pair)
@@ -248,7 +251,7 @@ pub fn UrlSearchParams::entries(
 ///
 /// ```mbt check
 /// test {
-///   let sp = UrlSearchParams::from_string("a=1&b=2&a=3")
+///   let sp = @url.UrlSearchParams::from_string("a=1&b=2&a=3")
 ///   let names : Array[String] = []
 ///   for k in sp.keys() {
 ///     names.push(k)
@@ -267,7 +270,7 @@ pub fn UrlSearchParams::keys(self : UrlSearchParams) -> Iter[String] {
 ///
 /// ```mbt check
 /// test {
-///   let sp = UrlSearchParams::from_string("a=1&b=2&c=3")
+///   let sp = @url.UrlSearchParams::from_string("a=1&b=2&c=3")
 ///   let vals : Array[String] = []
 ///   for v in sp.values() {
 ///     vals.push(v)

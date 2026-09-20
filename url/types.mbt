@@ -10,6 +10,9 @@ enum UrlPath {
 } derive(Debug)
 
 ///|
+pub extend UrlPath with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 impl Eq for UrlPath with fn equal(self : UrlPath, other : UrlPath) -> Bool {
   match (self, other) {
     (Segments(a), Segments(b)) => a == b
@@ -32,6 +35,9 @@ pub impl Show for UrlParseError with fn output(self, logger) {
 }
 
 ///|
+pub extend UrlParseError with Show::{to_string, output}
+
+///|
 /// An immutable parsed URL. All setter methods return a new `Url` value
 /// rather than modifying this one.
 pub struct Url {
@@ -44,6 +50,12 @@ pub struct Url {
   priv query : String?
   priv fragment : String?
 } derive(Eq, Debug)
+
+///|
+pub extend Url with Eq::{not_equal, equal}
+
+///|
+pub extend Url with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 priv struct UrlRecord {

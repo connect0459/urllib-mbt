@@ -11,7 +11,7 @@ fn load_generate_testdata() -> Array[Json] raise {
 }
 
 ///|
-fn parse_component_name(s : String) -> UrlPatternComponent? {
+fn parse_component_name(s : String) -> @urlpattern.UrlPatternComponent? {
   match s {
     "protocol" => Some(Protocol)
     "username" => Some(Username)
@@ -26,12 +26,12 @@ fn parse_component_name(s : String) -> UrlPatternComponent? {
 }
 
 ///|
-fn build_pattern_from_json(pattern_json : Json) -> UrlPattern raise {
+fn build_pattern_from_json(pattern_json : Json) -> @urlpattern.UrlPattern raise {
   match pattern_json {
-    String(s) => UrlPattern::from_string(s, None)
+    String(s) => @urlpattern.UrlPattern::from_string(s, None)
     Object(obj) =>
-      UrlPattern::from_init(
-        UrlPatternInit::new(
+      @urlpattern.UrlPattern::from_init(
+        @urlpattern.UrlPatternInit::new(
           protocol=extract_str_opt(obj, "protocol"),
           username=extract_str_opt(obj, "username"),
           password=extract_str_opt(obj, "password"),
