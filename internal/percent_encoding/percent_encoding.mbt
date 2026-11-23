@@ -126,7 +126,7 @@ fn to_hex_upper(n : Int32) -> Char {
 pub fn percent_encode_byte(byte : Int32) -> String {
   let hi = (byte >> 4) & 0xF
   let lo = byte & 0xF
-  let buf = StringBuilder(size_hint=3)
+  let buf = StringBuilder(capacity=3)
   buf.write_char('%')
   buf.write_char(to_hex_upper(hi))
   buf.write_char(to_hex_upper(lo))
