@@ -13,6 +13,6 @@ keywords = [ "url", "whatwg", "urlpattern" ]
 description = "WHATWG-compliant URL and URLPattern library for MoonBit"
 
 import {
-  "moonbitlang/x@0.5.5",
-  "moonbitlang/quickcheck@0.15.0",
+  "moonbitlang/x@0.5.9",
+  "moonbitlang/quickcheck@0.15.1",
 }
