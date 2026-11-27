@@ -222,7 +222,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `parse_maybe(String, Url?)` — infallible variant; returns `None` on failure
 - `parse_with_base(String, Url?)` — parses with an explicit base URL
 - `can_parse(String, Url?)` — validity check without allocating a `Url`
-- Full WHATWG URL Standard compliance with 100 % WPT pass rate
+- Full WHATWG URL Standard compliance with 100% WPT pass rate
 
 **Getters**: `href`, `protocol`, `scheme`, `username`, `password`, `hostname`, `host_str`, `port`, `port_str`, `pathname`, `search`, `hash`, `origin`, `to_json`
 

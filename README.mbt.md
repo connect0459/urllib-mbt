@@ -120,9 +120,9 @@ Full [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt) cover
 
 ## Documentation
 
-Each public package has a `README.mbt.md` with a key-types overview, usage examples, and a full API reference. Start with `url` for the main entry point.
+Each public package has a `README.mbt.md` with an overview of its key types, usage examples, and a full API reference. Start with `url` for the main entry point.
 
-- [ARCHITECTURE.md](https://github.com/connect0459/urllib-mbt/blob/main/docs/ARCHITECTURE.md) : Architecture overview
+- [ARCHITECTURE.md](https://github.com/connect0459/urllib-mbt/blob/main/docs/ARCHITECTURE.md): Architecture overview
 
 ## Contributing
 
